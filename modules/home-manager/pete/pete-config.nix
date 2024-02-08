@@ -1,5 +1,5 @@
 # This file contains unique username based configuration options
-{ pkgs, ... }: {
+{pkgs, ...}: {
   home = {
     username = "pete";
     homeDirectory = "/home/pete";
@@ -10,7 +10,7 @@
     userName = "pete3n";
     userEmail = "pete3n@protonmail.com";
     extraConfig = {
-      core.editor = "vim";
+      core.editor = "nvim";
       #commit.gpgsign = true;
       #gpg.format = "ssh";
       #gpg.ssh.allowedSignersFile = "~/.ssh/allowed_signer";

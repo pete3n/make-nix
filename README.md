@@ -2,8 +2,6 @@
 
 ## TODO:
 
-- Firewall module
-- Virtualization module
 - Pen-test tool module
 - Security / PAM / Yubikey module
 - Nvidia GPU testing and configuration
