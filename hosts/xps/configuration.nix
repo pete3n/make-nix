@@ -149,6 +149,7 @@
     vim
     vulkan-tools
     wpa_supplicant
+    yazi
 
     # Virtualization
     docker-compose

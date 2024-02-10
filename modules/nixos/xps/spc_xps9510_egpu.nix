@@ -5,8 +5,8 @@
   pkgs,
   ...
 }: {
-  XPS-9510_egpu.configuration = {
-    system.nixos.tags = ["Aorus-eGPU" "RTX-3080"];
+  AwesomeWM_egpu.configuration = {
+    system.nixos.tags = ["AwesomeWM" "Aorus-eGPU" "RTX-3080"];
 
     hardware.nvidia = {
       package = config.boot.kernelPackages.nvidiaPackages.production;
@@ -35,7 +35,33 @@
       extraPackages32 = with pkgs.pkgsi686Linux; [nvidia-vaapi-driver intel-media-driver];
     };
 
-    # X server config
-    services.xserver.videoDrivers = ["nvidia"];
+    services.kmscon.enable = false;
+
+    services.xserver = {
+      enable = true;
+      layout = "us";
+      videoDrivers = ["nvidia"];
+
+      config = pkgs.lib.mkOverride 0 ''
+
+        Section "Module"
+          Load		"modesetting"
+        EndSection
+
+        Section "Device"
+            Identifier     "eGPU-RTX3080"
+            Driver         "nvidia"
+            VendorName     "NVIDIA Corporation"
+            BoardName      "NVIDIA GeForce RTX 3080"
+            BusID          "PCI:63:0:0"
+            Option	   "AllowExternalGpus" "True"
+            Option	   "AllowEmptyInitialConfiguration"
+        EndSection
+      '';
+
+      displayManager = {
+        startx.enable = true;
+      };
+    };
   };
 }

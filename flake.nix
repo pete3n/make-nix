@@ -84,9 +84,11 @@
         modules = [
           ./hosts/xps/configuration.nix
           nixosModules.xps-modules.console
-          nixosModules.xps-modules.gpu-specialisations
+          nixosModules.xps-modules.specialisations # Boot profiles
           nixosModules.iptables-default
           nixosModules.nvidia-scripts
+          nixosModules.gaming
+          nixosModules.X11-tools
           systemUsers.pete
         ];
       };
@@ -116,6 +118,7 @@
           ./home-manager/home.nix
           homeManagerModules.pete-modules.config
           homeManagerModules.pete-modules.alacritty-config
+          homeManagerModules.pete-modules.awesome-config
           homeManagerModules.pete-modules.hyprland-config
           homeManagerModules.pete-modules.media-tools
           homeManagerModules.pete-modules.neovim-env
