@@ -8,7 +8,6 @@
     docker-compose
     fd
     fzf
-    fzf-tmux
     git
     gparted
     iw

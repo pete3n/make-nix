@@ -8,4 +8,5 @@
   system-tools = import ./system-tools.nix;
   X11-tools = import ./X11-tools.nix;
   xps-modules = import ./xps;
+  yubi-smartcard = import ./yubikey-sc.nix;
 }

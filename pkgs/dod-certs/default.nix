@@ -20,7 +20,7 @@ stdenv.mkDerivation rec {
   meta = with lib; {
     description = "DoD Approved External PKIs Trust Chains version: ${version}";
     homepage = "https://public.cyber.mil/pki-pke/pkipke-document-library/";
-    license = licenses.unfree;
+    #license = licenses.unfree; # This seems broken for some reason
     maintainers = with maintainers; [];
   };
 }
