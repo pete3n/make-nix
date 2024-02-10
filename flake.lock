@@ -40,6 +40,29 @@
         "type": "github"
       }
     },
+    "firefox-addons": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "dir": "pkgs/firefox-addons",
+        "lastModified": 1707537836,
+        "narHash": "sha256-f8Iv0z/TdCPA6BptVehNpKdRY91Eaee8EVmapaXiIC4=",
+        "owner": "rycee",
+        "repo": "nur-expressions",
+        "rev": "a43896bb86adf7bac04a4451ed98f26fced2abe0",
+        "type": "gitlab"
+      },
+      "original": {
+        "dir": "pkgs/firefox-addons",
+        "owner": "rycee",
+        "repo": "nur-expressions",
+        "type": "gitlab"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -75,6 +98,21 @@
       }
     },
     "flake-utils": {
+      "locked": {
+        "lastModified": 1629284811,
+        "narHash": "sha256-JHgasjPR0/J1J3DRm4KxM4zTyAj4IOJY8vIl75v/kPI=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "c5d161cc0af116a2e17f54316f0bf43f0819785c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "flake-utils_2": {
       "inputs": {
         "systems": "systems_2"
       },
@@ -92,7 +130,7 @@
         "type": "github"
       }
     },
-    "flake-utils_2": {
+    "flake-utils_3": {
       "inputs": {
         "systems": "systems_3"
       },
@@ -398,11 +436,11 @@
         "nixvim": "nixvim_2"
       },
       "locked": {
-        "lastModified": 1707108573,
-        "narHash": "sha256-IE2ClEMczn1X8oQQzuWZz8aRi/+6+IcTnbebiBG1/nA=",
+        "lastModified": 1707578201,
+        "narHash": "sha256-jBiIgb9VQtZj4a/piAbGX4PlDn1Xatg8WLToYRFlxTY=",
         "owner": "pete3n",
         "repo": "nixvim-flake",
-        "rev": "38c8205ff8c7f61fe9e70de765fb9c0a240e4ae4",
+        "rev": "7a72add61f46644fe293158adb2ae58c2def8c7e",
         "type": "github"
       },
       "original": {
@@ -414,7 +452,7 @@
     "nixvim_2": {
       "inputs": {
         "beautysh": "beautysh",
-        "flake-utils": "flake-utils",
+        "flake-utils": "flake-utils_2",
         "nixpkgs": "nixpkgs_4",
         "pre-commit-hooks": "pre-commit-hooks"
       },
@@ -465,7 +503,7 @@
     "pre-commit-hooks": {
       "inputs": {
         "flake-compat": "flake-compat",
-        "flake-utils": "flake-utils_2",
+        "flake-utils": "flake-utils_3",
         "gitignore": "gitignore",
         "nixpkgs": [
           "nixvim",
@@ -490,6 +528,7 @@
     },
     "root": {
       "inputs": {
+        "firefox-addons": "firefox-addons",
         "home-manager": "home-manager",
         "hyprland": "hyprland",
         "hyprland-plugins": "hyprland-plugins",

@@ -10,6 +10,12 @@
     home-manager.url = "github:nix-community/home-manager/release-23.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
+    # Nix User Repository, Firefox-Addons
+    firefox-addons = {
+      url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Hyprland
     hyprland.url = "github:hyprwm/Hyprland";
     hyprland-plugins = {
@@ -22,11 +28,12 @@
   };
 
   outputs = {
-    self,
+    firefox-addons,
+    home-manager,
     nixpkgs,
     nixpkgs-unstable,
     nixvim,
-    home-manager,
+    self,
     ...
   } @ inputs: let
     inherit (self) outputs;
@@ -74,7 +81,7 @@
         specialArgs = {inherit inputs outputs;};
         modules = [
           ./hosts/getac/configuration.nix
-          nixosModules.getac-modules.console
+          nixosModules.console
           systemUsers.eco
         ];
       };
@@ -83,11 +90,12 @@
         specialArgs = {inherit inputs outputs;};
         modules = [
           ./hosts/xps/configuration.nix
-          nixosModules.xps-modules.console
+          nixosModules.console
           nixosModules.xps-modules.specialisations # Boot profiles
           nixosModules.iptables-default
           nixosModules.nvidia-scripts
           nixosModules.gaming
+          nixosModules.system-tools
           nixosModules.X11-tools
           systemUsers.pete
         ];
@@ -120,6 +128,7 @@
           homeManagerModules.pete-modules.awesome-config
           homeManagerModules.pete-modules.user-config
           homeManagerModules.pete-modules.crypto
+          homeManagerModules.pete-modules.firefox-config
           homeManagerModules.pete-modules.hyprland-config
           homeManagerModules.pete-modules.media-tools
           homeManagerModules.pete-modules.messengers

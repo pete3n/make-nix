@@ -128,47 +128,8 @@
   # System wide packages
   environment.systemPackages = with pkgs; [
     # System utils
-    acpi
-    auto-cpufreq
-    cryptsetup
     cudaPackages.cudatoolkit #TODO: Test CUDA functionaliity
-    dhcpcd
-    dig
-    git
-    iw
-    killall
-    libnotify
     mesa-demos
-    openvpn
-    pavucontrol
-    pciutils
-    pipewire
-    thermald
-    tldr
-    usbutils
-    vim
     vulkan-tools
-    wpa_supplicant
-    yazi
-
-    # Virtualization
-    docker-compose
-    qemu
-    qemu-utils
-
-    # Disk utils
-    parted
-    gparted
-
-    # File archives
-    zip
-    unzip
-
-    # Networking tools
-    nmap
-    traceroute
-    tcpdump
-    wireshark
-    tshark
   ];
 }
