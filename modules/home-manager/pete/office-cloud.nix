@@ -3,10 +3,14 @@
   pkgs,
   ...
 }: {
-  home.packages = lib.mkAfter (with pkgs; [
-    onlyoffice-bin
+  home.packages = with pkgs; [
+    cryptomator
     drawio
     nextcloud-client
-    cryptomator
-  ]);
+    onlyoffice-bin
+    protonmail-bridge
+    remmina
+    standardnotes
+    thunderbird
+  ];
 }

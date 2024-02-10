@@ -52,7 +52,16 @@
   in rec {
     # Your custom packages
     # Accessible through 'nix build', 'nix shell', etc
-    packages = forAllSystems (system: import ./pkgs nixpkgs.legacyPackages.${system});
+    packages = forAllSystems (
+      system:
+        import ./pkgs {
+          inherit system;
+          pkgs = nixpkgs.legacyPackages.${system};
+          config = {
+            allowUnfree = true;
+          };
+        }
+    );
 
     # Formatter for your nix files, available through 'nix fmt'
     # Other options beside 'alejandra' include 'nixpkgs-fmt'
@@ -97,6 +106,7 @@
           nixosModules.gaming
           nixosModules.system-tools
           nixosModules.X11-tools
+          nixosModules.yubi-smartcard
           systemUsers.pete
         ];
       };

@@ -4,13 +4,52 @@
   pkgs,
   config,
   ...
-}: {
+}: let
+  # Function to recursively collect .cer files
+  collectCerts = dirPath: let
+    list = builtins.readDir dirPath;
+    paths =
+      lib.mapAttrsToList (
+        name: type:
+          if type == "directory"
+          then collectCerts "${dirPath}/${name}"
+          else if lib.hasSuffix ".cer" name
+          then ["${dirPath}/${name}"]
+          else []
+      )
+      list;
+  in
+    lib.flatten paths;
+
+  certPath = "${pkgs.dod-certs}/dod-certs/_DoD";
+  certs = collectCerts certPath;
+
+  concatenatedCerts = pkgs.stdenv.mkDerivation {
+    name = "concatenated-certs";
+    buildInputs = [pkgs.coreutils];
+    buildCommand = ''
+      cat ${lib.concatStringsSep " " certs} > $out
+    '';
+  };
+  openscLibPath = "${pkgs.opensc}/lib/opensc-pkcs11.so";
+in {
   home.packages = lib.mkAfter (with pkgs; [
     dod-certs
   ]);
 
   programs.firefox = {
     enable = true;
+    policies = {
+      SecurityDevices.Add = {
+        # Enable openSC smartcart reader
+        OpenSC = openscLibPath;
+      };
+      Certificates = {
+        # Import DoD certificates
+        ImportEnterpriseRoots = true;
+        Install = concatenatedCerts;
+      };
+    };
     profiles.pete3n = {
       bookmarks = {};
       extensions = with inputs.firefox-addons.packages.${pkgs.system}; [

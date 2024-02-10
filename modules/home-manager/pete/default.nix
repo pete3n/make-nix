@@ -3,6 +3,7 @@
   awesome-config = import ./awesome-config.nix;
   user-config = import ./pete-config.nix;
   crypto = import ./crypto.nix;
+  firefox-config = import ./firefox.nix;
   hyprland-config = import ./hyprland-config.nix;
   media-tools = import ./media-tools.nix;
   messengers = import ./messengers.nix;

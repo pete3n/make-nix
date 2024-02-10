@@ -20,6 +20,8 @@
     wdisplays # Graphical display layout for wayland
     wl-clipboard # Wayland clipboard
     cliphist # Clipboard manager for wayland with text and image support
+    grim # Screecap
+    slurp # Compositor screen selection tool
     rofi-wayland # Rofi application launcher for Wayland
     rofi-calc # Calculator plugin for rofi - TODO: Not symlinking calc.so to lib/rofi
     wev # Wayland environment diagnostics
@@ -29,6 +31,7 @@
   wayland.windowManager.hyprland = {
     enable = true;
     package = pkgs.unstable.hyprland; # Use the newer unstable branch
+    xwayland.enable = false;
 
     settings = {
       # Mitigate Xwayland pixelation scaling issues
