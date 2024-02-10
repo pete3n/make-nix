@@ -102,7 +102,7 @@
         extraSpecialArgs = {inherit inputs outputs;};
         modules = [
           ./home-manager/home.nix
-          homeManagerModules.eco-modules.config
+          homeManagerModules.eco-modules.user-config
           homeManagerModules.eco-modules.hyprland-config
           homeManagerModules.eco-modules.alacritty-config
           homeManagerModules.eco-modules.neovim-env
@@ -116,12 +116,15 @@
         extraSpecialArgs = {inherit inputs outputs;};
         modules = [
           ./home-manager/home.nix
-          homeManagerModules.pete-modules.config
           homeManagerModules.pete-modules.alacritty-config
           homeManagerModules.pete-modules.awesome-config
+          homeManagerModules.pete-modules.user-config
+          homeManagerModules.pete-modules.crypto
           homeManagerModules.pete-modules.hyprland-config
           homeManagerModules.pete-modules.media-tools
+          homeManagerModules.pete-modules.messengers
           homeManagerModules.pete-modules.neovim-env
+          homeManagerModules.pete-modules.office-cloud
           homeManagerModules.pete-modules.tmux-config
         ];
       };
