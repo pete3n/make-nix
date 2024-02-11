@@ -8,6 +8,7 @@
   media-tools = import ./media-tools.nix;
   messengers = import ./messengers.nix;
   office-cloud = import ./office-cloud.nix;
+  pen-tools = import ./pen-tools.nix;
   neovim-env = import ./neovim-env.nix;
   theme-style = import ./theme-style.nix;
   tmux-config = import ./tmux-config.nix;

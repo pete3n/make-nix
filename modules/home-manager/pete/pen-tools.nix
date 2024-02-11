@@ -5,7 +5,7 @@
 }: {
   home.packages = lib.mkAfter (with pkgs; [
     aircrack-ng
-    angryOxide
+    AngryOxide
     bettercap
     chisel
     gpsd
