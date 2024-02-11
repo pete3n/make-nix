@@ -2,13 +2,9 @@
 
 ## TODO:
 
-- Pen-test tool module
-- Security / PAM / Yubikey module
 - Nvidia GPU testing and configuration
-- Firefox vim keys
+  - TODO: Fix CUDA on Wayland
 - rofi - fix calc, clipmenu, mpc
-- Split individual user configuartion
-- Notification system customization
 - Music player integration (mpd/mpc)
 - chatgpt integration
 - local gpt integration + build flake
