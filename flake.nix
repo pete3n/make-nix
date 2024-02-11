@@ -24,10 +24,11 @@
     };
 
     nixvim.url = "github:pete3n/nixvim-flake";
-    nix-colors.url = "github:misterio77/nix-colors";
+    deploy-rs.url = "github:serokell/deploy-rs";
   };
 
   outputs = {
+    deploy-rs,
     firefox-addons,
     home-manager,
     nixpkgs,
@@ -115,6 +116,8 @@
       };
     };
 
+    eco-getac-system = nixosConfigurations.eco-getac.config.system.build.toplevel;
+
     # Standalone home-manager configuration entrypoint
     # Available through 'home-manager --flake .#your-username@your-hostname'
     homeConfigurations = {
@@ -152,6 +155,32 @@
           homeManagerModules.pete-modules.office-cloud
           homeManagerModules.pete-modules.tmux-config
         ];
+      };
+    };
+    eco-getac-home = homeConfigurations."eco@nix-tac".activationPackage;
+
+    deploy.nodes = {
+      eco-getac = {
+        hostname = "nix-tac";
+        profiles = {
+          system = {
+            sshUser = "eco";
+            user = "root";
+            autoRollback = true;
+            magicRollback = true;
+            remoteBuild = false;
+            path = deploy-rs.lib.x86_64-linux.activate.nixos nixosConfigurations.eco-getac;
+            # Using x86_64 to allow pushing configs without NixOS and binfmt support
+          };
+          home = {
+            sshUser = "eco";
+            user = "eco";
+            autoRollback = false;
+            magicRollback = false;
+            remoteBuild = false;
+            path = deploy-rs.lib.x86_64-linux.activate.custom homeConfigurations."eco@nix-tac".activationPackage "./activate";
+          };
+        };
       };
     };
   };

@@ -43,7 +43,7 @@
   networking.networkmanager.enable = false;
 
   # Disable wireless by default (use wpa_supplicant manually)
-  wireless.enable = false;
+  networking.wireless.enable = false;
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
