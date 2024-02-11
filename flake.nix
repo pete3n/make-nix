@@ -91,6 +91,9 @@
         modules = [
           ./hosts/getac/configuration.nix
           nixosModules.console
+          nixosModules.system-tools
+          nixosModules.X11-tools
+          nixosModules.iptables-default
           systemUsers.eco
         ];
       };
@@ -115,7 +118,7 @@
     # Standalone home-manager configuration entrypoint
     # Available through 'home-manager --flake .#your-username@your-hostname'
     homeConfigurations = {
-      "eco@nixos" = home-manager.lib.homeManagerConfiguration {
+      "eco@nix-tac" = home-manager.lib.homeManagerConfiguration {
         pkgs = nixpkgs.legacyPackages.x86_64-linux; # Home-manager requires 'pkgs' instance
         extraSpecialArgs = {inherit inputs outputs;};
         modules = [
