@@ -659,6 +659,10 @@ let
     	c.border_color = beautiful.border_normal
     end)
     -- }}}
+
+		-- Autostart apps
+		awful.spawn.with_shell("picom")
+		-- awful.spawn.with_shell("setTouchpad")
   '';
 
   default_theme = ''
