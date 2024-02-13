@@ -124,7 +124,10 @@
   # Enable Docker - note: This requires iptables
   virtualisation.docker.enable = true;
 
-  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config = {
+    allowUnfree = true;
+    cudaSupport = true;
+  };
   # System wide packages
   environment.systemPackages = with pkgs; [
     # System utils
