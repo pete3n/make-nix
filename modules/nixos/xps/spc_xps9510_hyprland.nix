@@ -28,7 +28,7 @@
       enable = true;
       driSupport = true;
       driSupport32Bit = true;
-      extraPackages = with pkgs; [intel-compute-runtime nvidia-vaapi-driver intel-media-driver];
+      extraPackages = with pkgs; [nvidia-vaapi-driver intel-media-driver];
       extraPackages32 = with pkgs.pkgsi686Linux; [nvidia-vaapi-driver intel-media-driver];
     };
 
