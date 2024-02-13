@@ -31,7 +31,7 @@
   wayland.windowManager.hyprland = {
     enable = true;
     package = pkgs.unstable.hyprland; # Use the newer unstable branch
-    xwayland.enable = false;
+    xwayland.enable = true;
 
     settings = {
       # Mitigate Xwayland pixelation scaling issues
