@@ -18,5 +18,6 @@
     reaverwps-t6x
     rustscan
     socat
+    uftpd
   ]);
 }
