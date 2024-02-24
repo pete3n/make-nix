@@ -11,6 +11,7 @@
   home.packages = with pkgs; [
     cryptomator
     drawio
+    nb
     nextcloud-client
     onlyoffice-bin
     protonmail-bridge
