@@ -92,9 +92,10 @@
         modules = [
           ./hosts/getac/configuration.nix
           nixosModules.console
+          nixosModules.getac-modules.specialisations
+          nixosModules.iptables-default
           nixosModules.system-tools
           nixosModules.X11-tools
-          nixosModules.iptables-default
           systemUsers.eco
         ];
       };
@@ -104,7 +105,7 @@
         modules = [
           ./hosts/xps/configuration.nix
           nixosModules.console
-          nixosModules.xps-modules.specialisations # Boot profiles
+          nixosModules.xps-modules.specialisations
           nixosModules.iptables-default
           nixosModules.nvidia-scripts
           nixosModules.gaming
@@ -114,9 +115,23 @@
           systemUsers.pete
         ];
       };
+      junior-xps-sc2 = nixpkgs.lib.nixosSystem {
+        specialArgs = {inherit inputs outputs;};
+        modules = [
+          ./hosts/xps/configuration.nix
+          nixosModules.console
+          nixosModules.xps-modules.specialisations
+          nixosModules.iptables-default
+          nixosModules.system-tools
+          nixosModules.X11-tools
+          systemUsers.junior
+        ];
+      };
     };
 
     eco-getac-system = nixosConfigurations.eco-getac.config.system.build.toplevel;
+    pete-xps-system = nixosConfigurations.pete-xps.config.system.build.toplevel;
+    junior-xps-sc2-system = nixosConfigurations.junior-xps-sc2.config.system.build.toplevel;
 
     # Standalone home-manager configuration entrypoint
     # Available through 'home-manager --flake .#your-username@your-hostname'
@@ -127,10 +142,10 @@
         modules = [
           ./home-manager/home.nix
           homeManagerModules.eco-modules.alacritty-config
-          homeManagerModules.pete-modules.awesome-config
+          homeManagerModules.eco-modules.awesome-config
           homeManagerModules.eco-modules.hyprland-config
           homeManagerModules.eco-modules.neovim-env
-          homeManagerModules.pete-modules.pen-tools
+          homeManagerModules.eco-modules.pen-tools
           homeManagerModules.eco-modules.tmux-config
           homeManagerModules.eco-modules.user-config
         ];
@@ -150,14 +165,35 @@
           homeManagerModules.pete-modules.hyprland-config
           homeManagerModules.pete-modules.media-tools
           homeManagerModules.pete-modules.messengers
+          homeManagerModules.pete-modules.misc-tools
           homeManagerModules.pete-modules.pen-tools
           homeManagerModules.pete-modules.neovim-env
           homeManagerModules.pete-modules.office-cloud
           homeManagerModules.pete-modules.tmux-config
         ];
       };
+
+      "junior@argon" = home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages.x86_64-linux; # Home-manager requires 'pkgs' instance
+        lib = nixpkgs.lib;
+        extraSpecialArgs = {inherit inputs outputs;};
+        modules = [
+          ./home-manager/home.nix
+          homeManagerModules.junior-modules.awesome-config
+          homeManagerModules.junior-modules.alacritty-config
+          homeManagerModules.junior-modules.user-config
+          homeManagerModules.junior-modules.hyprland-config
+          homeManagerModules.junior-modules.media-tools
+          homeManagerModules.junior-modules.misc-tools
+          homeManagerModules.junior-modules.pen-tools
+          homeManagerModules.junior-modules.neovim-env
+          homeManagerModules.junior-modules.tmux-config
+        ];
+      };
     };
-    eco-getac-home = homeConfigurations."eco@nix-tac".activationPackage;
+    eco-nix-tac-home = homeConfigurations."eco@nix-tac".activationPackage;
+    pete-nixos-home = homeConfigurations."pete@nixos".activationPackage;
+    junior-argon-home = homeConfigurations."junior@nixos".activationPackage;
 
     deploy.nodes = {
       eco-getac = {
