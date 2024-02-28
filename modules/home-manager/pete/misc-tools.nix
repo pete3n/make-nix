@@ -4,9 +4,11 @@
   ...
 }: {
   programs.btop = {
-    enabled = true;
+    enable = true;
     settings = {
       vim_keys = true;
+      theme_background = false;
+      color_theme = "nord";
     };
   };
 }
