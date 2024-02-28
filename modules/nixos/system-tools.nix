@@ -2,18 +2,24 @@
   environment.systemPackages = with pkgs; [
     acpi
     auto-cpufreq
+    binwalk
     cryptsetup
     dhcpcd
     dig
     docker-compose
+    eza
     fd
     fzf
     git
     gparted
+    home-manager
     iw
     jq
     killall
+    lazydocker
     libnotify
+    ncdu
+    nix-tree
     nmap
     openvpn
     parted
