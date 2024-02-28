@@ -23,6 +23,7 @@
   };
 
   nix = {
+    settings.tarball-ttl = 3600 * 24 * 365 * 10; # 10 Year ttl for offline config
     settings.experimental-features = ["nix-command" "flakes"];
     extraOptions = ''
       keep-outputs = true
@@ -44,6 +45,9 @@
 
   # Disable wireless by default (use wpa_supplicant manually)
   networking.wireless.enable = false;
+
+  # Enable SSH support for provisioning
+  services.sshd.enable = true;
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
