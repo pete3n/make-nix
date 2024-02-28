@@ -14,7 +14,7 @@
       driSupport = true;
       driSupport32Bit = true;
       extraPackages = with pkgs; [intel-compute-runtime intel-media-driver];
-      extraPackages32 = with pkgs.pkgsi686Linux; [intel-compute-runtime intel-media-driver];
+      extraPackages32 = with pkgs.pkgsi686Linux; [intel-media-driver];
     };
 
     services.kmscon.enable = lib.mkForce false;
