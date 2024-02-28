@@ -9,7 +9,9 @@
     bettercap
     chisel
     gpsd
-    hashcat
+    (hashcat.override {
+      cudaSupport = true;
+    })
     hcxdumptool
     hcxtools
     unstable.kismet
