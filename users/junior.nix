@@ -1,7 +1,7 @@
 {pkgs, ...}: {
-  users.users.pete = {
+  users.users.junior = {
     isNormalUser = true;
-    description = "pete";
+    description = "junior";
     extraGroups = ["networkmanager" "wheel"];
     packages = with pkgs; [];
   };
