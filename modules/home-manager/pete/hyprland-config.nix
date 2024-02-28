@@ -15,6 +15,10 @@
     '';
   };
 
+  programs.swaylock = {
+    enable = true;
+  };
+
   # All Wayland/Hyprland dependent packages
   home.packages = with pkgs; [
     wdisplays # Graphical display layout for wayland
