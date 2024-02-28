@@ -7,6 +7,7 @@
     dhcpcd
     dig
     docker-compose
+    entr
     eza
     fd
     fzf

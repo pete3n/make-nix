@@ -9,7 +9,7 @@
   ...
 }: {
   # You can import other home-manager modules that should be used by all
-  # users here. Other modules are passed by the flake with homeManagerModules 
+  # users here. Other modules are passed by the flake with homeManagerModules
   imports = [
     # If you want to use modules your own flake exports (from modules/home-manager):
     # outputs.homeManagerModules.example
@@ -50,7 +50,6 @@
 
   # Shared user packages
   home.packages = with pkgs; [
-    entr
     fd # Fast find altenative
     neofetch
     python311Packages.base58
