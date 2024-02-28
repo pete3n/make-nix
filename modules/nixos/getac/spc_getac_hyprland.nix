@@ -13,8 +13,8 @@
       enable = true;
       driSupport = true;
       driSupport32Bit = true;
-      extraPackages = with pkgs; [intel-compute-driver intel-media-driver];
-      extraPackages32 = with pkgs.pkgsi686Linux; [intel-compute-driver intel-media-driver];
+      extraPackages = with pkgs; [intel-compute-runtime intel-media-driver];
+      extraPackages32 = with pkgs.pkgsi686Linux; [intel-media-driver];
     };
 
     # I don't fully understand why we need xserver
