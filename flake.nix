@@ -115,10 +115,10 @@
           systemUsers.pete
         ];
       };
-      junior-xps-sc2 = nixpkgs.lib.nixosSystem {
+      junior-argon = nixpkgs.lib.nixosSystem {
         specialArgs = {inherit inputs outputs;};
         modules = [
-          ./hosts/xps/configuration.nix
+          ./hosts/xps-sc2/configuration.nix
           nixosModules.console
           nixosModules.xps-modules.specialisations
           nixosModules.iptables-default
@@ -131,7 +131,7 @@
 
     eco-getac-system = nixosConfigurations.eco-getac.config.system.build.toplevel;
     pete-xps-system = nixosConfigurations.pete-xps.config.system.build.toplevel;
-    junior-xps-sc2-system = nixosConfigurations.junior-xps-sc2.config.system.build.toplevel;
+    junior-argon-system = nixosConfigurations.junior-argon.config.system.build.toplevel;
 
     # Standalone home-manager configuration entrypoint
     # Available through 'home-manager --flake .#your-username@your-hostname'
@@ -193,7 +193,7 @@
     };
     eco-nix-tac-home = homeConfigurations."eco@nix-tac".activationPackage;
     pete-nixos-home = homeConfigurations."pete@nixos".activationPackage;
-    junior-argon-home = homeConfigurations."junior@nixos".activationPackage;
+    junior-argon-home = homeConfigurations."junior@argon".activationPackage;
 
     deploy.nodes = {
       eco-getac = {
