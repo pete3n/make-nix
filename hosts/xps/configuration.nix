@@ -10,7 +10,7 @@
   ...
 }: {
   imports = [
-    ../../nixos/hardware-configuration.nix
+    ./hardware-configuration.nix
     # This is the hardware configuration created by the installer
     # Most importantly it contains the UUIDs for your boot and root filesystems
     # Do not use anyone else's hardware-configuration.nix or you will be
