@@ -88,8 +88,8 @@
       # Some default env vars.
       "env" = [
         "XCURSOR_SIZE,24"
-        # Use Intel integrated graphics as primary rederer/Nvidia GPU secondary
-        "WLR_DRM_DEVICES,/dev/dri/card0:/dev/dri/card1"
+        # Use eGPU as primary, internal intel as secondary
+        "WLR_DRM_DEVICES,/dev/dri/card2:/dev/dri/card0"
       ];
 
       general = {
