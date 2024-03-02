@@ -88,6 +88,7 @@
       # Some default env vars.
       "env" = [
         "XCURSOR_SIZE,24"
+        "WLR_NO_HARDWARE_CURSORS,1"
         # Use eGPU as primary, internal intel as secondary
         "WLR_DRM_DEVICES,/dev/dri/card2:/dev/dri/card0"
       ];
@@ -229,8 +230,8 @@
         "$mainMod, F, fullscreen, 1"
 
         # Scroll through existing workspaces with mainMod + scroll
-        "$mainMod, mouse_down, workspace, e+1"
-        "$mainMod, mouse_up, workspace, e-1"
+        #"$mainMod, mouse_down, workspace, e+1"
+        #"$mainMod, mouse_up, workspace, e-1"
       ];
 
       bindm = [
