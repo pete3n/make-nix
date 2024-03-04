@@ -1,6 +1,6 @@
 {pkgs, ...}: {
   fileSystems."/data" = {
-    device = "/dev/disk/by-uuid/764d6cb6-e59e-4e4f-b97e-fc70673ec4d1";
-    fstype = "ext4";
+    device = "/dev/disk/by-uuid/a0f72048-c503-4002-a69e-05cba47bf75b";
+    fsType = "ext4";
   };
 }
