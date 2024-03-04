@@ -87,10 +87,10 @@
       # Some default env vars.
       "env" = [
         "XCURSOR_SIZE,24"
-        # Fix for eGPU/hardware GPU output
+        # Fix for Nvidia GPU output
         "WLR_NO_HARDWARE_CURSORS,1"
-        # Use eGPU as primary, internal intel as secondary
-        "WLR_DRM_DEVICES,/dev/dri/card2:/dev/dri/card0"
+        # TODO: Only set this for the eGPU config
+        "WLR_DRM_DEVICES,/dev/dri/card1:/dev/dri/card0"
       ];
 
       general = {
