@@ -8,6 +8,17 @@
   Hyprland_egpu.configuration = {
     system.nixos.tags = ["Hyprland" "Aorus-eGPU" "RTX-3080"];
 
+    systemd.services.egpuFlag = {
+      description = "Create eGPU flag file";
+      wantedBy = ["multi-user.target"];
+      script = ''
+        if [[ $config.system.nixos.tags} == *'Aorus-eGPU'* ]]; then
+        	mkdir -p /var/run/egpu
+        	touch /var/run/egpu
+        fi
+      '';
+    };
+
     hardware.nvidia = {
       package = config.boot.kernelPackages.nvidiaPackages.production;
       modesetting.enable = false;

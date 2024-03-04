@@ -2,7 +2,16 @@
   pkgs,
   lib,
   ...
-}: {
+}:
+# Use eGPU for display output, otherwise use integrated intel graphics
+let
+  egpuDetected = pkgs.lib.fileExists "/var/run/egpu";
+
+  wlrDrmDevices =
+    if egpuDetected
+    then "/dev/dri/card1:/dev/dri/card0"
+    else "/dev/dri/card0";
+in {
   imports = [
     ./waybar-config.nix
     ./theme-style.nix
@@ -89,8 +98,7 @@
         "XCURSOR_SIZE,24"
         # Fix for Nvidia GPU output
         "WLR_NO_HARDWARE_CURSORS,1"
-        # TODO: Only set this for the eGPU config
-        "WLR_DRM_DEVICES,/dev/dri/card1:/dev/dri/card0"
+        "WLR_DRM_DEVICES,${wlrDrmDevices}"
       ];
 
       "windowrulev2" = [
