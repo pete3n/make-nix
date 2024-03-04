@@ -93,6 +93,11 @@
         "WLR_DRM_DEVICES,/dev/dri/card1:/dev/dri/card0"
       ];
 
+      "windowrulev2" = [
+        "stayfocused, title:^()$,class:^(steam)$"
+        "minsize 1 1, title:^()$,class:^(steam)$"
+      ];
+
       general = {
         gaps_in = 4;
         gaps_out = 10;
