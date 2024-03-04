@@ -109,6 +109,7 @@
           nixosModules.iptables-default
           nixosModules.nvidia-scripts
           nixosModules.gaming
+          nixosModules.pete-mounts
           nixosModules.system-tools
           nixosModules.X11-tools
           nixosModules.yubi-smartcard
