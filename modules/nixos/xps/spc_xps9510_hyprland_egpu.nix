@@ -8,15 +8,17 @@
   Hyprland_egpu.configuration = {
     system.nixos.tags = ["Hyprland" "Aorus-eGPU" "RTX-3080"];
 
-    systemd.services.egpuFlag = {
-      description = "Create eGPU flag file";
+    systemd.services.egpuLink = {
+      description = "Create eGPU symbolic link";
       wantedBy = ["multi-user.target"];
       script = ''
-        if [[ $config.system.nixos.tags} == *'Aorus-eGPU'* ]]; then
-        	mkdir -p /var/run/egpu
-        	touch /var/run/egpu
-        fi
+        #!/bin/sh
+        ln -sf /dev/dri/card1 /var/run/egpu
       '';
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
     };
 
     hardware.nvidia = {
@@ -47,8 +49,10 @@
     };
 
     services.udev.extraRules = ''
-      # Remove integrated RTX 3050
-      ACTION=="add", SUBSYSTEM=="pci", ATTRS{vendor}=="0x10de", ATTRS{device}=="0x25a0", ATTR{remove}="1"
+       # Remove integrated RTX 3050
+       ACTION=="add", SUBSYSTEM=="pci", ATTRS{vendor}=="0x10de", ATTRS{device}=="0x25a0", ATTR{remove}="1"
+      # Add symlink to eGPU for Hyprland
+      ACTION=="add", SUBSYSTEM=="pci", ATTRS{vendor}=="0x10de", ATTRS{device}=="0x2216", ENV{SYSTEMD_WANTS}+="egpu-link.service", TAG+="systemd"
     '';
 
     services.xserver.videoDrivers = ["modesetting" "nvidia"];

@@ -2,16 +2,7 @@
   pkgs,
   lib,
   ...
-}:
-# Use eGPU for display output, otherwise use integrated intel graphics
-let
-  egpuDetected = pkgs.lib.fileExists "/var/run/egpu";
-
-  wlrDrmDevices =
-    if egpuDetected
-    then "/dev/dri/card1:/dev/dri/card0"
-    else "/dev/dri/card0";
-in {
+}: {
   imports = [
     ./waybar-config.nix
     ./theme-style.nix
@@ -68,7 +59,10 @@ in {
       # List available monitors with: hyprctl monitors
       # Format is: OutputName, resolution, position, scaling
       monitor = [
-        ",preferred,auto,1" # Auto configure any other monitor
+        "HDMI-A-2,preferred,0x0,1"
+        "DP-4,preferred,1920x0,1"
+        "DP-5,preferred,5360x0,1"
+        ",preferred,auto,1"
       ];
 
       input = {
@@ -98,9 +92,10 @@ in {
         "XCURSOR_SIZE,24"
         # Fix for Nvidia GPU output
         "WLR_NO_HARDWARE_CURSORS,1"
-        "WLR_DRM_DEVICES,${wlrDrmDevices}"
+        "WLR_DRM_DEVICES,/var/run/egpu:/dev/dri/card0"
       ];
 
+      # Fix for steam menus
       "windowrulev2" = [
         "stayfocused, title:^()$,class:^(steam)$"
         "minsize 1 1, title:^()$,class:^(steam)$"
