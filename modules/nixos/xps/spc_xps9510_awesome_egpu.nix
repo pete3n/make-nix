@@ -35,6 +35,11 @@
       extraPackages32 = with pkgs.pkgsi686Linux; [nvidia-vaapi-driver intel-media-driver];
     };
 
+    services.udev.extraRules = ''
+      # Remove integrated RTX 3050
+      ACTION=="add", SUBSYSTEM=="pci", ATTRS{vendor}=="0x10de", ATTRS{device}=="0x25a0", ATTR{remove}="1"
+    '';
+
     services.kmscon.enable = false;
 
     services.xserver = {
