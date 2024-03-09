@@ -161,8 +161,9 @@
       # Example per-device config
       # See https://wiki.hyprland.org/Configuring/Keywords/#executing for more
       device = {
-        epic-mouse-v1 = {
-          sensitivity = -0.5;
+        # Dell XPS touchpad sensitivity tweak
+        "dll0945:00-04f3:311c-touchpad" = {
+          sensitivity = -0.1;
         };
       };
 
