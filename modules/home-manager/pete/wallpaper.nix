@@ -20,11 +20,11 @@ in {
     home.packages = with pkgs; [
       (let
         wallpaperSetScript = writeShellScriptBin "wallpaper-set" ''
-             	#!/bin/bash
+             #!/bin/bash
           defaultWallpaperPath="/home/user/wallpapers/default_background.png"
           wallpaperPath=${cfgWallpaper.wallpaper}
           if [ "$wallpaperPath" == "$defaultWallpaperPath" ]; then
-          	wallpaperPath="''${HOME}/wallpapers/default_background.png"
+          wallpaperPath="''${HOME}/wallpapers/default_background.png"
           fi
           swww img "$wallpaperPath"
         '';

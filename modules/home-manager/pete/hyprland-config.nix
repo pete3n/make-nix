@@ -77,6 +77,7 @@
         sensitivity = 1.0;
         touchpad = {
           natural_scroll = true; # Reverse scroll direction
+          scroll_factor = 0.7;
           clickfinger_behavior = true; # 1-finger = LMB, 2-finger = RMB, 3-finger = MMB
           disable_while_typing = true;
         };
@@ -164,6 +165,7 @@
         # Dell XPS touchpad sensitivity tweak
         "dll0945:00-04f3:311c-touchpad" = {
           sensitivity = -0.1;
+          accel_profile = "adaptive";
         };
       };
 
