@@ -110,6 +110,7 @@
           nixosModules.nvidia-scripts
           nixosModules.gaming
           nixosModules.pete-mounts
+          nixosModules.pete-printer
           nixosModules.system-tools
           nixosModules.X11-tools
           nixosModules.yubi-smartcard

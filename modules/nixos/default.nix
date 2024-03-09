@@ -6,6 +6,7 @@
   iptables-default = import ./iptables-default-rules.nix;
   nvidia-scripts = import ./nvidia-scripts.nix;
   pete-mounts = import ./pete-mounts.nix;
+  pete-printer = import ./pete-printer.nix;
   system-tools = import ./system-tools.nix;
   X11-tools = import ./X11-tools.nix;
   xps-modules = import ./xps;
