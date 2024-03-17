@@ -14,6 +14,7 @@
     nb
     nextcloud-client
     onlyoffice-bin
+    pika-backup
     protonmail-bridge
     remmina
     standardnotes
