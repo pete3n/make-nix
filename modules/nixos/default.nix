@@ -1,6 +1,7 @@
 # Host specific module imports
 {
   console = import ./console.nix;
+framework16-modules = import ./framework16;
   gaming = import ./gaming.nix;
   getac-modules = import ./getac;
   iptables-default = import ./iptables-default-rules.nix;
