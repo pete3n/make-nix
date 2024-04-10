@@ -18,11 +18,15 @@
   ];
 
   boot = {
-    kernelPackages = pkgs.linuxPackages_6_8;
+    kernelPackages = pkgs.linuxPackages_6_6;
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
-	initrd.luks.devices."luks-cd68e956-623e-453c-97a9-44c8bcab01b6".device = "/dev/disk/by-uuid/cd68e956-623e-453c-97a9-44c8bcab01b6";
+    supportedFilesystems = ["ntfs"];
+  };
 
+  fileSystems."/data" = {
+    device = "/dev/disk/by-uuid/b244b8b2-6d32-4af3-86a8-356f754f9a29";
+    fsType = "ext4";
   };
 
   nix = {
@@ -107,6 +111,8 @@
   services.printing.enable = true; # Enable CUPS
   services.hardware.bolt.enable = true; # boltctl
 
+  services.flatpak.enable = true;
+
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
@@ -126,11 +132,13 @@
   # Enable Docker - note: This requires iptables
   virtualisation.docker.enable = true;
 
+  nixpkgs.config.allowUnfree = true;
+
   # System wide packages
   environment.systemPackages = with pkgs; [
     # System utils
- 	clinfo
-    mesa-demos
+    clinfo
     vulkan-tools
+    mesa-demos
   ];
 }
