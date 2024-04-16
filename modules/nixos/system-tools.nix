@@ -10,6 +10,7 @@
     entr
     eza
     fd
+    file
     fzf
     git
     gparted
