@@ -2,6 +2,7 @@
   description = "Your new nix config";
 
   inputs = {
+    #nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     # Also see the 'unstable-packages' overlay at 'overlays/default.nix'.
@@ -17,7 +18,10 @@
     };
 
     # Hyprland
-    hyprland.url = "github:hyprwm/Hyprland";
+    hyprland = {
+      url = "github:hyprwm/Hyprland";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
     hyprland-plugins = {
       url = "github:hyprwm/hyprland-plugins";
       inputs.hyprland.follows = "hyprland";
@@ -30,6 +34,7 @@
   outputs = {
     deploy-rs,
     firefox-addons,
+    hyprland,
     home-manager,
     nixpkgs,
     nixpkgs-unstable,
@@ -117,6 +122,60 @@
           systemUsers.pete
         ];
       };
+      pete-framework16 = nixpkgs.lib.nixosSystem {
+        specialArgs = {inherit inputs outputs;};
+        modules = [
+          ./hosts/framework16/configuration.nix
+          # Force the use of unstable mesa to build with unstable hyprland to prevent version mismatch
+          # glxinfo -B should show the mesa version from NixOS unstable
+          # Otherwise vulkan will fail and report no DRI3 support
+          ({pkgs, ...}: {
+            nixpkgs.config.allowUnfree = true;
+            nixpkgs.overlays = [
+              (final: prev: {
+                mesa = inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.mesa;
+              })
+              (final: prev: {
+                hyprland = inputs.hyprland.packages.${pkgs.system}.hyprland;
+                wlroots-hyprland = inputs.hyprland.packages.${pkgs.system}.wlroots-hyprland;
+                wlroots = inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.wlroots;
+              })
+              (final: prev: {
+                wlroots = prev.wlroots.override {
+                  xwayland = prev.xwayland;
+                  mesa = prev.mesa;
+                };
+              })
+              (final: prev: {
+                wlroots = prev.wlroots.overrideAttrs (old: {
+                  nativeBuildInputs =
+                    old.nativeBuildInputs
+                    ++ [inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.libdrm];
+                });
+              })
+              (final: prev: {
+                wlroots-hyprland = prev.wlroots-hyprland.override {wlroots = prev.wlroots;};
+              })
+              (final: prev: {
+                hyprland = prev.hyprland.override {
+                  mesa = prev.mesa;
+                  wlroots = prev.wlroots-hyprland;
+                };
+              })
+            ];
+          })
+          nixosModules.console
+          nixosModules.framework16-modules.specialisations
+          nixosModules.iptables-default
+          #nixosModules.gaming
+          nixosModules.pete-mounts
+          nixosModules.pete-printer
+          nixosModules.system-tools
+          nixosModules.X11-tools
+          nixosModules.yubi-smartcard
+          systemUsers.pete
+        ];
+      };
       junior-argon = nixpkgs.lib.nixosSystem {
         specialArgs = {inherit inputs outputs;};
         modules = [
@@ -133,6 +192,7 @@
 
     eco-getac-system = nixosConfigurations.eco-getac.config.system.build.toplevel;
     pete-xps-system = nixosConfigurations.pete-xps.config.system.build.toplevel;
+    pete-framework16-system = nixosConfigurations.pete-framework16.config.system.build.toplevel;
     junior-argon-system = nixosConfigurations.junior-argon.config.system.build.toplevel;
 
     # Standalone home-manager configuration entrypoint
