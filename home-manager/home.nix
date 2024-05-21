@@ -51,7 +51,7 @@
   # Shared user packages
   home.packages = with pkgs; [
     fd # Fast find altenative
-    neofetch
+    fastfetch
     python311Packages.base58
     ripgrep # Simplified recursive grep utility
   ];
@@ -81,7 +81,7 @@
     profileExtra = ''
       if [ -z "$NEOFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
       	export NEOFETCH_EXECUTED=1
-      	command -v neofetch &> /dev/null && neofetch
+      	command -v fastfetch &> /dev/null && fastfetch
       	echo
       	ip link
       	echo
