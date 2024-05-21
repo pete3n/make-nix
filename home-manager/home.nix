@@ -79,15 +79,22 @@
   programs.bash = {
     enable = true;
     profileExtra = ''
-      if [ -z "$NEOFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
-      	export NEOFETCH_EXECUTED=1
-      	command -v fastfetch &> /dev/null && fastfetch
-      	echo
-      	ip link
-      	echo
-      	ip -br a
-      	echo
+        if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
+        	export FASTFETCH_EXECUTED=1
+        	command -v fastfetch &> /dev/null && fastfetch
+        	echo
+        	ip link
+        	echo
+        	ip -br a
+        	echo
+      # Start the SSH agent if not already running
+      if [ -z "$SSH_AUTH_SOCK" ]; then
+      		eval "$(ssh-agent -s)"
       fi
+
+      # Add SSH key
+      ssh-add ~/.ssh/pete3n
+        fi
     '';
   };
 
