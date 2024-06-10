@@ -1,6 +1,7 @@
 {
   pkgs,
   lib,
+  inputs,
   ...
 }: {
   imports = [
@@ -34,7 +35,7 @@
 
   wayland.windowManager.hyprland = {
     enable = true;
-    package = pkgs.unstable.hyprland; # Use the newer unstable branch
+    package = pkgs.unstable.hyprland;
     xwayland.enable = true;
 
     settings = {
@@ -62,7 +63,7 @@
         "HDMI-A-2,preferred,0x0,1"
         "DP-4,preferred,1920x0,1"
         "DP-5,preferred,5360x0,1"
-        ",preferred,auto,1"
+        ",preferred,auto,1,mirror"
       ];
 
       input = {
@@ -161,13 +162,6 @@
 
       # Example per-device config
       # See https://wiki.hyprland.org/Configuring/Keywords/#executing for more
-      device = {
-        # Dell XPS touchpad sensitivity tweak
-        "dll0945:00-04f3:311c-touchpad" = {
-          sensitivity = -0.1;
-          accel_profile = "adaptive";
-        };
-      };
 
       # Example windowrule v1
       # windowrule = float, ^(kitty)$
@@ -190,6 +184,7 @@
         "$mainMod, P, pseudo, # dwindle"
         "$mainMod, V, togglesplit, # dwindle"
         "$mainMod, W, exec, pkill -SIGUSR1 waybar" # Toggle waybar visibility
+        "$mainMod, D, focuswindow, title:^(Nuc)$" # Focus on NUC RDP window
 
         # Move focus with mainMod + arrow keys
         "$mainMod, left, movefocus, l"
