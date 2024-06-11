@@ -13,8 +13,6 @@
         size = 12;
       };
       colors = {
-        name = "3024 (dark)";
-        author = "Chris Kempson";
         primary = {
           background = "#090300";
           foreground = "#a5a2a2";
@@ -44,7 +42,6 @@
           white = "#f7f7f7";
         };
       };
-      theme = "3024.dark";
     };
   };
 }

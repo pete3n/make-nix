@@ -2,6 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running `nixos-help`).
 {
+  inputs,
   config,
   pkgs,
   lib,
@@ -18,7 +19,7 @@
   ];
 
   boot = {
-    kernelPackages = pkgs.linuxPackages_6_6;
+    kernelPackages = pkgs.linuxPackages_latest;
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
     supportedFilesystems = ["ntfs"];
@@ -162,7 +163,10 @@
     })
   ];
 
-  programs.hyprland.enable = true; # Required for proper Hyprland operation
+  programs.hyprland = {
+    enable = true; # Required for proper Hyprland operation
+    package = inputs.hyprland.packages.${pkgs.system}.hyprland;
+  };
   # See: https://wiki.hyprland.org/Nix
 
   services.printing.enable = true; # Enable CUPS
@@ -184,7 +188,7 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "23.11"; # Did you read the comment?
+  system.stateVersion = "24.05"; # Did you read the comment?
 
   # Enable Docker - note: This requires iptables
   virtualisation.docker.enable = true;
@@ -195,6 +199,7 @@
   environment.systemPackages = with pkgs; [
     # System utils
     clinfo
+    hyprcursor
     vulkan-tools
     mesa-demos
   ];

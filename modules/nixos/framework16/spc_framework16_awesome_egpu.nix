@@ -21,8 +21,8 @@
           enableOffloadCmd = true;
         };
         allowExternalGpu = true;
-        #intelBusId = "PCI:0:2:0"; AMD equivalent?
-        nvidiaBusId = "PCI:63:0:0";
+        nvidiaBusId = "PCI:65:0:0";
+        intelBusId = "PCI:2:0:0";
       };
     };
 
@@ -44,7 +44,7 @@
 
     services.xserver = {
       enable = true;
-      layout = "us";
+      xkb.layout = "us";
       videoDrivers = ["nvidia"];
 
       config = pkgs.lib.mkOverride 0 ''
@@ -58,7 +58,7 @@
             Driver         "nvidia"
             VendorName     "NVIDIA Corporation"
             BoardName      "NVIDIA GeForce RTX 3080"
-            BusID          "PCI:63:0:0"
+            BusID          "PCI:65:0:0"
             Option	   "AllowExternalGpus" "True"
             Option	   "AllowEmptyInitialConfiguration"
         EndSection

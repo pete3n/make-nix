@@ -7,14 +7,14 @@
 }: {
   Hyprland_egpu.configuration = {
     system.nixos.tags = ["Hyprland" "Aorus-eGPU" "RTX-3080"];
-  nixpkgs.config = {
-    allowUnfree = true;
-    cudaSupport = true; # For eGPU config
-  };
+    nixpkgs.config = {
+      allowUnfree = true;
+      cudaSupport = true; # For eGPU config
+    };
 
-  environment.systemPackes = with pkgs; [
-	cudaPackages.cudatoolkit
-];
+    environment.systemPackages = with pkgs; [
+      cudaPackages.cudatoolkit
+    ];
 
     systemd.services.egpuLink = {
       description = "Create eGPU symbolic link";
@@ -42,8 +42,8 @@
           enableOffloadCmd = true;
         };
         allowExternalGpu = true;
-        #intelBusId = "PCI:0:2:0"; AMD equivalent?
-        nvidiaBusId = "PCI:63:0:0";
+        nvidiaBusId = "PCI:65:0:0";
+        intelBusId = "PCI:2:0:0";
       };
     };
 

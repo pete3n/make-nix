@@ -2,13 +2,12 @@
   description = "Your new nix config";
 
   inputs = {
-    #nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     # Also see the 'unstable-packages' overlay at 'overlays/default.nix'.
 
     # Home manager
-    home-manager.url = "github:nix-community/home-manager/release-23.11";
+    home-manager.url = "github:nix-community/home-manager/release-24.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     # Nix User Repository, Firefox-Addons
@@ -19,13 +18,14 @@
 
     # Hyprland
     hyprland = {
-      url = "github:hyprwm/Hyprland";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      url = "git+https://github.com/hyprwm/Hyprland?submodules=1";
+      #inputs.nixpkgs.follows = "nixpkgs";
     };
     hyprland-plugins = {
       url = "github:hyprwm/hyprland-plugins";
       inputs.hyprland.follows = "hyprland";
     };
+    hyprcursor.url = "github:hyprwm/hyprcursor";
 
     nixvim.url = "github:pete3n/nixvim-flake";
     deploy-rs.url = "github:serokell/deploy-rs";
@@ -109,7 +109,6 @@
         specialArgs = {inherit inputs outputs;};
         modules = [
           ./hosts/xps/configuration.nix
-          nixosModules.console
           nixosModules.xps-modules.specialisations
           nixosModules.iptables-default
           nixosModules.nvidia-scripts
@@ -129,42 +128,48 @@
           # Force the use of unstable mesa to build with unstable hyprland to prevent version mismatch
           # glxinfo -B should show the mesa version from NixOS unstable
           # Otherwise vulkan will fail and report no DRI3 support
-          ({pkgs, ...}: {
-            nixpkgs.config.allowUnfree = true;
-            nixpkgs.overlays = [
-              (final: prev: {
-                mesa = inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.mesa;
-              })
-              (final: prev: {
-                hyprland = inputs.hyprland.packages.${pkgs.system}.hyprland;
-                wlroots-hyprland = inputs.hyprland.packages.${pkgs.system}.wlroots-hyprland;
-                wlroots = inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.wlroots;
-              })
-              (final: prev: {
-                wlroots = prev.wlroots.override {
-                  xwayland = prev.xwayland;
-                  mesa = prev.mesa;
-                };
-              })
-              (final: prev: {
-                wlroots = prev.wlroots.overrideAttrs (old: {
-                  nativeBuildInputs =
-                    old.nativeBuildInputs
-                    ++ [inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.libdrm];
-                });
-              })
-              (final: prev: {
-                wlroots-hyprland = prev.wlroots-hyprland.override {wlroots = prev.wlroots;};
-              })
-              (final: prev: {
-                hyprland = prev.hyprland.override {
-                  mesa = prev.mesa;
-                  wlroots = prev.wlroots-hyprland;
-                };
-              })
-            ];
-          })
-          nixosModules.console
+          #({
+          #  pkgs,
+          #  inputs,
+          #  ...
+          #}: {
+          #  nixpkgs.config.allowUnfree = true;
+          #  nixpkgs.overlays = [
+          #    (final: prev: {
+          #      # Consolidate all package overrides into a single overlay for simplicity and clarity
+          #      mesa = inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.mesa;
+          #      wlroots = inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.wlroots.overrideAttrs (old: {
+          #        nativeBuildInputs = old.nativeBuildInputs ++ [inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.libdrm];
+          #      });
+          #      xwayland = prev.xwayland;
+          #      hyprcursor = inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.hyprcursor;
+          #    })
+
+          #    (final: prev: {
+          #      hyprland = prev.hyprland.overrideAttrs (oldAttrs: {
+          #        buildInputs = oldAttrs.buildInputs ++ [prev.hyprcursor prev.mesa prev.xwayland prev.wlroots pkgs.makeWrapper];
+          #        postInstall = ''
+          #          wrapProgram $out/bin/hyprland-executable --prefix PKG_CONFIG_PATH : "${prev.hyprcursor}/lib/pkgconfig:${prev.mesa}/lib/pkgconfig:${prev.xwayland}/lib/pkgconfig:${prev.wlroots}/lib/pkgconfig"
+          #          ${oldAttrs.postInstall or ""}
+          #        '';
+          #      });
+          #    })
+
+          #    (final: prev: {
+          #      # Assume hyprland only requires mesa, hyprcursor, and perhaps xwayland directly
+          #      # and does not directly take wlroots as an argument
+          #      hyprland = prev.hyprland.override {
+          #        mesa = prev.mesa;
+          #        hyprcursor = prev.hyprcursor;
+          #        xwayland = prev.xwayland;
+          #        # If hyprland indeed needs wlroots passed explicitly and the derivation supports it:
+          #        # wlroots = prev.wlroots;
+          #      };
+          #    })
+          #  ];
+          #})
+
+          #nixosModules.console
           nixosModules.framework16-modules.specialisations
           nixosModules.iptables-default
           #nixosModules.gaming
