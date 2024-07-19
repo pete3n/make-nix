@@ -13,6 +13,8 @@
   };
 
   home.packages = with pkgs; [
+    cdrkit
+    litemdview
     xfce.thunar
   ];
 }
