@@ -9,7 +9,7 @@ stdenv.mkDerivation rec {
 
   src = fetchzip {
     url = "https://dl.dod.cyber.mil/wp-content/uploads/pki-pke/zip/unclass-dod_approved_external_pkis_trust_chains.zip";
-    sha256 = "sha256-sUMi+ZCLmqt5XgqNmDTLlP/9mdgH+x4Zjv+ijG10PXU=";
+    sha256 = "sha256-jDyv8mVURtyqWoSld+jMFKsAcJlBqm99klksk36G57Y=";
   };
 
   installPhase = ''
