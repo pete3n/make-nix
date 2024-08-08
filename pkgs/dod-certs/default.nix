@@ -5,11 +5,11 @@
 }:
 stdenv.mkDerivation rec {
   pname = "dod-certs";
-  version = "10.2";
+  version = "11.0";
 
   src = fetchzip {
     url = "https://dl.dod.cyber.mil/wp-content/uploads/pki-pke/zip/unclass-dod_approved_external_pkis_trust_chains.zip";
-    sha256 = "sha256-qU6sJW/kqP3til+eN3vBlYKO4Ci+CptAonJ0rhkmr8o=";
+    sha256 = "sha256-sUMi+ZCLmqt5XgqNmDTLlP/9mdgH+x4Zjv+ijG10PXU=";
   };
 
   installPhase = ''
