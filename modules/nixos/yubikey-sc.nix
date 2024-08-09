@@ -12,6 +12,12 @@
   ];
   services.pcscd.enable = true; # Enable smart card daemon
 
+  programs.gnupg.agent = {
+    enable = true;
+    pinentryFlavor = "curses";
+    enableSSHSupport = true;
+  };
+
   # Configure u2f Yubikeys with:
   # mkdir -p ~/.config/Yubico
   # pamu2fcfg > ~/.config/Yubico/u2f_keys
