@@ -8,6 +8,7 @@
   nvidia-scripts = import ./nvidia-scripts.nix;
   pete-mounts = import ./pete-mounts.nix;
   pete-printer = import ./pete-printer.nix;
+  pete-services = import ./pete-services.nix;
   system-tools = import ./system-tools.nix;
   X11-tools = import ./X11-tools.nix;
   xps-modules = import ./xps;
