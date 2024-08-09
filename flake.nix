@@ -71,7 +71,7 @@
 
     # Formatter for your nix files, available through 'nix fmt'
     # Other options beside 'alejandra' include 'nixpkgs-fmt'
-    formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
+    formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt);
 
     # Your custom packages and modifications, exported as overlays
     overlays = import ./overlays {inherit inputs;};
@@ -92,84 +92,39 @@
     # NixOS configuration entrypoint
     # Available through 'nixos-rebuild --flake .#system-tag'
     nixosConfigurations = {
-      eco-getac = nixpkgs.lib.nixosSystem {
-        specialArgs = {inherit inputs outputs;};
-        modules = [
-          ./hosts/getac/configuration.nix
-          nixosModules.console
-          nixosModules.getac-modules.specialisations
-          nixosModules.iptables-default
-          nixosModules.system-tools
-          nixosModules.X11-tools
-          systemUsers.eco
-        ];
-      };
+      #eco-getac = nixpkgs.lib.nixosSystem {
+      #  specialArgs = {inherit inputs outputs;};
+      #  modules = [
+      #    ./hosts/getac/configuration.nix
+      #    nixosModules.console
+      #    nixosModules.getac-modules.specialisations
+      #    nixosModules.iptables-default
+      #    nixosModules.system-tools
+      #    nixosModules.X11-tools
+      #    systemUsers.eco
+      #  ];
+      #};
 
-      pete-xps = nixpkgs.lib.nixosSystem {
-        specialArgs = {inherit inputs outputs;};
-        modules = [
-          ./hosts/xps/configuration.nix
-          nixosModules.xps-modules.specialisations
-          nixosModules.iptables-default
-          nixosModules.nvidia-scripts
-          nixosModules.gaming
-          nixosModules.pete-mounts
-          nixosModules.pete-printer
-          nixosModules.system-tools
-          nixosModules.X11-tools
-          nixosModules.yubi-smartcard
-          systemUsers.pete
-        ];
-      };
+      #pete-xps = nixpkgs.lib.nixosSystem {
+      #  specialArgs = {inherit inputs outputs;};
+      #  modules = [
+      #    ./hosts/xps/configuration.nix
+      #    nixosModules.xps-modules.specialisations
+      #    nixosModules.iptables-default
+      #    nixosModules.nvidia-scripts
+      #    nixosModules.gaming
+      #    nixosModules.pete-mounts
+      #    nixosModules.pete-printer
+      #    nixosModules.system-tools
+      #    nixosModules.X11-tools
+      #    nixosModules.yubi-smartcard
+      #    systemUsers.pete
+      #  ];
+      #};
       pete-framework16 = nixpkgs.lib.nixosSystem {
         specialArgs = {inherit inputs outputs;};
         modules = [
           ./hosts/framework16/configuration.nix
-          # Force the use of unstable mesa to build with unstable hyprland to prevent version mismatch
-          # glxinfo -B should show the mesa version from NixOS unstable
-          # Otherwise vulkan will fail and report no DRI3 support
-          #({
-          #  pkgs,
-          #  inputs,
-          #  ...
-          #}: {
-          #  nixpkgs.config.allowUnfree = true;
-          #  nixpkgs.overlays = [
-          #    (final: prev: {
-          #      # Consolidate all package overrides into a single overlay for simplicity and clarity
-          #      mesa = inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.mesa;
-          #      wlroots = inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.wlroots.overrideAttrs (old: {
-          #        nativeBuildInputs = old.nativeBuildInputs ++ [inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.libdrm];
-          #      });
-          #      xwayland = prev.xwayland;
-          #      hyprcursor = inputs.nixpkgs-unstable.legacyPackages.${pkgs.system}.hyprcursor;
-          #    })
-
-          #    (final: prev: {
-          #      hyprland = prev.hyprland.overrideAttrs (oldAttrs: {
-          #        buildInputs = oldAttrs.buildInputs ++ [prev.hyprcursor prev.mesa prev.xwayland prev.wlroots pkgs.makeWrapper];
-          #        postInstall = ''
-          #          wrapProgram $out/bin/hyprland-executable --prefix PKG_CONFIG_PATH : "${prev.hyprcursor}/lib/pkgconfig:${prev.mesa}/lib/pkgconfig:${prev.xwayland}/lib/pkgconfig:${prev.wlroots}/lib/pkgconfig"
-          #          ${oldAttrs.postInstall or ""}
-          #        '';
-          #      });
-          #    })
-
-          #    (final: prev: {
-          #      # Assume hyprland only requires mesa, hyprcursor, and perhaps xwayland directly
-          #      # and does not directly take wlroots as an argument
-          #      hyprland = prev.hyprland.override {
-          #        mesa = prev.mesa;
-          #        hyprcursor = prev.hyprcursor;
-          #        xwayland = prev.xwayland;
-          #        # If hyprland indeed needs wlroots passed explicitly and the derivation supports it:
-          #        # wlroots = prev.wlroots;
-          #      };
-          #    })
-          #  ];
-          #})
-
-          #nixosModules.console
           nixosModules.framework16-modules.specialisations
           nixosModules.iptables-default
           #nixosModules.gaming
@@ -181,24 +136,24 @@
           systemUsers.pete
         ];
       };
-      junior-argon = nixpkgs.lib.nixosSystem {
-        specialArgs = {inherit inputs outputs;};
-        modules = [
-          ./hosts/xps-sc2/configuration.nix
-          nixosModules.console
-          nixosModules.xps-modules.specialisations
-          nixosModules.iptables-default
-          nixosModules.system-tools
-          nixosModules.X11-tools
-          systemUsers.junior
-        ];
-      };
+      #junior-argon = nixpkgs.lib.nixosSystem {
+      #  specialArgs = {inherit inputs outputs;};
+      #  modules = [
+      #    ./hosts/xps-sc2/configuration.nix
+      #    nixosModules.console
+      #    nixosModules.xps-modules.specialisations
+      #    nixosModules.iptables-default
+      #    nixosModules.system-tools
+      #    nixosModules.X11-tools
+      #    systemUsers.junior
+      #  ];
+      #};
     };
 
-    eco-getac-system = nixosConfigurations.eco-getac.config.system.build.toplevel;
-    pete-xps-system = nixosConfigurations.pete-xps.config.system.build.toplevel;
+    #eco-getac-system = nixosConfigurations.eco-getac.config.system.build.toplevel;
+    #pete-xps-system = nixosConfigurations.pete-xps.config.system.build.toplevel;
     pete-framework16-system = nixosConfigurations.pete-framework16.config.system.build.toplevel;
-    junior-argon-system = nixosConfigurations.junior-argon.config.system.build.toplevel;
+    #junior-argon-system = nixosConfigurations.junior-argon.config.system.build.toplevel;
 
     # Standalone home-manager configuration entrypoint
     # Available through 'home-manager --flake .#your-username@your-hostname'
