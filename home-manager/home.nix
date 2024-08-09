@@ -83,9 +83,9 @@
       bash
       */
       ''
-        export FASTFETCH_EXECUTED=1
         if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
         	command -v fastfetch &> /dev/null && fastfetch
+		export FASTFETCH_EXECUTED=1
         	echo
         	ip link
         	echo
