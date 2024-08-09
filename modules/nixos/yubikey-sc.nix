@@ -3,6 +3,7 @@
     opensc
     pam_u2f
     pamtester
+    pinentry
     yubico-pam
     yubikey-manager
     yubikey-manager-qt
@@ -11,12 +12,7 @@
     yubikey-personalization-gui
   ];
   services.pcscd.enable = true; # Enable smart card daemon
-
-  programs.gnupg.agent = {
-    enable = true;
-    pinentryFlavor = "curses";
-    enableSSHSupport = true;
-  };
+  programs.gnupg.agent.enable = true;
 
   # Configure u2f Yubikeys with:
   # mkdir -p ~/.config/Yubico
