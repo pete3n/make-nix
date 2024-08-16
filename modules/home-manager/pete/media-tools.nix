@@ -15,6 +15,7 @@
     mpd # Music player daemon
     ncmpcpp # N-curses music player client plus-plus
     pavucontrol # Pulse audio volume control
+    rhythmbox
     shotcut # Video editing
     vlc # Videolan client
     yt-dlp # Youtube download Python
