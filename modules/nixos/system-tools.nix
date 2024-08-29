@@ -28,9 +28,11 @@
     pavucontrol
     pciutils
     pipewire
+    procs
     qemu
     qemu-utils
     ripgrep
+    sd
     tcpdump
     thermald
     tldr
@@ -43,6 +45,7 @@
     wireshark
     wpa_supplicant
     yazi
+    zoxide
     zip
   ];
 }
