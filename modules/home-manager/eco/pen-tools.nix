@@ -9,7 +9,9 @@
     bettercap
     chisel
     gpsd
-    hashcat
+    (hashcat.override {
+      cudaSupport = true;
+    })
     hcxdumptool
     hcxtools
     unstable.kismet
@@ -18,6 +20,6 @@
     reaverwps-t6x
     rustscan
     socat
-    uftpd
+    termshark
   ]);
 }
