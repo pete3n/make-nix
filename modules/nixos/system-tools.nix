@@ -17,6 +17,7 @@
     home-manager
     iw
     jq
+    keychain
     killall
     lazydocker
     libnotify
@@ -33,6 +34,7 @@
     qemu-utils
     ripgrep
     sd
+    sshs
     tcpdump
     thermald
     tldr
