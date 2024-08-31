@@ -85,19 +85,13 @@
       ''
         if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
         	command -v fastfetch &> /dev/null && fastfetch
-		export FASTFETCH_EXECUTED=1
+        	export FASTFETCH_EXECUTED=1
         	echo
         	ip link
         	echo
         	ip -br a
         	echo
-          # Start the SSH agent if not already running
-          if [ -z "$SSH_AUTH_SOCK" ]; then
-            eval "$(ssh-agent -s)"
-          fi
-          # Add SSH key
-          ssh-add ~/.ssh/pete3n
-        fi
+            fi
       '';
   };
 
@@ -114,6 +108,7 @@
         };
       };
     };
+    ssh-agent.enable = true;
   };
 
   # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
