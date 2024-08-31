@@ -19,7 +19,7 @@
   ];
 
   boot = {
-    kernelPackages = pkgs.linuxPackages_6_9;
+    kernelPackages = pkgs.linuxPackages_6_10;
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
     supportedFilesystems = ["ntfs"];
