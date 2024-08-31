@@ -20,5 +20,6 @@
     reaverwps-t6x
     rustscan
     socat
+    termshark
   ]);
 }
