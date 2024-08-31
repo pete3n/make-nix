@@ -81,22 +81,22 @@ in {
           '';
         }
       ]
-      ++ (with pkgs; [
-        tmuxPlugins.onedark-theme
-        tmuxPlugins.pain-control
-        tmuxPlugins.vim-tmux-navigator
-        tmuxPlugins.logging
-        tmuxPlugins.yank
-        tmuxPlugins.tmux-fzf
+      ++ (with pkgs.tmuxPlugins; [
+        onedark-theme
+        pain-control
+        vim-tmux-navigator
+        logging
+        yank
+        tmux-fzf
         {
-          plugin = tmuxPlugins.extrakto;
+          plugin = extrakto;
           extraConfig = ''
             set -g @extrakto_clip_tool "wl-copy"
           '';
         }
-        tmuxPlugins.resurrect
+        resurrect
         {
-          plugin = tmuxPlugins.continuum;
+          plugin = continuum;
           extraConfig = ''
             set -g @continuum-restore 'on'
             set -g @continuum-save-interval '10'
