@@ -17,6 +17,7 @@
     shotcut # Video editing
     vlc # Videolan client
     yt-dlp # Youtube download Python
+    ytfzf # Youtbue fuzzy finder and console viewer
   ];
 
   services.mpd = {
@@ -146,8 +147,8 @@
     ];
   };
 
-  programs.bash.profileExtra = ''
-       alias music_player=ncmpcpp
-    alias music_visualizer=cava
+  programs.bash.initExtra = ''
+    alias music_player=ncmpcpp
+      alias music_visualizer=cava
   '';
 }
