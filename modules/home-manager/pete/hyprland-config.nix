@@ -10,12 +10,6 @@
     ./rofi-theme.nix
   ];
 
-  programs.bash = {
-    profileExtra = lib.mkAfter ''
-      alias hypr="nohup Hyprland &"
-    '';
-  };
-
   programs.swaylock = {
     enable = true;
   };
