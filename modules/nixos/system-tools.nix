@@ -21,6 +21,7 @@
     killall
     lazydocker
     libnotify
+    lsd
     ncdu
     nix-tree
     nmap
