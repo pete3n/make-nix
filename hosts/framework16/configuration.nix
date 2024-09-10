@@ -166,15 +166,26 @@
     })
   ];
 
-  programs.hyprland = {
-    enable = true; # Required for proper Hyprland operation
-    package = inputs.hyprland.packages.${pkgs.system}.hyprland;
-  };
   # See: https://wiki.hyprland.org/Nix
-
   services.printing.enable = true; # Enable CUPS
   services.hardware.bolt.enable = true; # boltctl
 
+  # Portals must be enable system wide for Flatpak support
+  xdg.portal = {
+    enable = true;
+    extraPortals = [
+      pkgs.xdg-desktop-portal-gtk
+    ];
+    config = {
+      common = {
+        default = [
+          "gtk"
+        ];
+      };
+    };
+  };
+
+  # TODO: Check out flatpaks for home-manager with nix-flatpak
   services.flatpak.enable = true;
 
   # Some programs need SUID wrappers, can be configured further or are
