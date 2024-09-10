@@ -12,26 +12,6 @@
     ];
   };
 
-  xdg = {
-    enable = true;
-    userDirs = let
-      appendToHomeDir = path: "${config.home.homeDirectory}/${path}";
-    in {
-      enable = true;
-      documents = appendToHomeDir "documents";
-      download = appendToHomeDir "downloads";
-      music = appendToHomeDir "music";
-      pictures = appendToHomeDir "pictures";
-      publicShare = appendToHomeDir "public";
-      templates = appendToHomeDir "templates";
-      videos = appendToHomeDir "videos";
-      extraConfig = {
-        XDG_PROJECT_DIR = appendToHomeDir "projects";
-        XDG_DATA_HOME = "${config.home.homeDirectory}/.local/share";
-        XDG_CONFIG_HOME = "${config.home.homeDirectory}/.config";
-      };
-    };
-  };
   programs.git = {
     enable = true;
     userName = "pete3n";
