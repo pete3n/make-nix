@@ -1,5 +1,6 @@
 {
   pkgs,
+  config,
   lib,
   inputs,
   ...
@@ -26,6 +27,38 @@
     wev # Wayland environment diagnostics
     swww # Wallpaper switcher
   ];
+
+  xdg = {
+    enable = true;
+    portal = {
+      enable = true;
+      extraPortals = [
+        pkgs.xdg-desktop-portal-gtk
+      ];
+      xdgOpenUsePortal = true;
+      config = {
+        common = {
+          default = ["gtk"];
+        };
+      };
+    };
+
+    userDirs = let
+      appendToHomeDir = path: "${config.home.homeDirectory}/${path}";
+    in {
+      enable = true;
+      documents = appendToHomeDir "documents";
+      download = appendToHomeDir "downloads";
+      music = appendToHomeDir "music";
+      pictures = appendToHomeDir "pictures";
+      publicShare = appendToHomeDir "public";
+      templates = appendToHomeDir "templates";
+      videos = appendToHomeDir "videos";
+      extraConfig = {
+        XDG_PROJECT_DIR = appendToHomeDir "projects";
+      };
+    };
+  };
 
   wayland.windowManager.hyprland = {
     enable = true;
