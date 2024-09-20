@@ -9,6 +9,7 @@
     bettercap
     chisel
     gpsd
+    gnuradio
     (hashcat.override {
       cudaSupport = true;
     })
@@ -21,5 +22,6 @@
     rustscan
     socat
     termshark
+    uhd # USRP SDR
   ]);
 }
