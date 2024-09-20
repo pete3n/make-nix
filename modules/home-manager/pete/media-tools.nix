@@ -4,9 +4,6 @@
   ...
 }: {
   home.packages = with pkgs; [
-    #(blender.override {
-    #  cudaSupport = true;
-    #}) # 3D modelling
     ffmpeg # Video encoding/transcoding
     gimp # Image editing
     handbrake # DVD wripping
