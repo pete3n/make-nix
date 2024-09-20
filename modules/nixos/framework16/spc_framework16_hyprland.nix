@@ -20,6 +20,8 @@
       ];
     };
 
+    nixpkgs.config.rocmSupport = true;
+
     # I don't fully understand why we need xserver
     # I assume because of X-Wayland
     services.xserver.videoDrivers = ["modesetting"];
