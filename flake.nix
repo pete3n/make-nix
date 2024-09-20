@@ -1,5 +1,5 @@
 {
-  description = "Your new nix config";
+  description = "Multi-platform Nix flake";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
@@ -112,7 +112,6 @@
       #    nixosModules.xps-modules.specialisations
       #    nixosModules.iptables-default
       #    nixosModules.nvidia-scripts
-      #    nixosModules.gaming
       #    nixosModules.pete-mounts
       #    nixosModules.pete-printer
       #    nixosModules.system-tools
@@ -127,10 +126,11 @@
           ./hosts/framework16/configuration.nix
           nixosModules.framework16-modules.specialisations
           nixosModules.iptables-default
-          #nixosModules.gaming
           nixosModules.pete-mounts
           nixosModules.pete-printer
+          nixosModules.pete-services
           nixosModules.system-tools
+          nixosModules.usrp-sdr
           nixosModules.X11-tools
           nixosModules.yubi-smartcard
           systemUsers.pete
@@ -184,6 +184,7 @@
           homeManagerModules.pete-modules.user-config
           homeManagerModules.pete-modules.crypto
           homeManagerModules.pete-modules.firefox-config
+          homeManagerModules.pete-modules.games
           homeManagerModules.pete-modules.hyprland-config
           homeManagerModules.pete-modules.media-tools
           homeManagerModules.pete-modules.messengers
