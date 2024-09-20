@@ -2,12 +2,8 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running `nixos-help`).
 {
-  inputs,
-  config,
   pkgs,
-  lib,
-  nixosModules,
-  systemUsers,
+  outputs,
   ...
 }: {
   imports = [
@@ -39,6 +35,16 @@
       keep-outputs = true
       keep-derivations = true
     '';
+  };
+
+  nixpkgs = {
+    # You can add overlays here
+    overlays = [
+      # Add overlays your own flake exports (from overlays and pkgs dir):
+      outputs.overlays.additions
+      outputs.overlays.modifications
+      outputs.overlays.unstable-packages
+    ];
   };
 
   # system.includeBuildDependencies = true;
@@ -207,7 +213,9 @@
   # Enable Docker - note: This requires iptables
   virtualisation.docker.enable = true;
 
-  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config = {
+    allowUnfree = true;
+  };
 
   # System wide packages
   environment.systemPackages = with pkgs; [
@@ -216,5 +224,8 @@
     hyprcursor
     vulkan-tools
     mesa-demos
+    amdgpu_top
+    rocmPackages.rocm-smi
+    rocmPackages.rocminfo
   ];
 }
