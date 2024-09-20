@@ -1,6 +1,7 @@
 {
   pkgs,
   lib,
+  config,
   ...
 }: {
   home.packages = lib.mkAfter (with pkgs; [
@@ -9,9 +10,8 @@
     bettercap
     chisel
     gpsd
-    (hashcat.override {
-      cudaSupport = true;
-    })
+    gnuradio
+    hashcat
     hcxdumptool
     hcxtools
     unstable.kismet
