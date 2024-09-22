@@ -1,7 +1,4 @@
-
-{ pkgs, ... }:
-
-{
+{pkgs, ...}: {
   nix.settings = {
     # enable flakes globally
     experimental-features = ["nix-command" "flakes"];
@@ -16,6 +13,8 @@
     ];
     builders-use-substitutes = true;
   };
+
+  nixpkgs.hostPlatform = "x86_64-darwin";
 
   # Auto upgrade nix package and the daemon service.
   services.nix-daemon.enable = true;

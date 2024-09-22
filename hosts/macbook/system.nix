@@ -9,6 +9,7 @@
 ###################################################################################
 {
   system = {
+    stateVersion = 5;
     # activationScripts are executed every time you boot the system or run `nixos-rebuild` / `darwin-rebuild`.
     activationScripts.postUserActivation.text = ''
       # activateSettings -u will reload the settings from the database and apply them to the current session,
@@ -32,5 +33,7 @@
 
   # Create /etc/zshrc that loads the nix-darwin environment.
   # this is required if you want to use darwin's default shell - zsh
-  programs.bash.enable = true;
+  programs = {
+    bash.enable = true;
+  };
 }

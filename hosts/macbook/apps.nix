@@ -1,5 +1,4 @@
-{ pkgs, ...}: {
-
+{pkgs, ...}: {
   ##########################################################################
   #
   #  Install all apps and packages here.
@@ -19,6 +18,10 @@
   # Related Discussion: https://discourse.nixos.org/t/darwin-again/29331
   environment.systemPackages = with pkgs; [
     git
+    tldr
+    magic-wormhole-rs
+    ripgrep
+    home-manager
   ];
 
   # TODO To make this work, homebrew need to be installed manually, see https://brew.sh
