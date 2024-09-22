@@ -1,20 +1,27 @@
-{ username, ... }:
-
 {
+  inputs,
+  lib,
+  pkgs,
+  ...
+}: {
   # import sub modules
   imports = [
-    ./shell.nix
-    ./core.nix
-    ./git.nix
-    ./starship.nix
+    ../modules/home-manager/pete/alacritty-config.nix
+    ../modules/home-manager/pete/tmux-config.nix
   ];
+
+  # Let Home Manager install and manage itself.
+  programs.home-manager.enable = true;
 
   # Home Manager needs a bit of information about you and the
   # paths it should manage.
   home = {
-    username = username;
-    homeDirectory = "/Users/${username}";
+    username = "pete";
+    homeDirectory = "/Users/pete";
 
+    packages = lib.mkAfter [
+    	inputs.nixvim.packages.x86_64-darwin.default # Customized Neovim dev package
+    ];
     # This value determines the Home Manager release that your
     # configuration is compatible with. This helps avoid breakage
     # when a new Home Manager release introduces backwards
@@ -25,7 +32,4 @@
     # changes in each release.
     stateVersion = "24.05";
   };
-
-  # Let Home Manager install and manage itself.
-  programs.home-manager.enable = true;
 }
