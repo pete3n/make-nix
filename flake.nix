@@ -10,6 +10,14 @@
     home-manager.url = "github:nix-community/home-manager/release-24.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
+    nixpkgs-darwin.url = "github:nixos/nixpkgs/nixpkgs-24.05-darwin";
+    darwin = {
+      url = "github:lnl7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs-darwin";
+    };
+    home-manager-darwin.url = "github:nix-community/home-manager/release-24.05";
+    home-manager-darwin.inputs.nixpkgs.follows = "nixpkgs";
+
     # Nix User Repository, Firefox-Addons
     firefox-addons = {
       url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
@@ -36,8 +44,11 @@
     firefox-addons,
     hyprland,
     home-manager,
+    home-manager-darwin,
     nixpkgs,
     nixpkgs-unstable,
+    nixpkgs-darwin,
+    darwin,
     nixvim,
     self,
     ...
@@ -47,7 +58,6 @@
     # Supported systems for your flake packages, shell, etc.
     systems = [
       "aarch64-linux"
-      "i686-linux"
       "x86_64-linux"
       "aarch64-darwin"
       "x86_64-darwin"
@@ -71,7 +81,7 @@
 
     # Formatter for your nix files, available through 'nix fmt'
     # Other options beside 'alejandra' include 'nixpkgs-fmt'
-    formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt);
+    formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
 
     # Your custom packages and modifications, exported as overlays
     overlays = import ./overlays {inherit inputs;};
@@ -88,7 +98,21 @@
     # These are usually stuff you would upstream into home-manager
     # These are for users level configuration
     homeManagerModules = import ./modules/home-manager;
-
+    darwinConfigurations."MacBook-Pro" = darwin.lib.darwinSystem {
+      specialArgs = {inherit inputs outputs;};
+      modules = [
+        ./hosts/macbook/nix-core.nix
+        ./hosts/macbook/system.nix
+        ./hosts/macbook/apps.nix
+        ./users/darwin-pete.nix
+        #home-manager-darwin.darwinModules.home-manager
+        #{
+        #  home-manager.useGlobalPkgs = true;
+        #  home-manager.useUserPackages = true;
+        #  home-manager.users.pete = import ./home-manager/darwin-home.nix;
+        #}
+      ];
+    };
     # NixOS configuration entrypoint
     # Available through 'nixos-rebuild --flake .#system-tag'
     nixosConfigurations = {
@@ -158,6 +182,14 @@
     # Standalone home-manager configuration entrypoint
     # Available through 'home-manager --flake .#your-username@your-hostname'
     homeConfigurations = {
+      "pete@MacBook-Pro" = home-manager-darwin.lib.homeManagerConfiguration {
+        pkgs = nixpkgs-darwin.legacyPackages.x86_64-darwin;
+        extraSpecialArgs = {inherit inputs outputs;};
+        modules = [
+          ./home-manager/darwin-home.nix
+        ];
+      };
+
       "eco@nix-tac" = home-manager.lib.homeManagerConfiguration {
         pkgs = nixpkgs.legacyPackages.x86_64-linux; # Home-manager requires 'pkgs' instance
         extraSpecialArgs = {inherit inputs outputs;};
