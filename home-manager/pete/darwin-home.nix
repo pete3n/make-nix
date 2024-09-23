@@ -1,5 +1,6 @@
 {
   inputs,
+  outputs,
   lib,
   build_target,
   pkgs,
@@ -12,8 +13,49 @@
     ./modules/darwin/profile-config.nix
   ];
 
+  nixpkgs = {
+    overlays = [
+      outputs.overlays.additions
+      outputs.overlays.modifications
+      outputs.overlays.unstable-packages
+    ];
+    config = {
+      allowUnfree = true;
+      # Workaround for https://github.com/nix-community/home-manager/issues/2942
+      allowUnfreePredicate = _: true;
+    };
+  };
+
   # Let Home Manager install and manage itself.
-  programs.home-manager.enable = true;
+  programs = {
+    home-manager.enable = true;
+    fzf.enable = true;
+    zoxide.enable = true;
+    bat.enable = true;
+
+    # Show neofetch at login
+    bash = {
+      enable = true;
+      profileExtra =
+        /*
+        bash
+        */
+        ''
+          if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
+          	command -v fastfetch &> /dev/null && fastfetch
+          	export FASTFETCH_EXECUTED=1
+          	echo
+          	ip link
+          	echo
+          	ip -br a
+          	echo
+          		fi
+        '';
+    };
+  };
+
+  fonts.fontconfig.enable = true;
+  ssh-agent.enable = true;
 
   # Home Manager needs a bit of information about you and the
   # paths it should manage.
