@@ -134,7 +134,7 @@
       if build_target.isLinux
       then {
         "${build_target.user}@${build_target.host}" = home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages.x86_64-linux; # Home-manager requires 'pkgs' instance
+          pkgs = nixpkgs.legacyPackages.${build_target.system}; # Home-manager requires 'pkgs' instance
           lib = nixpkgs.lib;
           extraSpecialArgs = {inherit inputs outputs build_target;};
           modules = [
@@ -158,13 +158,11 @@
       }
       else {
         "${build_target.user}@${build_target.host}" = home-manager-darwin.lib.homeManagerConfiguration {
-          homeConfigurations = {
-            pkgs = nixpkgs-darwin.legacyPackages.x86_64-darwin;
-            extraSpecialArgs = {inherit inputs outputs build_target;};
-            modules = [
-              ./home-manager/darwin-home.nix
-            ];
-          };
+          pkgs = nixpkgs-darwin.legacyPackages.${build_target.system};
+          extraSpecialArgs = {inherit inputs outputs build_target;};
+          modules = [
+            ./home-manager/darwin-home.nix
+          ];
         };
       };
   };
