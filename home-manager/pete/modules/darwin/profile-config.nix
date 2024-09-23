@@ -30,32 +30,4 @@
     [title-min-length]
     min-length=5
   '';
-
-  programs.bash = {
-    initExtra = let
-      ssh-private-key = "pete3n";
-    in
-      /*
-      bash
-      */
-      ''
-              if command -v keychain > /dev/null 2>&1; then
-              	eval $(keychain --eval --nogui ${ssh-private-key} --quiet);
-              fi
-
-              set -o vi
-
-              alias screenshot=grim
-              alias ls=lsd
-        alias lsc='lsd --classic'
-      '';
-
-    profileExtra =
-      /*
-      bash
-      */
-      ''
-        export EDITOR=nvim
-      '';
-  };
 }

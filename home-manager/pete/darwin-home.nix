@@ -34,22 +34,30 @@
     bat.enable = true;
 
     # Show neofetch at login
-    bash = {
+    zsh = {
       enable = true;
       profileExtra =
         /*
         bash
         */
         ''
+          export EDITOR=nvim
           if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
-          	command -v fastfetch &> /dev/null && fastfetch
           	export FASTFETCH_EXECUTED=1
-          	echo
-          	ip link
-          	echo
-          	ip -br a
-          	echo
-          		fi
+          	command -v fastfetch &> /dev/null && fastfetch
+               fi
+        '';
+
+      initExtra =
+        /*
+        bash
+        */
+        ''
+          bindkey -v
+          bindkey ^R history-incremental-search-backward
+          bindkey ^S history-incremental-search-forward
+          alias ls=lsd
+          alias lsc='lsd --classic'
         '';
     };
   };
@@ -68,6 +76,7 @@
       ]
       ++ (with pkgs; [
         fastfetch
+        lsd
       ]);
 
     # This value determines the Home Manager release that your

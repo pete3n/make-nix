@@ -16,7 +16,7 @@ in {
     powerline-fonts
   ];
   programs.fzf.tmux.enableShellIntegration = true;
-  programs.bash = {
+  programs.zsh = {
     enable = true;
     initExtra =
       /*
