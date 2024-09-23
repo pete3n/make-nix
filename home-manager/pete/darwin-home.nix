@@ -9,6 +9,7 @@
   imports = [
     ./modules/darwin/alacritty-config.nix
     ./modules/darwin/tmux-config.nix
+    ./modules/darwin/profile-config.nix
   ];
 
   # Let Home Manager install and manage itself.
