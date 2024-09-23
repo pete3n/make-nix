@@ -103,7 +103,7 @@
     # These are for users level configuration
     homeManagerModules = import ./modules/home-manager;
 
-    nixosConfiguration =
+    nixosConfigurations =
       if build_target.isLinux
       then {
         "${build_target.host}" = nixpkgs.lib.nixosSystem {
@@ -113,8 +113,12 @@
           ];
         };
       }
-      else {
-        darwinConfiguration."${build_target.host}" = nix-darwin.lib.darwinSystem {
+      else {};
+
+    darwinConfigurations =
+      if !build_target.isLinux
+      then {
+        "${build_target.host}" = nix-darwin.lib.darwinSystem {
           specialArgs = {inherit inputs outputs build_target;};
           modules = [
             ./hosts/macbook/nix-core.nix
@@ -123,8 +127,10 @@
             ./users/darwin-pete.nix
           ];
         };
-      };
-    homeManagerConfiguration =
+      }
+      else {};
+
+    homeManagerConfigurations =
       if build_target.isLinux
       then {
         "${build_target.user}@${build_target.host}" = home-manager.lib.homeManagerConfiguration {
