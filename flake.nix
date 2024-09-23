@@ -133,7 +133,7 @@
           lib = nixpkgs.lib;
           extraSpecialArgs = {inherit inputs outputs build_target;};
           modules = [
-            ./home-manager/linux-home.nix
+            ./home-manager/${build_target.user}/linux-home.nix
           ];
         };
       }
@@ -142,7 +142,7 @@
           pkgs = nixpkgs-darwin.legacyPackages.${build_target.system};
           extraSpecialArgs = {inherit inputs outputs build_target;};
           modules = [
-            ./home-manager/darwin-home.nix
+            ./home-manager/${build_target.user}/darwin-home.nix
           ];
         };
       };
