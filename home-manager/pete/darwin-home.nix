@@ -62,9 +62,13 @@
     username = "pete";
     homeDirectory = "/Users/pete";
 
-    packages = [
-      inputs.nixvim.packages.x86_64-darwin.default
-    ];
+    packages =
+      [
+        inputs.nixvim.packages.x86_64-darwin.default
+      ]
+      ++ (with pkgs; [
+        fastfetch
+      ]);
 
     # This value determines the Home Manager release that your
     # configuration is compatible with. This helps avoid breakage
