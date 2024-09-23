@@ -1,4 +1,3 @@
-# This module builds boot menu specialisation options for either the
 {
   config,
   lib,

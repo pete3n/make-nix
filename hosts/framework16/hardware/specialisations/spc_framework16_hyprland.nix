@@ -1,6 +1,5 @@
 # Using the Hyprland tiliing WM/Compositor
 {
-  config,
   lib,
   pkgs,
   ...

@@ -1,12 +1,16 @@
 # Special config for external Aorus RTX 3080 GPU
 {
   config,
-  lib,
   pkgs,
   ...
 }: {
   AwesomeWM_egpu.configuration = {
     system.nixos.tags = ["AwesomeWM" "Aorus-eGPU" "RTX-3080"];
+
+    imports = [
+      ../../../shared-modules/X11-tools.nix
+      ../../../shared-modules/nvidia-scripts.nix
+    ];
 
     hardware.nvidia = {
       package = config.boot.kernelPackages.nvidiaPackages.mkDriver {

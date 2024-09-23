@@ -1,12 +1,16 @@
 # AwesomeWM config for Radeon 780M
 {
-  config,
   lib,
   pkgs,
   ...
 }: {
   AwesomeWM.configuration = {
     system.nixos.tags = ["AwesomeWM" "Radeon780M"];
+
+    imports = [
+      ../../../shared-modules/X11-tools.nix
+      ../../../shared-modules/nvidia-scripts.nix
+    ];
 
     # Enable OpenGL
     hardware.opengl = {
