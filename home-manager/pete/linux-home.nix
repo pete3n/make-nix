@@ -19,7 +19,7 @@
     ./modules/linux/wallpaper.nix
     ./modules/linux/messengers.nix
     ./modules/linux/misc-tools.nix
-    ./modules/linux/alacritty-config.nix
+    ./modules/shared/alacritty-config.nix
     ./modules/linux/hyprland-config.nix
     ./modules/linux/office-cloud.nix
     ./modules/linux/media-tools.nix
