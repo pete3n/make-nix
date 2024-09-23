@@ -33,26 +33,6 @@
         "type": "github"
       }
     },
-    "darwin": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs-darwin"
-        ]
-      },
-      "locked": {
-        "lastModified": 1727003835,
-        "narHash": "sha256-Cfllbt/ADfO8oxbT984MhPHR6FJBaglsr1SxtDGbpec=",
-        "owner": "lnl7",
-        "repo": "nix-darwin",
-        "rev": "bd7d1e3912d40f799c5c0f7e5820ec950f1e0b3d",
-        "type": "github"
-      },
-      "original": {
-        "owner": "lnl7",
-        "repo": "nix-darwin",
-        "type": "github"
-      }
-    },
     "deploy-rs": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -606,6 +586,26 @@
     "nix-darwin": {
       "inputs": {
         "nixpkgs": [
+          "nixpkgs-darwin"
+        ]
+      },
+      "locked": {
+        "lastModified": 1727003835,
+        "narHash": "sha256-Cfllbt/ADfO8oxbT984MhPHR6FJBaglsr1SxtDGbpec=",
+        "owner": "lnl7",
+        "repo": "nix-darwin",
+        "rev": "bd7d1e3912d40f799c5c0f7e5820ec950f1e0b3d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "lnl7",
+        "repo": "nix-darwin",
+        "type": "github"
+      }
+    },
+    "nix-darwin_2": {
+      "inputs": {
+        "nixpkgs": [
           "nixvim",
           "nixvim",
           "nixpkgs"
@@ -793,7 +793,7 @@
         "flake-parts": "flake-parts_2",
         "git-hooks": "git-hooks",
         "home-manager": "home-manager_2",
-        "nix-darwin": "nix-darwin",
+        "nix-darwin": "nix-darwin_2",
         "nixpkgs": "nixpkgs_5",
         "treefmt-nix": "treefmt-nix"
       },
@@ -814,7 +814,6 @@
     },
     "root": {
       "inputs": {
-        "darwin": "darwin",
         "deploy-rs": "deploy-rs",
         "firefox-addons": "firefox-addons",
         "home-manager": "home-manager",
@@ -822,6 +821,7 @@
         "hyprcursor": "hyprcursor",
         "hyprland": "hyprland",
         "hyprland-plugins": "hyprland-plugins",
+        "nix-darwin": "nix-darwin",
         "nixpkgs": "nixpkgs_3",
         "nixpkgs-darwin": "nixpkgs-darwin",
         "nixpkgs-unstable": "nixpkgs-unstable",

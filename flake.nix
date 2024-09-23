@@ -4,37 +4,39 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-    # Also see the 'unstable-packages' overlay at 'overlays/default.nix'.
-
-    # Home manager
-    home-manager.url = "github:nix-community/home-manager/release-24.05";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     nixpkgs-darwin.url = "github:nixos/nixpkgs/nixpkgs-24.05-darwin";
-    darwin = {
+    nix-darwin = {
       url = "github:lnl7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs-darwin";
     };
-    home-manager-darwin.url = "github:nix-community/home-manager/release-24.05";
-    home-manager-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
-    # Nix User Repository, Firefox-Addons
+    home-manager = {
+      url = "github:nix-community/home-manager/release-24.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    home-manager-darwin = {
+      url = "github:nix-community/home-manager/release-24.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     firefox-addons = {
       url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # Hyprland
     hyprland = {
       url = "git+https://github.com/hyprwm/Hyprland?submodules=1";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
+
     hyprland-plugins = {
       url = "github:hyprwm/hyprland-plugins";
       inputs.hyprland.follows = "hyprland";
     };
-    hyprcursor.url = "github:hyprwm/hyprcursor";
 
+    hyprcursor.url = "github:hyprwm/hyprcursor";
     nixvim.url = "github:pete3n/nixvim-flake";
     deploy-rs.url = "github:serokell/deploy-rs";
   };
@@ -48,12 +50,14 @@
     nixpkgs,
     nixpkgs-unstable,
     nixpkgs-darwin,
-    darwin,
+    nix-darwin,
     nixvim,
     self,
     ...
   } @ inputs: let
     inherit (self) outputs;
+
+    build_target = import ./build-targets.nix {};
 
     # Supported systems for your flake packages, shell, etc.
     systems = [
@@ -98,181 +102,64 @@
     # These are usually stuff you would upstream into home-manager
     # These are for users level configuration
     homeManagerModules = import ./modules/home-manager;
-    darwinConfigurations."MacBook-Pro" = darwin.lib.darwinSystem {
-      specialArgs = {inherit inputs outputs;};
-      modules = [
-        ./hosts/macbook/nix-core.nix
-        ./hosts/macbook/system.nix
-        ./hosts/macbook/apps.nix
-        ./users/darwin-pete.nix
-        #home-manager-darwin.darwinModules.home-manager
-        #{
-        #  home-manager.useGlobalPkgs = true;
-        #  home-manager.useUserPackages = true;
-        #  home-manager.users.pete = import ./home-manager/darwin-home.nix;
-        #}
-      ];
-    };
-    # NixOS configuration entrypoint
-    # Available through 'nixos-rebuild --flake .#system-tag'
-    nixosConfigurations = {
-      #eco-getac = nixpkgs.lib.nixosSystem {
-      #  specialArgs = {inherit inputs outputs;};
-      #  modules = [
-      #    ./hosts/getac/configuration.nix
-      #    nixosModules.console
-      #    nixosModules.getac-modules.specialisations
-      #    nixosModules.iptables-default
-      #    nixosModules.system-tools
-      #    nixosModules.X11-tools
-      #    systemUsers.eco
-      #  ];
-      #};
 
-      #pete-xps = nixpkgs.lib.nixosSystem {
-      #  specialArgs = {inherit inputs outputs;};
-      #  modules = [
-      #    ./hosts/xps/configuration.nix
-      #    nixosModules.xps-modules.specialisations
-      #    nixosModules.iptables-default
-      #    nixosModules.nvidia-scripts
-      #    nixosModules.pete-mounts
-      #    nixosModules.pete-printer
-      #    nixosModules.system-tools
-      #    nixosModules.X11-tools
-      #    nixosModules.yubi-smartcard
-      #    systemUsers.pete
-      #  ];
-      #};
-      pete-framework16 = nixpkgs.lib.nixosSystem {
-        specialArgs = {inherit inputs outputs;};
-        modules = [
-          ./hosts/framework16/configuration.nix
-          nixosModules.framework16-modules.specialisations
-          nixosModules.iptables-default
-          nixosModules.pete-mounts
-          nixosModules.pete-printer
-          nixosModules.pete-services
-          nixosModules.system-tools
-          nixosModules.usrp-sdr
-          nixosModules.X11-tools
-          nixosModules.yubi-smartcard
-          systemUsers.pete
-        ];
+    nixosConfiguration =
+      if build_target.isLinux
+      then {
+        "${build_target.host}" = nixpkgs.lib.nixosSystem {
+          specialArgs = {inherit inputs outputs build_target;};
+          modules = [
+            ./hosts/${build_target.host}/configuration.nix
+          ];
+        };
+      }
+      else {
+        darwinConfiguration."${build_target.host}" = nix-darwin.lib.darwinSystem {
+          specialArgs = {inherit inputs outputs build_target;};
+          modules = [
+            ./hosts/macbook/nix-core.nix
+            ./hosts/macbook/system.nix
+            ./hosts/macbook/apps.nix
+            ./users/darwin-pete.nix
+          ];
+        };
       };
-      #junior-argon = nixpkgs.lib.nixosSystem {
-      #  specialArgs = {inherit inputs outputs;};
-      #  modules = [
-      #    ./hosts/xps-sc2/configuration.nix
-      #    nixosModules.console
-      #    nixosModules.xps-modules.specialisations
-      #    nixosModules.iptables-default
-      #    nixosModules.system-tools
-      #    nixosModules.X11-tools
-      #    systemUsers.junior
-      #  ];
-      #};
-    };
-
-    #eco-getac-system = nixosConfigurations.eco-getac.config.system.build.toplevel;
-    #pete-xps-system = nixosConfigurations.pete-xps.config.system.build.toplevel;
-    pete-framework16-system = nixosConfigurations.pete-framework16.config.system.build.toplevel;
-    #junior-argon-system = nixosConfigurations.junior-argon.config.system.build.toplevel;
-
-    # Standalone home-manager configuration entrypoint
-    # Available through 'home-manager --flake .#your-username@your-hostname'
-    homeConfigurations = {
-      "pete@MacBook-Pro" = home-manager-darwin.lib.homeManagerConfiguration {
-        pkgs = nixpkgs-darwin.legacyPackages.x86_64-darwin;
-        extraSpecialArgs = {inherit inputs outputs;};
-        modules = [
-          ./home-manager/darwin-home.nix
-        ];
-      };
-
-      "eco@nix-tac" = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages.x86_64-linux; # Home-manager requires 'pkgs' instance
-        extraSpecialArgs = {inherit inputs outputs;};
-        modules = [
-          ./home-manager/home.nix
-          homeManagerModules.eco-modules.alacritty-config
-          homeManagerModules.eco-modules.awesome-config
-          homeManagerModules.eco-modules.hyprland-config
-          homeManagerModules.eco-modules.neovim-env
-          homeManagerModules.eco-modules.pen-tools
-          homeManagerModules.eco-modules.tmux-config
-          homeManagerModules.eco-modules.user-config
-        ];
-      };
-
-      "pete@nixos" = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages.x86_64-linux; # Home-manager requires 'pkgs' instance
-        lib = nixpkgs.lib;
-        extraSpecialArgs = {inherit inputs outputs;};
-        modules = [
-          ./home-manager/home.nix
-          homeManagerModules.pete-modules.alacritty-config
-          homeManagerModules.pete-modules.awesome-config
-          homeManagerModules.pete-modules.user-config
-          homeManagerModules.pete-modules.crypto
-          homeManagerModules.pete-modules.firefox-config
-          homeManagerModules.pete-modules.games
-          homeManagerModules.pete-modules.hyprland-config
-          homeManagerModules.pete-modules.media-tools
-          homeManagerModules.pete-modules.messengers
-          homeManagerModules.pete-modules.misc-tools
-          homeManagerModules.pete-modules.pen-tools
-          homeManagerModules.pete-modules.neovim-env
-          homeManagerModules.pete-modules.office-cloud
-          homeManagerModules.pete-modules.tmux-config
-        ];
-      };
-
-      "junior@argon" = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages.x86_64-linux; # Home-manager requires 'pkgs' instance
-        lib = nixpkgs.lib;
-        extraSpecialArgs = {inherit inputs outputs;};
-        modules = [
-          ./home-manager/home.nix
-          homeManagerModules.junior-modules.awesome-config
-          homeManagerModules.junior-modules.alacritty-config
-          homeManagerModules.junior-modules.user-config
-          homeManagerModules.junior-modules.hyprland-config
-          homeManagerModules.junior-modules.media-tools
-          homeManagerModules.junior-modules.misc-tools
-          homeManagerModules.junior-modules.pen-tools
-          homeManagerModules.junior-modules.neovim-env
-          homeManagerModules.junior-modules.tmux-config
-        ];
-      };
-    };
-    eco-nix-tac-home = homeConfigurations."eco@nix-tac".activationPackage;
-    pete-nixos-home = homeConfigurations."pete@nixos".activationPackage;
-    junior-argon-home = homeConfigurations."junior@argon".activationPackage;
-
-    deploy.nodes = {
-      eco-getac = {
-        hostname = "nix-tac";
-        profiles = {
-          system = {
-            sshUser = "eco";
-            user = "root";
-            autoRollback = true;
-            magicRollback = true;
-            remoteBuild = false;
-            path = deploy-rs.lib.x86_64-linux.activate.nixos nixosConfigurations.eco-getac;
-            # Using x86_64 to allow pushing configs without NixOS and binfmt support
-          };
-          home = {
-            sshUser = "eco";
-            user = "eco";
-            autoRollback = false;
-            magicRollback = false;
-            remoteBuild = false;
-            path = deploy-rs.lib.x86_64-linux.activate.custom homeConfigurations."eco@nix-tac".activationPackage "./activate";
+    homeManagerConfiguration =
+      if build_target.isLinux
+      then {
+        "${build_target.user}@${build_target.host}" = home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages.x86_64-linux; # Home-manager requires 'pkgs' instance
+          lib = nixpkgs.lib;
+          extraSpecialArgs = {inherit inputs outputs build_target;};
+          modules = [
+            ./home-manager/home.nix
+            homeManagerModules.pete-modules.alacritty-config
+            homeManagerModules.pete-modules.awesome-config
+            homeManagerModules.pete-modules.user-config
+            homeManagerModules.pete-modules.crypto
+            homeManagerModules.pete-modules.firefox-config
+            homeManagerModules.pete-modules.games
+            homeManagerModules.pete-modules.hyprland-config
+            homeManagerModules.pete-modules.media-tools
+            homeManagerModules.pete-modules.messengers
+            homeManagerModules.pete-modules.misc-tools
+            homeManagerModules.pete-modules.pen-tools
+            homeManagerModules.pete-modules.neovim-env
+            homeManagerModules.pete-modules.office-cloud
+            homeManagerModules.pete-modules.tmux-config
+          ];
+        };
+      }
+      else {
+        "${build_target.user}@${build_target.host}" = home-manager-darwin.lib.homeManagerConfiguration {
+          homeConfigurations = {
+            pkgs = nixpkgs-darwin.legacyPackages.x86_64-darwin;
+            extraSpecialArgs = {inherit inputs outputs build_target;};
+            modules = [
+              ./home-manager/darwin-home.nix
+            ];
           };
         };
       };
-    };
   };
 }
