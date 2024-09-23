@@ -105,6 +105,7 @@
           specialArgs = {inherit inputs outputs build_target;};
           modules = [
             ./hosts/${build_target.host}/configuration.nix
+            ./users/linux/linux-${build_target.user}.nix
           ];
         };
       }
@@ -119,7 +120,7 @@
             ./hosts/${build_target.host}/nix-core.nix
             ./hosts/${build_target.host}/system.nix
             ./hosts/${build_target.host}/apps.nix
-            ./users/darwin/${build_target.user}.nix
+            ./users/darwin/darwin-${build_target.user}.nix
           ];
         };
       }

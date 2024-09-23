@@ -1,4 +1,8 @@
-{pkgs, ...}:
+{
+  pkgs,
+  build_target,
+  ...
+}:
 ###################################################################################
 #
 #  macOS's System configuration
@@ -18,16 +22,28 @@
     '';
 
     defaults = {
-      menuExtraClock.Show24Hour = true; # show 24 hour clock
+      menuExtraClock.Show24Hour = true;
+      dock.autohide = true;
+      NSGlobalDomain = {
+        AppleShowAllExtensions = true;
+        InitialKeyRepeat = 14;
+        KeyRepeat = 1;
+      };
+    };
 
-      # other macOS's defaults configuration.
-      # ......
+    keyboard = {
+      enableKeyMapping = true;
+      remapCapsLockToControl = false;
+      remapCapsLockToEscape = true;
+
+      # match common keyboard layout: 'ctrl | command | alt'
+      swapLeftCommandAndLeftAlt = false;
     };
   };
 
-  networking.hostName = "MacBook-Pro";
-  networking.computerName = "MacBook-Pro";
-  system.defaults.smb.NetBIOSName = "MacBook-Pro";
+  networking.hostName = "${build_target.host}";
+  networking.computerName = "${build_target.host}";
+  system.defaults.smb.NetBIOSName = "${build_target.host}";
 
   # Add ability to used TouchID for sudo authentication
   security.pam.enableSudoTouchIdAuth = false;
@@ -35,10 +51,31 @@
   # Create /etc/zshrc that loads the nix-darwin environment.
   # this is required if you want to use darwin's default shell - zsh
   programs = {
-    zsh.enable = true;
+    zsh = {
+      enable = true;
+      enableCompletion = false; # Disabled because
+      # Otherwise it breaks home-manager zsh completions
+      # https://discourse.nixos.org/t/zsh-compinit-warning-on-every-shell-session/22735/4
+    };
   };
 
-  environment.shells = [
-    pkgs.zsh
-  ];
+  environment = {
+    shells = with pkgs; [
+      bash
+      zsh
+    ];
+    loginShell = pkgs.zsh;
+  };
+
+  time.timeZone = "America/New_York";
+
+  fonts = {
+    packages = with pkgs; [
+      (nerdfonts.override {
+        fonts = [
+          "JetBrainsMono"
+        ];
+      })
+    ];
+  };
 }

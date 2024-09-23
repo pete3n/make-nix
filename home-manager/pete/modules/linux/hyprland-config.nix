@@ -102,6 +102,9 @@
         # 2 - cursor focus is detached from keyboard focus. Clicking on a window will switch keyboard focus to that window
         # 3 - cursor focus is completely separate from keyboard focus. Clicking on a window will not switch keyboard focus
 
+        # Swap escape and capslock for vim enjoyment
+        kb_options = "caps:swapescape";
+
         sensitivity = 1.0;
         touchpad = {
           natural_scroll = true; # Reverse scroll direction

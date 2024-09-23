@@ -17,7 +17,6 @@ in {
   ];
   programs.fzf.tmux.enableShellIntegration = true;
   programs.zsh = {
-    enable = true;
     initExtra =
       /*
       bash
@@ -69,6 +68,7 @@ in {
 
   programs.tmux = {
     enable = true;
+    shell = "${pkgs.zsh}/bin/zsh";
     sensibleOnTop = false;
     escapeTime = 10;
     mouse = true;

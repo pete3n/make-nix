@@ -26,26 +26,62 @@
     };
   };
 
-  # Let Home Manager install and manage itself.
   programs = {
     home-manager.enable = true;
-    fzf.enable = true;
-    zoxide.enable = true;
-    bat.enable = true;
+    bat = {
+      enable = true;
+      config = {
+        theme = "TwoDark";
+      };
+      extraPackages = with pkgs.bat-extras; [
+        batdiff
+        batman
+        batgrep
+        batwatch
+      ];
+    };
+    fastfetch.enable = true;
+    fzf = {
+      enable = true;
+      enableZshIntegration = true;
+    };
+    lsd = {
+      enable = true;
+      enableAliases = true;
+    };
+    zoxide = {
+      enable = true;
+      enableBashIntegration = true;
+      enableZshIntegration = true;
+    };
+    btop = {
+      enable = true;
+      settings = {
+        vim_keys = true;
+        theme_background = false;
+        color_theme = "nord";
+      };
+    };
 
-    # Show neofetch at login
+    bash.enable = false;
     zsh = {
       enable = true;
+      enableCompletion = true;
+      autosuggestion.enable = false;
+      syntaxHighlighting.enable = true;
+      defaultKeymap = "viins";
       profileExtra =
         /*
         bash
         */
         ''
-          export EDITOR=nvim
-          if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
-          	export FASTFETCH_EXECUTED=1
-          	command -v fastfetch &> /dev/null && fastfetch
-               fi
+              	export EDITOR=nvim
+
+          # Show fastfetch at login
+          	if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
+            	export FASTFETCH_EXECUTED=1
+              command -v fastfetch &> /dev/null && fastfetch
+            fi
         '';
 
       initExtra =
@@ -53,12 +89,13 @@
         bash
         */
         ''
-          bindkey -v
-          bindkey ^R history-incremental-search-backward
-          bindkey ^S history-incremental-search-forward
           alias ls=lsd
           alias lsc='lsd --classic'
         '';
+    };
+    starship = {
+      enable = true;
+      enableZshIntegration = true;
     };
   };
 
@@ -76,8 +113,11 @@
       ]
       ++ (with pkgs; [
         fastfetch
-        lsd
       ]);
+
+    sessionVariables = {
+      EDITOR = "nvim";
+    };
 
     # This value determines the Home Manager release that your
     # configuration is compatible with. This helps avoid breakage

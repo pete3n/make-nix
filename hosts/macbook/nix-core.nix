@@ -12,6 +12,11 @@
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
     ];
     builders-use-substitutes = true;
+
+    # Disable auto-optimise-store because of this issue:
+    #   https://github.com/NixOS/nix/issues/7273
+    # "error: cannot link '/nix/store/.tmp-link-xxxxx-xxxxx' to '/nix/store/.links/xxxx': File exists"
+    auto-optimise-store = false;
   };
 
   nixpkgs.hostPlatform = "x86_64-darwin";
