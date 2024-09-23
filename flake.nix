@@ -130,7 +130,7 @@
       }
       else {};
 
-    homeManagerConfigurations =
+    homeConfigurations =
       if build_target.isLinux
       then {
         "${build_target.user}@${build_target.host}" = home-manager.lib.homeManagerConfiguration {
