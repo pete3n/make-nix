@@ -7,11 +7,14 @@
   ...
 }: {
   imports = [
-    ./hardware-configuration.nix
+    ./hardware/hardware-configuration.nix
     # This is the hardware configuration created by the installer
     # Most importantly it contains the UUIDs for your boot and root filesystems
-    # Do not use anyone else's hardware-configuration.nix or you will be
+    # Do not use anyone other host's hardware-configuration.nix or you will be
     # unable to boot
+    ./hardware/specialisations/specialisations.nix
+    # These provide different boot menu options for configurations that must
+    # but implemented prior to booting Linux, such as an external GPU
   ];
 
   boot = {
@@ -53,7 +56,7 @@
 
   ### NETWORK CONFIG ###
   networking = {
-    hostName = "nixos";
+    hostName = "framework16";
     useDHCP = false; # Disable automatic DHCP; manually call: dhcpcd -B interface
     nameservers = ["192.168.1.1" "1.1.1.1" "8.8.8.8"];
 

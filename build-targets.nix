@@ -16,7 +16,7 @@
   from the system
   */
   user = "pete";
-  host = "macbook";
-  system = "x86_64-darwin";
-  isLinux = false;
+  host = "framework16";
+  system = "x86_64-linux";
+  isLinux = true;
 }

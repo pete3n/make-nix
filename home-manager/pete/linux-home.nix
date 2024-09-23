@@ -11,6 +11,23 @@
   # You can import other home-manager modules that should be used by all
   # users here. Other modules are passed by the flake with homeManagerModules
   imports = [
+    ./modules/linux/games.nix
+    ./modules/linux/crypto.nix
+    ./modules/linux/quirks.nix
+    ./modules/linux/firefox.nix
+    ./modules/linux/pen-tools.nix
+    ./modules/linux/wallpaper.nix
+    ./modules/linux/messengers.nix
+    ./modules/linux/misc-tools.nix
+    ./modules/linux/alacritty-config.nix
+    ./modules/linux/hyprland-config.nix
+    ./modules/linux/office-cloud.nix
+    ./modules/linux/media-tools.nix
+    ./modules/linux/rofi-theme.nix
+    ./modules/linux/waybar-config.nix
+    ./modules/linux/theme-style.nix
+    ./modules/linux/profile-config.nix
+    ./modules/linux/tmux-config.nix
     # If you want to use modules your own flake exports (from modules/home-manager):
     # outputs.homeManagerModules.example
 
