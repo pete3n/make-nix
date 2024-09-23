@@ -7,6 +7,7 @@
 }: {
   # import sub modules
   imports = [
+    ./modules/darwin/alacritty-config.nix
     ./modules/darwin/tmux-config.nix
   ];
 
