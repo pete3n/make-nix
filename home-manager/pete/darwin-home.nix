@@ -7,7 +7,7 @@
 }: {
   # import sub modules
   imports = [
-    ./modules/${build_target.user}/darwin
+    ./modules/darwin/tmux-config.nix
   ];
 
   # Let Home Manager install and manage itself.
@@ -16,8 +16,12 @@
   # Home Manager needs a bit of information about you and the
   # paths it should manage.
   home = {
-    username = "${build_target.user}";
-    homeDirectory = "/Users/${build_target.user}";
+    username = "pete";
+    homeDirectory = "/Users/pete";
+
+    packages = [
+      inputs.nixvim.packages.x86_64-darwin.default
+    ];
 
     # This value determines the Home Manager release that your
     # configuration is compatible with. This helps avoid breakage

@@ -98,11 +98,6 @@
     # User defintions for the system (careful these create/overwrite users)
     systemUsers = import ./users;
 
-    # Reusable home-manager modules you might want to export
-    # These are usually stuff you would upstream into home-manager
-    # These are for users level configuration
-    homeManagerModules = import ./modules/home-manager;
-
     nixosConfigurations =
       if build_target.isLinux
       then {
@@ -121,10 +116,10 @@
         "${build_target.host}" = nix-darwin.lib.darwinSystem {
           specialArgs = {inherit inputs outputs build_target;};
           modules = [
-            ./hosts/macbook/nix-core.nix
-            ./hosts/macbook/system.nix
-            ./hosts/macbook/apps.nix
-            ./users/darwin-pete.nix
+            ./hosts/${build_target.host}/nix-core.nix
+            ./hosts/${build_target.host}/system.nix
+            ./hosts/${build_target.host}/apps.nix
+            ./users/darwin/${build_target.user}.nix
           ];
         };
       }
@@ -138,21 +133,7 @@
           lib = nixpkgs.lib;
           extraSpecialArgs = {inherit inputs outputs build_target;};
           modules = [
-            ./home-manager/home.nix
-            homeManagerModules.pete-modules.alacritty-config
-            homeManagerModules.pete-modules.awesome-config
-            homeManagerModules.pete-modules.user-config
-            homeManagerModules.pete-modules.crypto
-            homeManagerModules.pete-modules.firefox-config
-            homeManagerModules.pete-modules.games
-            homeManagerModules.pete-modules.hyprland-config
-            homeManagerModules.pete-modules.media-tools
-            homeManagerModules.pete-modules.messengers
-            homeManagerModules.pete-modules.misc-tools
-            homeManagerModules.pete-modules.pen-tools
-            homeManagerModules.pete-modules.neovim-env
-            homeManagerModules.pete-modules.office-cloud
-            homeManagerModules.pete-modules.tmux-config
+            ./home-manager/linux-home.nix
           ];
         };
       }
