@@ -11,7 +11,13 @@
     yubikey-personalization
     yubikey-personalization-gui
   ];
-  services.pcscd.enable = true; # Enable smart card daemon
+
+  services = {
+    pcscd.enable = true; # Enable smart card daemon
+    udev.packages = [
+      pkgs.yubikey-personalization
+    ];
+  };
   programs.gnupg.agent.enable = true;
 
   # Configure u2f Yubikeys with:
@@ -26,9 +32,11 @@
     };
     u2f = {
       enable = true;
+      debug = false;
+      cue = true;
       control = "required";
-      authFile = pkgs.writeText "u2f-auth-file" ''
-        pete:9b6Ief9xM0RgX7A2RoVNAGoJ7F3SaW0/TK3eiZ78nWLi/QMStqVXiwqhRdlC+X21jGdLc/UbVBKtWPhvjhG6MQ==,6Dm35/cYicr4QKEji/MquVU6SCmjjw66BzRanp5nzACzzXRyXTbwApV08oC4pIwB/Fx5BVxbmgIWel/z4CV/AA==,es256,+presencepete:eASVCOywAZZasf1zw9BV5fB87fbZx1gK6qb/Y6BE3dvVJdQt5ZzsQtKMiH5MY0AjXUtvW7DEAFDqDOwJiGIJlg==,g1C3ME7/WXqiL2s7S3BrIRk+J3u6WWUF8wl6ff1/srVbh39UGIKEB1nKeQfz9ZtqvD9AkPhee/CeJ40chayl2g==,es256,+presence
+      authFile = pkgs.writeText "pete-u2f-auth-file" ''
+        pete:VitP/URTordhG7xWAtVoFFxZOiK8L2cUoBY9SXWROS3vWdhL6rZYm+biNYqMmvwBz0I4O09IhUVnILsdBg/P+Q==,/Jk3pOd5nUrIiVzVMHRtJ+HxS8UBkjz1BTV7zXvwRf/0tKqfEhhR8EnsZbsrD0daw4oXDwi04RWiZJS38p/6xw==,es256,+presence:+GB7k/U1qVNeiy6c6Y6jmIiY3GZRmL8KNkersUZiCLmIfS0AShb3K++7s2Lzv7Xmz594RKPuHJ1XFS7FyLH+Cg==,NWUx6LrmdphmF0m6LVnKYhsndPprfe8x3OhqCUQ06tllGoJBm694fhJ6RvTQiXSJ4fF2GqIC5LRffPQnWzG8fw==,es256,+presence
       '';
     };
   };

@@ -42,16 +42,11 @@
   };
 
   outputs = {
-    deploy-rs,
-    firefox-addons,
-    hyprland,
     home-manager,
     home-manager-darwin,
     nixpkgs,
-    nixpkgs-unstable,
     nixpkgs-darwin,
     nix-darwin,
-    nixvim,
     self,
     ...
   } @ inputs: let
@@ -69,7 +64,7 @@
     # This is a function that generates an attribute by calling a function you
     # pass to it, with each system as an argument
     forAllSystems = nixpkgs.lib.genAttrs systems;
-  in rec {
+  in {
     # Your custom packages
     # Accessible through 'nix build', 'nix shell', etc
     packages = forAllSystems (
@@ -89,11 +84,6 @@
 
     # Your custom packages and modifications, exported as overlays
     overlays = import ./overlays {inherit inputs;};
-
-    # Reusable nixos modules you might want to export
-    # These are usually stuff you would upstream into nixpkgs
-    # These are for system-wide configuration
-    nixosModules = import ./modules/nixos;
 
     # User defintions for the system (careful these create/overwrite users)
     systemUsers = import ./users;

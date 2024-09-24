@@ -34,7 +34,7 @@
     keyboard = {
       enableKeyMapping = true;
       remapCapsLockToControl = false;
-      remapCapsLockToEscape = true;
+      remapCapsLockToEscape = false;
 
       # match common keyboard layout: 'ctrl | command | alt'
       swapLeftCommandAndLeftAlt = false;
