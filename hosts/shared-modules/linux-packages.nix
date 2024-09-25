@@ -13,6 +13,7 @@
     file
     fzf
     git
+    gnumake
     gparted
     home-manager
     iw
