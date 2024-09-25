@@ -95,6 +95,8 @@
 
       input = {
         kb_layout = "us";
+        repeat_rate = 50;
+        repeat_delay = 300;
         follow_mouse = 2;
         # Follow mouse settings:
         # 0 - cursor movement doesn't change window focus
