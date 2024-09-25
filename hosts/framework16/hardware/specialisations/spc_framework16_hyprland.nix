@@ -25,6 +25,9 @@
     # I assume because of X-Wayland
     services.xserver.videoDrivers = ["modesetting"];
     services.kmscon.enable = lib.mkForce false;
-    programs.hyprland.enable = lib.mkForce true;
+    programs.hyprland = {
+      enable = lib.mkForce true;
+      package = pkgs.hyprland;
+    };
   };
 }

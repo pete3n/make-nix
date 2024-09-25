@@ -1,5 +1,5 @@
 {
-inputs,
+  inputs,
   outputs,
   pkgs,
   ...
@@ -53,16 +53,17 @@ inputs,
 
   # Shared user packages
   home = {
-	  packages =
-		[
-			inputs.nixvim.packages.x86_64-linux.default
-		] ++ (with pkgs; [
-	    fd # Fast find altenative
-	    fastfetch
-	    python311Packages.base58
-	    ripgrep # Simplified recursive grep utility
-	  ]);
-};
+    packages =
+      [
+        inputs.nixvim.packages.x86_64-linux.default
+      ]
+      ++ (with pkgs; [
+        fd # Fast find altenative
+        fastfetch
+        python311Packages.base58
+        ripgrep # Simplified recursive grep utility
+      ]);
+  };
 
   programs = {
     home-manager.enable = true;

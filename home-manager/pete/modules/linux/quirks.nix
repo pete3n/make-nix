@@ -12,7 +12,7 @@
     exec ${pkgs.signal-desktop}/bin/signal-desktop "$@"
   '';
 
-  home.file.".local/state/nix/profile/bin/86box".test = ''
+  home.file.".local/state/nix/profile/bin/86box".text = ''
     #!/bin/sh
     export QT_QPA_PLATFORM=xcb
     exec ${pkgs._86Box-with-roms}/bin/86box "$@"
