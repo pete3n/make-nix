@@ -5,8 +5,11 @@
   ...
 }: {
   imports = [
+    ./modules/shared/alacritty-config.nix
+    ./modules/shared/git-config.nix
+    ./modules/linux/bash-config.nix
     ./modules/linux/crypto.nix
-    ./modules/linux/firefox.nix
+    ./modules/linux/firefox-config.nix
     ./modules/linux/games.nix
     ./modules/linux/hyprland-config.nix
     ./modules/linux/media-tools.nix
@@ -14,13 +17,11 @@
     ./modules/linux/misc-tools.nix
     ./modules/linux/office-cloud.nix
     ./modules/linux/pen-tools.nix
-    ./modules/linux/git-config.nix
     ./modules/linux/rofi-theme.nix
     ./modules/linux/theme-style.nix
     ./modules/linux/tmux-config.nix
     ./modules/linux/wallpaper.nix
     ./modules/linux/waybar-config.nix
-    ./modules/shared/alacritty-config.nix
   ];
 
   nixpkgs = {
@@ -70,8 +71,9 @@
 
   fonts.fontconfig.enable = true;
 
-  # Shared user packages
   home = {
+    username = "pete";
+    homeDirectory = "/home/pete";
     packages =
       [
         inputs.nixvim.packages.x86_64-linux.default
@@ -81,6 +83,7 @@
         fastfetch
         python311Packages.base58
         ripgrep # Simplified recursive grep utility
+        xdg-user-dirs
       ]);
   };
 

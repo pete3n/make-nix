@@ -71,14 +71,30 @@
     # Your custom packages
     # Accessible through 'nix build', 'nix shell', etc
     packages = forAllSystems (
-      system:
-        import ./pkgs {
-          inherit system;
-          pkgs = nixpkgs.legacyPackages.${system};
+      system: let
+        pkgs = nixpkgs.legacyPackages.${system};
+        customPackages = import ./pkgs {
+          inherit system pkgs;
           config = {
             allowUnfree = true;
           };
-        }
+        };
+        customDarwinPackages =
+          if !build_target.isLinux
+          then
+            import ./pkgs/darwin {
+              inherit system pkgs;
+              config = {
+                allowUnfree = true;
+              };
+            }
+          else {};
+      in
+        pkgs.lib.recursiveUpdate customPackages (
+          if !build_target.isLinux
+          then customDarwinPackages
+          else {}
+        )
     );
 
     # Formatter for your nix files, available through 'nix fmt'

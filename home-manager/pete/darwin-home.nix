@@ -7,9 +7,9 @@
   # import sub modules
   imports = [
     ./modules/shared/alacritty-config.nix
+    ./modules/shared/git-config.nix
     ./modules/darwin/firefox-config.nix
     ./modules/darwin/tmux-config.nix
-    ./modules/darwin/git-config.nix
     ./modules/darwin/zsh-config.nix
   ];
 
