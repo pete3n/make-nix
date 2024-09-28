@@ -31,6 +31,26 @@
       outputs.overlays.modifications
       outputs.overlays.unstable-packages
 
+      (final: prev: {
+        signal-desktop = final.signal-desktop.overrideAttrs (oldAttrs: {
+          installPhase =
+            oldAttrs.installPhase
+            + ''
+              wrapProgram $out/bin/signal-desktop \
+              	--set LIBGL_ALWAYS_SOFTWARE 1 \
+              	--set ELECTRON_DISABLE_GPU true
+            '';
+        });
+
+        _86box = final._86Box-with-roms.overrideAttrs (oldAttrs: {
+          installPhase =
+            oldAttrs.installPhase
+            + ''
+              wrapProgram $out/bin/86box \
+              --set QT_QPA_PLATFORM "xcb"
+            '';
+        });
+      })
       # You can also add overlays exported from other flakes:
       # Or define it inline, for example:
       # (final: prev: {
