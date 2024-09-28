@@ -1,20 +1,21 @@
 {
   inputs,
   outputs,
-  lib,
-  build_target,
   pkgs,
   ...
 }: {
   # import sub modules
   imports = [
     ./modules/shared/alacritty-config.nix
+    ./modules/darwin/firefox-config.nix
     ./modules/darwin/tmux-config.nix
-    ./modules/darwin/profile-config.nix
+    ./modules/darwin/git-config.nix
+    ./modules/darwin/zsh-config.nix
   ];
 
   nixpkgs = {
     overlays = [
+      inputs.nixpkgs-firefox-darwin.overlay
       outputs.overlays.additions
       outputs.overlays.modifications
       outputs.overlays.unstable-packages
@@ -63,36 +64,6 @@
       };
     };
 
-    bash.enable = false;
-    zsh = {
-      enable = true;
-      enableCompletion = true;
-      autosuggestion.enable = false;
-      syntaxHighlighting.enable = true;
-      defaultKeymap = "viins";
-      profileExtra =
-        /*
-        bash
-        */
-        ''
-              	export EDITOR=nvim
-
-          # Show fastfetch at login
-          	if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
-            	export FASTFETCH_EXECUTED=1
-              command -v fastfetch &> /dev/null && fastfetch
-            fi
-        '';
-
-      initExtra =
-        /*
-        bash
-        */
-        ''
-          alias ls=lsd
-          alias lsc='lsd --classic'
-        '';
-    };
     starship = {
       enable = true;
       enableZshIntegration = true;
@@ -112,7 +83,9 @@
         inputs.nixvim.packages.x86_64-darwin.default
       ]
       ++ (with pkgs; [
+        yubioath-darwin
         fastfetch
+        python312Packages.base58
       ]);
 
     sessionVariables = {

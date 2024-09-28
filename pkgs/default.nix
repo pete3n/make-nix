@@ -3,4 +3,5 @@
 {pkgs, ...}: {
   dod-certs = pkgs.callPackage ./dod-certs {};
   AngryOxide = pkgs.callPackage ./AngryOxide {};
+  yubioath-darwin = pkgs.callPackage ./yubioath-darwin {};
 }

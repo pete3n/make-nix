@@ -22,6 +22,14 @@
     magic-wormhole-rs
     ripgrep
     home-manager
+    skhd
+    element-desktop
+  ];
+
+  # Import other system packages and configuration options
+  imports = [
+    ./yabai.nix
+    ./skhd.nix
   ];
 
   # TODO To make this work, homebrew need to be installed manually, see https://brew.sh

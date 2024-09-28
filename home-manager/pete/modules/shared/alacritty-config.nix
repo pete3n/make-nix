@@ -3,6 +3,7 @@
     enable = true;
     settings = {
       window = {
+        decorations = "None";
         opacity = 0.7;
         padding = {
           x = 5;

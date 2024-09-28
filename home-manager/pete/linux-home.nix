@@ -14,8 +14,7 @@
     ./modules/linux/misc-tools.nix
     ./modules/linux/office-cloud.nix
     ./modules/linux/pen-tools.nix
-    ./modules/linux/profile-config.nix
-    #./modules/linux/quirks.nix
+    ./modules/linux/git-config.nix
     ./modules/linux/rofi-theme.nix
     ./modules/linux/theme-style.nix
     ./modules/linux/tmux-config.nix
