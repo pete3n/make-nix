@@ -5,8 +5,8 @@
   ...
 }: {
   imports = [
-    ./modules/shared/alacritty-config.nix
-    ./modules/shared/git-config.nix
+    ./modules/cross-platform/alacritty-config.nix
+    ./modules/cross-platform/git-config.nix
     ./modules/linux/bash-config.nix
     ./modules/linux/crypto.nix
     ./modules/linux/firefox-config.nix
