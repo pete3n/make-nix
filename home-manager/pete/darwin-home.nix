@@ -2,6 +2,7 @@
   inputs,
   outputs,
   pkgs,
+  build_target,
   ...
 }: {
   # import sub modules
@@ -81,9 +82,9 @@
     packages =
       [
         inputs.nixvim.packages.x86_64-darwin.default
+        inputs.self.packages.${build_target.system}.yubioath-darwin
       ]
       ++ (with pkgs; [
-        yubioath-darwin
         fastfetch
         python312Packages.base58
       ]);
