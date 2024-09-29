@@ -20,7 +20,6 @@
     ./modules/linux/rofi-theme.nix
     ./modules/linux/theme-style.nix
     ./modules/linux/tmux-config.nix
-    ./modules/linux/wallpaper.nix
     ./modules/linux/waybar-config.nix
   ];
 
