@@ -1,6 +1,15 @@
-{pkgs, ...}: {
+{
+  pkgs,
+  outputs,
+  ...
+}: {
+  nixpkgs = {
+    overlays = [
+      outputs.overlays.mod-packages
+    ];
+  };
   home.packages = with pkgs; [
     heroic
-    _86Box-with-roms
+    mod._86Box
   ];
 }

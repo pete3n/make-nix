@@ -13,10 +13,10 @@
         fi
 
         set -o vi
-
+        alias home-manager-rollback="home-manager generations | fzf | awk -F '-> ' '{print \$2 \"/activate\"}'"
         alias screenshot=grim
         alias ls=lsd
-            alias lsc='lsd --classic'
+        alias lsc='lsd --classic'
       '';
 
     profileExtra =
@@ -24,9 +24,18 @@
       bash
       */
       ''
-            export EDITOR=nvim
-        # Workaround for xdg.userDirs bug always being set to false
-        source "${config.home.homeDirectory}/.config/user-dirs.dirs"
+        export EDITOR=nvim
+             if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
+             	command -v fastfetch &> /dev/null && fastfetch
+             	export FASTFETCH_EXECUTED=1
+             	echo
+             	ip link
+             	echo
+             	ip -br a
+             	echo
+             		fi
+           # Workaround for xdg.userDirs bug always being set to false
+           source "${config.home.homeDirectory}/.config/user-dirs.dirs"
       '';
   };
 }

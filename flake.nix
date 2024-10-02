@@ -31,7 +31,7 @@
 
     hyprland = {
       url = "git+https://github.com/hyprwm/Hyprland?submodules=1";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     hyprland-plugins = {
@@ -101,6 +101,9 @@
 
     # Formatter for nix files, available through 'nix fmt'
     formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
+
+    # Flake wide overlays accessible though ouputs.overlays
+    overlays = import ./overlays {inherit inputs;};
 
     # User defintions for the system (careful these create/overwrite users)
     systemUsers = import ./users;

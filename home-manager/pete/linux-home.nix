@@ -1,6 +1,5 @@
 {
   inputs,
-  outputs,
   pkgs,
   build_target,
   ...
@@ -24,39 +23,7 @@
     ./modules/linux/waybar-config.nix
   ];
   nixpkgs = {
-    # You can add overlays here
-    overlays = [
-      (final: prev: {
-        signal-desktop = prev.signal-desktop.overrideAttrs (oldAttrs: {
-          installPhase =
-            oldAttrs.installPhase
-            + ''
-              wrapProgram $out/bin/signal-desktop \
-              --set LIBGL_ALWAYS_SOFTWARE 1 \
-              --set ELECTRON_DISABLE_GPU true
-            '';
-        });
-
-        _86box = prev._86Box-with-roms.overrideAttrs (oldAttrs: {
-          installPhase =
-            oldAttrs.installPhase
-            + ''
-              wrapProgram $out/bin/86box \
-              --set QT_QPA_PLATFORM "xcb"
-            '';
-        });
-      })
-      # You can also add overlays exported from other flakes:
-      # Or define it inline, for example:
-      # (final: prev: {
-      #   hi = final.hello.overrideAttrs (oldAttrs: {
-      #     patches = [ ./change-hello-to-hi.patch ];
-      #   });
-      # })
-    ];
-    # Configure your nixpkgs instance
     config = {
-      # Disable if you don't want unfree packages
       allowUnfree = true;
       # Workaround for https://github.com/nix-community/home-manager/issues/2942
       allowUnfreePredicate = _: true;
@@ -70,14 +37,13 @@
     homeDirectory = "/home/pete";
     packages =
       [
-        inputs.nixvim.packages.x86_64-linux.default
-        #outputs.packages.x86_64-linux.angryoxide
+        inputs.nixvim.packages.${build_target.system}.default
       ]
       ++ (with pkgs; [
-        fd # Fast find altenative
+        fd
         fastfetch
         python311Packages.base58
-        ripgrep # Simplified recursive grep utility
+        ripgrep
         xdg-user-dirs
       ]);
   };
@@ -105,25 +71,6 @@
     };
     firefox = {
       enable = true;
-    };
-
-    bash = {
-      enable = true;
-      profileExtra =
-        /*
-        bash
-        */
-        ''
-          if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
-          	command -v fastfetch &> /dev/null && fastfetch
-          	export FASTFETCH_EXECUTED=1
-          	echo
-          	ip link
-          	echo
-          	ip -br a
-          	echo
-          		fi
-        '';
     };
   };
 

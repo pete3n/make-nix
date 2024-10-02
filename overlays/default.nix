@@ -1,17 +1,34 @@
 # This file defined flake-wide overlays
 {inputs, ...}: {
-  # This one brings our custom packages from the 'pkgs' directory
-  additions = final: _prev: import ../pkgs {pkgs = final;};
-  #
-  # This one contains whatever you want to overlay
-  # You can change versions, add patches, set compilation flags, anything really.
-  # https://nixos.wiki/wiki/Overlays
+  # Import local pkgs from ./ as overlays.local-packages and prepend them with
+  # local to differentiate between nixpkgs version. Call with pkgs.local
+  local-packages = final: _prev: {
+    local = import ../pkgs {pkgs = final;};
+  };
 
-  modifications = final: prev: import ../pkgs {pkgs = final;};
+  # Individual package modifications, can be accessed by applying the
+  # outputs.overlays.mod-packages overlay to nixpkgs. Call with pkgs.mod
+  mod-packages = final: prev: {
+    mod = {
+      no-gpu-signal-desktop = prev.unstable.signal-desktop.overrideAttrs (oldAttrs: {
+        installPhase =
+          oldAttrs.installPhase
+          + ''
+            wrapProgram $out/bin/signal-desktop \
+            --set LIBGL_ALWAYS_SOFTWARE 1 \
+            --set ELECTRON_DISABLE_GPU true
+          '';
+      });
 
-  # example = prev.example.overrideAttrs (oldAttrs: rec {
-  # ...
-  # });
+      _86Box = prev._86Box-with-roms.overrideAttrs (oldAttrs: {
+        preFixup =
+          oldAttrs.preFixup
+          + ''
+            makeWrapperArgs+=(--set QT_QPA_PLATFORM "xcb")
+          '';
+      });
+    };
+  };
 
   # When applied, the unstable nixpkgs set (declared in the flake inputs) will
   # be accessible through 'pkgs.unstable'
