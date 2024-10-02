@@ -12,6 +12,7 @@
     ./modules/darwin/firefox-config.nix
     ./modules/darwin/tmux-config.nix
     ./modules/darwin/zsh-config.nix
+    ../../modules/darwin/wallpaper-scripts.nix
   ];
 
   nixpkgs = {
@@ -30,6 +31,7 @@
 
   programs = {
     home-manager.enable = true;
+    wallpaper-scripts.enable = true;
     bat = {
       enable = true;
       config = {
