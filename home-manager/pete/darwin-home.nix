@@ -7,12 +7,12 @@
 }: {
   # import sub modules
   imports = [
-    ./modules/cross-platform/alacritty-config.nix
-    ./modules/cross-platform/git-config.nix
-    ./modules/darwin/firefox-config.nix
-    ./modules/darwin/tmux-config.nix
-    ./modules/darwin/zsh-config.nix
-    ../../modules/darwin/wallpaper-scripts.nix
+    ./home-imports/cross-platform/alacritty-config.nix
+    ./home-imports/cross-platform/git-config.nix
+    ./home-imports/darwin/firefox-config.nix
+    ./home-imports/darwin/tmux-config.nix
+    ./home-imports/darwin/zsh-config.nix
+    ../../home-imports/darwin/wallpaper-scripts.nix
   ];
 
   nixpkgs = {

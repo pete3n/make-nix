@@ -8,8 +8,8 @@
     system.nixos.tags = ["AwesomeWM" "Radeon780M"];
 
     imports = [
-      ../../../shared-modules/X11-tools.nix
-      ../../../shared-modules/nvidia-scripts.nix
+      ../../../shared-imports/X11-tools.nix
+      ../../../shared-imports/nvidia-scripts.nix
     ];
 
     # Enable OpenGL

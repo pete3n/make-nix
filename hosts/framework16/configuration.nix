@@ -16,15 +16,15 @@
     ./hardware/specialisations/specialisations.nix
     # These provide different boot menu options for configurations that must
     # but implemented prior to booting Linux, such as an external GPU
-    ../shared-modules/iptables-services.nix
-    ../shared-modules/p22-pki.nix
-    ../shared-modules/p22-nfs.nix
-    ../shared-modules/p22-printers.nix
-    ../shared-modules/${build_target.user}-yubikey-sc.nix
-    ../shared-modules/ollama-services.nix
-    ../shared-modules/crypto-services.nix
-    ../shared-modules/linux-packages.nix
-    ../shared-modules/usrp-sdr.nix
+    ../shared-imports/iptables-services.nix
+    ../shared-imports/p22-pki.nix
+    ../shared-imports/p22-nfs.nix
+    ../shared-imports/p22-printers.nix
+    ../shared-imports/${build_target.user}-yubikey-sc.nix
+    ../shared-imports/ollama-services.nix
+    ../shared-imports/crypto-services.nix
+    ../shared-imports/linux-packages.nix
+    ../shared-imports/usrp-sdr.nix
   ];
 
   boot = {

@@ -5,22 +5,22 @@
   ...
 }: {
   imports = [
-    ./modules/cross-platform/alacritty-config.nix
-    ./modules/cross-platform/git-config.nix
-    ./modules/linux/bash-config.nix
-    ./modules/linux/crypto.nix
-    ./modules/linux/firefox-config.nix
-    ./modules/linux/games.nix
-    ./modules/linux/hyprland-config.nix
-    ./modules/linux/media-tools.nix
-    ./modules/linux/messengers.nix
-    ./modules/linux/misc-tools.nix
-    ./modules/linux/office-cloud.nix
-    ./modules/linux/pen-tools.nix
-    ./modules/linux/rofi-theme.nix
-    ./modules/linux/theme-style.nix
-    ./modules/linux/tmux-config.nix
-    ./modules/linux/waybar-config.nix
+    ./home-imports/cross-platform/alacritty-config.nix
+    ./home-imports/cross-platform/git-config.nix
+    ./home-imports/linux/bash-config.nix
+    ./home-imports/linux/crypto.nix
+    ./home-imports/linux/firefox-config.nix
+    ./home-imports/linux/games.nix
+    ./home-imports/linux/hyprland-config.nix
+    ./home-imports/linux/media-tools.nix
+    ./home-imports/linux/messengers.nix
+    ./home-imports/linux/misc-tools.nix
+    ./home-imports/linux/office-cloud.nix
+    ./home-imports/linux/pen-tools.nix
+    ./home-imports/linux/rofi-theme.nix
+    ./home-imports/linux/theme-style.nix
+    ./home-imports/linux/tmux-config.nix
+    ./home-imports/linux/waybar-config.nix
   ];
   nixpkgs = {
     config = {
