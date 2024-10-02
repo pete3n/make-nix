@@ -1,4 +1,8 @@
-{pkgs, ...}:
+{
+  pkgs,
+  build_target,
+  ...
+}:
 # Configure ollama to use either AMD ROCM or NVIDIA CUDA based on nixpkgs configuration
 let
   ollama_acceleration =
@@ -19,7 +23,7 @@ let
 in {
   services.ollama = {
     enable = true;
-    package = pkgs.unstable.ollama;
+    package = pkgs.ollama;
     acceleration = ollama_acceleration;
     environmentVariables = ollama_env;
   };

@@ -2,6 +2,7 @@
   inputs,
   outputs,
   pkgs,
+  build_target,
   ...
 }: {
   imports = [
@@ -22,27 +23,21 @@
     ./modules/linux/tmux-config.nix
     ./modules/linux/waybar-config.nix
   ];
-
   nixpkgs = {
     # You can add overlays here
     overlays = [
-      # Add overlays your own flake exports (from overlays and pkgs dir):
-      outputs.overlays.additions
-      outputs.overlays.modifications
-      outputs.overlays.unstable-packages
-
       (final: prev: {
-        signal-desktop = final.signal-desktop.overrideAttrs (oldAttrs: {
+        signal-desktop = prev.signal-desktop.overrideAttrs (oldAttrs: {
           installPhase =
             oldAttrs.installPhase
             + ''
               wrapProgram $out/bin/signal-desktop \
-              	--set LIBGL_ALWAYS_SOFTWARE 1 \
-              	--set ELECTRON_DISABLE_GPU true
+              --set LIBGL_ALWAYS_SOFTWARE 1 \
+              --set ELECTRON_DISABLE_GPU true
             '';
         });
 
-        _86box = final._86Box-with-roms.overrideAttrs (oldAttrs: {
+        _86box = prev._86Box-with-roms.overrideAttrs (oldAttrs: {
           installPhase =
             oldAttrs.installPhase
             + ''
@@ -76,6 +71,7 @@
     packages =
       [
         inputs.nixvim.packages.x86_64-linux.default
+        #outputs.packages.x86_64-linux.angryoxide
       ]
       ++ (with pkgs; [
         fd # Fast find altenative
@@ -90,6 +86,18 @@
     home-manager.enable = true;
     fzf.enable = true;
     bat = {
+      enable = true;
+    };
+    btop = {
+      enable = true;
+      settings = {
+        vim_keys = true;
+        theme_background = false;
+        color_theme = "nord";
+      };
+    };
+    # Zathura PDF viewer with VIM motions
+    zathura = {
       enable = true;
     };
     zoxide = {

@@ -1,8 +1,9 @@
 {
   inputs,
+  outputs,
   lib,
   pkgs,
-  config,
+  build_target,
   ...
 }: let
   # Function to recursively collect .cer files
@@ -21,7 +22,7 @@
   in
     lib.flatten paths;
 
-  certPath = "${pkgs.dod-certs}/dod-certs/_DoD";
+  certPath = "${outputs.packages.${build_target.system}.dod-certs}/dod-certs/_DoD";
   certs = collectCerts certPath;
 
   concatenatedCerts = pkgs.stdenv.mkDerivation {
@@ -33,7 +34,7 @@
   };
   openscLibPath = "${pkgs.opensc}/lib/opensc-pkcs11.so";
 in {
-  home.packages = lib.mkAfter (with pkgs; [
+  home.packages = lib.mkAfter (with outputs.packages.${build_target.system}; [
     dod-certs
   ]);
 

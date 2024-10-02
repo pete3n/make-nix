@@ -1,9 +1,12 @@
 {pkgs, ...}: {
   imports = [
-    ./wallpaper.nix
+    ../../../../modules/linux/wallpaper-scripts.nix
   ];
+  programs.wallpaper-scripts.enable = true;
 
-  programs.wallpaper.enable = true;
+  home.packages = [
+    pkgs.dconf
+  ];
 
   home.pointerCursor = {
     gtk.enable = true;

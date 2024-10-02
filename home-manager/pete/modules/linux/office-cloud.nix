@@ -1,13 +1,4 @@
-{
-  lib,
-  pkgs,
-  ...
-}: {
-  # Zathura PDF viewer with VIM motions
-  programs.zathura = {
-    enable = true;
-  };
-
+{pkgs, ...}: {
   home.packages = with pkgs; [
     cryptomator
     drawio
