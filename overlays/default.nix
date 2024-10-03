@@ -10,6 +10,8 @@
   # outputs.overlays.mod-packages overlay to nixpkgs. Call with pkgs.mod
   mod-packages = final: prev: {
     mod = {
+      # Workaround for: https://github.com/signalapp/Signal-Desktop/issues/6855
+      # Cannot find target for triple amdgcn--
       no-gpu-signal-desktop = prev.unstable.signal-desktop.overrideAttrs (oldAttrs: {
         installPhase =
           oldAttrs.installPhase
