@@ -5,22 +5,20 @@
   build_target,
   ...
 }: {
-  # import sub modules
-  imports = [
-    ./home-imports/cross-platform/alacritty-config.nix
-    ./home-imports/cross-platform/git-config.nix
-    ./home-imports/darwin/firefox-config.nix
-    ./home-imports/darwin/tmux-config.nix
-    ./home-imports/darwin/zsh-config.nix
-    ../../home-imports/darwin/wallpaper-scripts.nix
-  ];
+  imports =
+    builtins.attrValues outputs.homeManagerModules
+    ++ [
+      ./home-imports/cross-platform/alacritty-config.nix
+      ./home-imports/cross-platform/git-config.nix
+      ./home-imports/darwin/firefox-config.nix
+      ./home-imports/darwin/tmux-config.nix
+      ./home-imports/darwin/zsh-config.nix
+    ];
 
   nixpkgs = {
     overlays = [
       inputs.nixpkgs-firefox-darwin.overlay
-      outputs.overlays.additions
-      outputs.overlays.modifications
-      outputs.overlays.unstable-packages
+      outputs.overlays.local-packages
     ];
     config = {
       allowUnfree = true;
@@ -31,7 +29,10 @@
 
   programs = {
     home-manager.enable = true;
-    wallpaper-scripts.enable = true;
+    wallpaper-scripts = {
+      enable = true;
+      os = "darwin";
+    };
     bat = {
       enable = true;
       config = {
@@ -83,10 +84,10 @@
 
     packages =
       [
-        inputs.nixvim.packages.x86_64-darwin.default
-        inputs.self.packages.${build_target.system}.yubioath-darwin
+        inputs.nixvim.packages.${build_target.system}.default
       ]
       ++ (with pkgs; [
+        local.yubioath-darwin
         fastfetch
         python312Packages.base58
       ]);
