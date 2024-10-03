@@ -105,6 +105,8 @@
     # Flake wide overlays accessible though ouputs.overlays
     overlays = import ./overlays {inherit inputs;};
 
+    homeManagerModules = import ./modules/home-manager;
+
     # User defintions for the system (careful these create/overwrite users)
     systemUsers = import ./users;
 

@@ -1,8 +1,14 @@
-{pkgs, ...}: {
-  imports = [
-    ../../../../modules/linux/wallpaper-scripts.nix
-  ];
-  programs.wallpaper-scripts.enable = true;
+{
+  pkgs,
+  outputs,
+  ...
+}: {
+  imports = builtins.attrValues outputs.homeManagerModules;
+
+  programs.wallpaper-scripts = {
+    enable = true;
+    os = "linux";
+  };
 
   home.packages = [
     pkgs.dconf
