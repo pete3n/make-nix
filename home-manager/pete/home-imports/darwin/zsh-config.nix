@@ -1,5 +1,5 @@
-{pkgs, ...}: {
-  programs.bash.enable = false;
+{ pkgs, ... }:
+{
   programs.zsh = {
     enable = true;
     enableCompletion = true;
@@ -18,10 +18,18 @@
     oh-my-zsh = {
       enable = true;
       plugins = [
-        "git"
+        "docker"
+        "docker-compose"
         "colored-man-pages"
+        "git"
+        "ssh-agent"
       ];
       theme = "robbyrussell";
+      extraConfig =
+        #Import ssh key TODO: make less imperative
+        ''
+          zstyle :omz:plugins:ssh-agent identities pete3n
+        '';
     };
     initExtraFirst =
       #bash
