@@ -49,6 +49,7 @@
       enable = true;
       enableZshIntegration = true;
     };
+    gpg.enable = true;
     lsd = {
       enable = true;
       enableAliases = true;
