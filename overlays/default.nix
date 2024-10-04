@@ -1,9 +1,41 @@
 # This file defined flake-wide overlays
-{ inputs, ... }:
 {
-  # Import local pkgs from ./ as overlays.local-packages and prepend them with
-  # local to differentiate between nixpkgs version. Call with pkgs.local
-  local-packages = final: _prev: { local = import ../packages { pkgs = final; }; };
+  inputs,
+  build_target,
+  ...
+}: {
+  # Import local pkgs from ./packages as overlays.local-packages and prepend
+  # them with local to differentiate between nixpkgs version. Call with pkgs.local
+  local-packages = final: prev: {
+    local = let
+      pkgs = final;
+
+      # Import cross-platform packages
+      crossPlatformPackages = import ../packages/cross-platform {
+        inherit pkgs;
+      };
+
+      # Import linux-only packages if our target is linux
+      linuxPackages =
+        if build_target.isLinux
+        then
+          import ../packages/linux {
+            inherit pkgs;
+          }
+        else {};
+
+      # Import darwin-only packages if our target is darwin
+      darwinPackages =
+        if !build_target.isLinux
+        then
+          import ../packages/darwin {
+            inherit pkgs;
+          }
+        else {};
+    in
+      # Merge all packages into `local`
+      crossPlatformPackages // linuxPackages // darwinPackages;
+  };
 
   # Individual package modifications, can be accessed by applying the
   # outputs.overlays.mod-packages overlay to nixpkgs. Call with pkgs.mod
