@@ -53,17 +53,18 @@
       nix-darwin,
       self,
       ...
-    }@inputs: # @inputs because we need to pass both inputs and outputs to our
+    }@inputs:
+    # @inputs because we need to pass both inputs and outputs to our
     # configurations
     let
       outputs = self.outputs; # Could be writting as 'inherit (self) outputs' but
       # this is more clear. We need to include outputs because we reference our
-      # own outputs in our outputs 
+      # own outputs in our outputs
 
       # This is a workaround to allow passing a specified user, host, and
       # target system to the flake, which will pass this to the output
       # configurations to build them appropriately
-      build_target = import ./build-targets.nix { };
+      build_target = import ./build-target.nix { };
 
       # Supported systems for flake packages, shells, etc.
       supportedSystems = [
@@ -86,7 +87,7 @@
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
-          customPackages = import ./packages/cross-platform {
+          localPackages = import ./packages/cross-platform {
             inherit system pkgs;
             config = {
               allowUnfree = true;
@@ -95,7 +96,7 @@
           # These packages only support Linux so they are excluded
           # for non-Linux build targets, this prevents errors when evaluating
           # the flake
-          customLinuxPackages =
+          localLinuxPackages =
             if build_target.isLinux then
               import ./packages/linux {
                 inherit system pkgs;
@@ -108,7 +109,7 @@
 
           # These packages only support Darwin so they are excluded
           # for non-Darwin build targets
-          customDarwinPackages =
+          localDarwinPackages =
             if !build_target.isLinux then
               import ./packages/darwin {
                 inherit system pkgs;
@@ -118,12 +119,11 @@
               }
             else
               { };
-
         in
-        # Combine our custom cross-platform packages with the appropriate 
-        # Linux-only or Darwin-only custom packages depending on the build target
-        pkgs.lib.recursiveUpdate customPackages (
-          if build_target.isLinux then customLinuxPackages else customDarwinPackages
+        # Combine our local cross-platform packages with the appropriate
+        # Linux-only or Darwin-only local packages depending on the build target
+        pkgs.lib.recursiveUpdate localPackages (
+          if build_target.isLinux then localLinuxPackages else localDarwinPackages
         )
       );
 
@@ -131,7 +131,7 @@
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
 
       # Flake wide overlays accessible though ouputs.overlays
-      overlays = import ./overlays { inherit inputs; };
+      overlays = import ./overlays { inherit inputs build_target; };
 
       # Provide an easy import for all home-manager modules to each configuration
       homeManagerModules = import ./modules/home-manager;
