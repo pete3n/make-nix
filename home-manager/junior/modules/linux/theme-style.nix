@@ -1,7 +1,6 @@
-{pkgs, ...}: {
-  imports = [
-    ./wallpaper.nix
-  ];
+{ pkgs, ... }:
+{
+  imports = [ ./wallpaper.nix ];
 
   programs.wallpaper.enable = true;
 

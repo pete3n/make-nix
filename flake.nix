@@ -180,8 +180,8 @@
           {
             # Home-manager configuration for Linux based systems
             "${build_target.user}@${build_target.host}" = home-manager.lib.homeManagerConfiguration {
-              pkgs = nixpkgs.legacyPackages.${build_target.system}; # Home-manager requires 'pkgs' instance
-              lib = nixpkgs.lib;
+              # Home-manager requires 'pkgs' instance to be manually specified
+              pkgs = nixpkgs.legacyPackages.${build_target.system};
               extraSpecialArgs = {
                 inherit inputs outputs build_target;
               };

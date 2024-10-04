@@ -1,4 +1,4 @@
-{pkgs, ...}:
+{ pkgs, ... }:
 #
 {
   # Define a user account. Don't forget to set a password with ‘passwd’.
@@ -8,5 +8,5 @@
     description = "pete3n";
   };
 
-  nix.settings.trusted-users = ["pete"];
+  nix.settings.trusted-users = [ "pete" ];
 }

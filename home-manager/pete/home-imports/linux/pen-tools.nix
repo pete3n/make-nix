@@ -1,8 +1,5 @@
+{ outputs, pkgs, ... }:
 {
-  outputs,
-  pkgs,
-  ...
-}: {
   nixpkgs = {
     overlays = [
       outputs.overlays.local-packages
@@ -10,21 +7,22 @@
     ];
   };
   home.packages = with pkgs; [
+    wireshark
     aircrack-ng
-    local.angryoxide
     bettercap
     chisel
-    gpsd
     gnuradio
+    gpsd
     hashcat
     hcxdumptool
     hcxtools
-    unstable.kismet
+    local.angryoxide
     masscan
     proxychains
     reaverwps-t6x
     rustscan
     socat
     termshark
+    unstable.kismet
   ];
 }

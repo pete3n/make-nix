@@ -1,5 +1,6 @@
 # This file contains unique username based configuration options
-{pkgs, ...}: {
+{ pkgs, ... }:
+{
   home = {
     username = "pete";
     homeDirectory = "/home/pete";

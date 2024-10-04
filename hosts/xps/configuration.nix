@@ -8,7 +8,8 @@
   nixosModules,
   systemUsers,
   ...
-}: {
+}:
+{
   imports = [
     ./hardware-configuration.nix
     # This is the hardware configuration created by the installer
@@ -29,7 +30,10 @@
   };
 
   nix = {
-    settings.experimental-features = ["nix-command" "flakes"];
+    settings.experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
 
     # Extra options to keep build dependencies and derivatives for offline builds.
     # This is less aggressive than the system.includeBuildDependencies = true option
@@ -47,7 +51,10 @@
   networking = {
     hostName = "nixos";
     useDHCP = false; # Disable automatic DHCP; manually call: dhcpcd -B interface
-    nameservers = ["1.1.1.1" "8.8.8.8"];
+    nameservers = [
+      "1.1.1.1"
+      "8.8.8.8"
+    ];
 
     # Disable all wireless by default (use wpa_supplicant manually)
     wireless.enable = false;
@@ -62,7 +69,7 @@
   services.resolved = {
     enable = true;
     dnssec = "false";
-    domains = ["~."];
+    domains = [ "~." ];
     extraConfig = ''
       DNSOverTLS=true
     '';
@@ -96,13 +103,7 @@
   ### Fonts and Locale ###
   i18n.defaultLocale = "en_US.UTF-8";
   time.timeZone = "America/New_York";
-  fonts.packages = with pkgs; [
-    (nerdfonts.override {
-      fonts = [
-        "JetBrainsMono"
-      ];
-    })
-  ];
+  fonts.packages = with pkgs; [ (nerdfonts.override { fonts = [ "JetBrainsMono" ]; }) ];
 
   programs.hyprland.enable = true; # Required for proper Hyprland operation
   # See: https://wiki.hyprland.org/Nix
@@ -136,7 +137,7 @@
   # System wide packages
   environment.systemPackages = with pkgs; [
     # System utils
-    cudaPackages.cudatoolkit #TODO: Test CUDA functionaliity
+    cudaPackages.cudatoolkit # TODO: Test CUDA functionaliity
     mesa-demos
     vulkan-tools
   ];

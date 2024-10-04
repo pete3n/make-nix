@@ -5,9 +5,14 @@
   lib,
   pkgs,
   ...
-}: {
+}:
+{
   Hyprland.configuration = {
-    system.nixos.tags = ["Hyprland" "Intel-UHD" "RTX_3050"];
+    system.nixos.tags = [
+      "Hyprland"
+      "Intel-UHD"
+      "RTX_3050"
+    ];
 
     hardware.nvidia = {
       package = config.boot.kernelPackages.nvidiaPackages.production;
@@ -28,13 +33,22 @@
       enable = true;
       driSupport = true;
       driSupport32Bit = true;
-      extraPackages = with pkgs; [nvidia-vaapi-driver intel-media-driver];
-      extraPackages32 = with pkgs.pkgsi686Linux; [nvidia-vaapi-driver intel-media-driver];
+      extraPackages = with pkgs; [
+        nvidia-vaapi-driver
+        intel-media-driver
+      ];
+      extraPackages32 = with pkgs.pkgsi686Linux; [
+        nvidia-vaapi-driver
+        intel-media-driver
+      ];
     };
 
     # I don't fully understand why we need xserver
     # I assume because of X-Wayland
-    services.xserver.videoDrivers = ["modesetting" "nvidia"];
+    services.xserver.videoDrivers = [
+      "modesetting"
+      "nvidia"
+    ];
 
     services.kmscon.enable = lib.mkForce false;
     programs.hyprland.enable = lib.mkForce true;

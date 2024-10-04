@@ -6,7 +6,8 @@
   outputs,
   build_target,
   ...
-}: {
+}:
+{
   imports = [
     ./hardware/hardware-configuration.nix
     # This is the hardware configuration created by the installer
@@ -31,7 +32,7 @@
     kernelPackages = pkgs.linuxPackages_latest;
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
-    supportedFilesystems = ["ntfs"];
+    supportedFilesystems = [ "ntfs" ];
   };
 
   fileSystems."/data" = {
@@ -40,7 +41,10 @@
   };
 
   nix = {
-    settings.experimental-features = ["nix-command" "flakes"];
+    settings.experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
 
     # Extra options to keep build dependencies and derivatives for offline builds.
     # This is less aggressive than the system.includeBuildDependencies = true option
@@ -68,7 +72,11 @@
   networking = {
     hostName = "framework16";
     useDHCP = false; # Disable automatic DHCP; manually call: dhcpcd -B interface
-    nameservers = ["192.168.1.1" "1.1.1.1" "8.8.8.8"];
+    nameservers = [
+      "192.168.1.1"
+      "1.1.1.1"
+      "8.8.8.8"
+    ];
 
     # Disable all wireless by default (use wpa_supplicant manually)
     wireless.enable = false;
@@ -84,8 +92,11 @@
     enable = true;
     dnssec = "allow-downgrade";
     dnsovertls = "true";
-    domains = ["p22"];
-    fallbackDns = ["1.1.1.1" "8.8.8.8"];
+    domains = [ "p22" ];
+    fallbackDns = [
+      "1.1.1.1"
+      "8.8.8.8"
+    ];
   };
 
   # Power, thermals
@@ -119,13 +130,7 @@
   ### Fonts and Locale ###
   i18n.defaultLocale = "en_US.UTF-8";
   time.timeZone = "America/New_York";
-  fonts.packages = with pkgs; [
-    (nerdfonts.override {
-      fonts = [
-        "JetBrainsMono"
-      ];
-    })
-  ];
+  fonts.packages = with pkgs; [ (nerdfonts.override { fonts = [ "JetBrainsMono" ]; }) ];
 
   # See: https://wiki.hyprland.org/Nix
   services.printing.enable = true; # Enable CUPS
@@ -134,14 +139,10 @@
   # Portals must be enable system wide for Flatpak support
   xdg.portal = {
     enable = true;
-    extraPortals = [
-      pkgs.xdg-desktop-portal-gtk
-    ];
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
     config = {
       common = {
-        default = [
-          "gtk"
-        ];
+        default = [ "gtk" ];
       };
     };
   };

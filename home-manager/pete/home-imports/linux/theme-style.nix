@@ -1,18 +1,6 @@
+{ pkgs, ... }:
 {
-  pkgs,
-  outputs,
-  ...
-}: {
-  imports = builtins.attrValues outputs.homeManagerModules;
-
-  programs.wallpaper-scripts = {
-    enable = true;
-    os = "linux";
-  };
-
-  home.packages = [
-    pkgs.dconf
-  ];
+  home.packages = [ pkgs.dconf ];
 
   home.pointerCursor = {
     gtk.enable = true;

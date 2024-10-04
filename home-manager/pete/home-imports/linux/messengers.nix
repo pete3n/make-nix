@@ -1,8 +1,5 @@
+{ outputs, pkgs, ... }:
 {
-  outputs,
-  pkgs,
-  ...
-}: {
   nixpkgs = {
     overlays = [
       outputs.overlays.unstable-packages
@@ -16,5 +13,5 @@
       skypeforlinux
       teams-for-linux
     ])
-    ++ [pkgs.mod.no-gpu-signal-desktop];
+    ++ [ pkgs.mod.no-gpu-signal-desktop ];
 }

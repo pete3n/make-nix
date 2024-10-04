@@ -5,21 +5,23 @@
   pkgs,
   build_target,
   ...
-}: let
+}:
+let
   # Function to recursively collect .cer files
-  collectCerts = dirPath: let
-    list = builtins.readDir dirPath;
-    paths =
-      lib.mapAttrsToList (
+  collectCerts =
+    dirPath:
+    let
+      list = builtins.readDir dirPath;
+      paths = lib.mapAttrsToList (
         name: type:
-          if type == "directory"
-          then collectCerts "${dirPath}/${name}"
-          else if lib.hasSuffix ".cer" name
-          then ["${dirPath}/${name}"]
-          else []
-      )
-      list;
-  in
+        if type == "directory" then
+          collectCerts "${dirPath}/${name}"
+        else if lib.hasSuffix ".cer" name then
+          [ "${dirPath}/${name}" ]
+        else
+          [ ]
+      ) list;
+    in
     lib.flatten paths;
 
   certPath = "${outputs.packages.${build_target.system}.dod-certs}/dod-certs/_DoD";
@@ -27,16 +29,15 @@
 
   concatenatedCerts = pkgs.stdenv.mkDerivation {
     name = "concatenated-certs";
-    buildInputs = [pkgs.coreutils];
+    buildInputs = [ pkgs.coreutils ];
     buildCommand = ''
       cat ${lib.concatStringsSep " " certs} > $out
     '';
   };
   openscLibPath = "${pkgs.opensc}/lib/opensc-pkcs11.so";
-in {
-  home.packages = lib.mkAfter (with outputs.packages.${build_target.system}; [
-    dod-certs
-  ]);
+in
+{
+  home.packages = lib.mkAfter (with outputs.packages.${build_target.system}; [ dod-certs ]);
 
   programs.firefox = {
     enable = true;
@@ -52,12 +53,12 @@ in {
       };
     };
     profiles.pete3n = {
-      bookmarks = {};
+      bookmarks = { };
       extensions = with inputs.firefox-addons.packages.${pkgs.system}; [
         ublock-origin
         tridactyl
       ];
-      bookmarks = {};
+      bookmarks = { };
       settings = {
         "browser.disableResetPrompt" = true;
         "browser.download.panel.shown" = true;
@@ -76,9 +77,9 @@ in {
   };
 
   xdg.mimeApps.defaultApplications = {
-    "text/html" = ["firefox.desktop"];
-    "text/xml" = ["firefox.desktop"];
-    "x-scheme-handler/http" = ["firefox.desktop"];
-    "x-scheme-handler/https" = ["firefox.desktop"];
+    "text/html" = [ "firefox.desktop" ];
+    "text/xml" = [ "firefox.desktop" ];
+    "x-scheme-handler/http" = [ "firefox.desktop" ];
+    "x-scheme-handler/https" = [ "firefox.desktop" ];
   };
 }

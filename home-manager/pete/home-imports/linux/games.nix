@@ -1,12 +1,7 @@
+{ pkgs, outputs, ... }:
 {
-  pkgs,
-  outputs,
-  ...
-}: {
   nixpkgs = {
-    overlays = [
-      outputs.overlays.mod-packages
-    ];
+    overlays = [ outputs.overlays.mod-packages ];
   };
   home.packages = with pkgs; [
     heroic

@@ -1,9 +1,6 @@
 # Nvidia helper shell scripts
+{ pkgs, lib, ... }:
 {
-  pkgs,
-  lib,
-  ...
-}: {
   environment.systemPackages = [
     # Launch an application with Nvidia GPU offloading
     (pkgs.writeShellScriptBin "nvrun" ''

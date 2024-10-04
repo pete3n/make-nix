@@ -1,3 +1,1 @@
-{
-  wallpaper-scripts = import ./cross-platform/wallpaper-scripts.nix;
-}
+{ wallpaper-scripts = import ./cross-platform/wallpaper-scripts.nix; }

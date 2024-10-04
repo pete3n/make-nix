@@ -1,11 +1,11 @@
 # Using the Hyprland tiliing WM/Compositor
+{ lib, pkgs, ... }:
 {
-  lib,
-  pkgs,
-  ...
-}: {
   Hyprland.configuration = {
-    system.nixos.tags = ["Hyprland" "Radeon780M"];
+    system.nixos.tags = [
+      "Hyprland"
+      "Radeon780M"
+    ];
 
     # Enable OpenGL
     hardware.opengl = {
@@ -23,7 +23,7 @@
 
     # I don't fully understand why we need xserver
     # I assume because of X-Wayland
-    services.xserver.videoDrivers = ["modesetting"];
+    services.xserver.videoDrivers = [ "modesetting" ];
     services.kmscon.enable = lib.mkForce false;
     programs.hyprland = {
       enable = lib.mkForce true;

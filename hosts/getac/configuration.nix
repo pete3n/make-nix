@@ -8,7 +8,8 @@
   inputs,
   system-users,
   ...
-}: {
+}:
+{
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
@@ -24,7 +25,10 @@
 
   nix = {
     settings.tarball-ttl = 3600 * 24 * 365 * 10; # 10 Year ttl for offline config
-    settings.experimental-features = ["nix-command" "flakes"];
+    settings.experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
     extraOptions = ''
       keep-outputs = true
       keep-derivations = true
@@ -61,7 +65,7 @@
   services.resolved = {
     enable = true;
     dnssec = "false";
-    domains = ["~."];
+    domains = [ "~." ];
     extraConfig = ''
       DNSOverTLS=true
     '';
@@ -95,13 +99,7 @@
   ### Fonts and Locale ###
   i18n.defaultLocale = "en_US.UTF-8";
   time.timeZone = "America/New_York";
-  fonts.packages = with pkgs; [
-    (nerdfonts.override {
-      fonts = [
-        "JetBrainsMono"
-      ];
-    })
-  ];
+  fonts.packages = with pkgs; [ (nerdfonts.override { fonts = [ "JetBrainsMono" ]; }) ];
 
   programs.hyprland.enable = true; # Required for proper Hyprland operation
   # See: https://wiki.hyprland.org/Nix

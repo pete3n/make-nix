@@ -1,4 +1,5 @@
-{pkgs, ...}: {
+{ pkgs, ... }:
+{
   ##########################################################################
   #
   #  Install all apps and packages here.
@@ -45,9 +46,7 @@
       # cleanup = "zap";
     };
 
-    taps = [
-      "homebrew/services"
-    ];
+    taps = [ "homebrew/services" ];
 
     # `brew install`
     # TODO Feel free to add your favorite apps here.

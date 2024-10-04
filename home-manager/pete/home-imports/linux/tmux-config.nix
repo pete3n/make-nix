@@ -1,27 +1,23 @@
-{pkgs, ...}: let
-  floax =
-    pkgs.tmuxPlugins.mkTmuxPlugin
-    {
-      pluginName = "floax";
-      version = "unstable-2024-31-08";
-      src = pkgs.fetchFromGitHub {
-        owner = "omerxx";
-        repo = "tmux-floax";
-        rev = "dab0587c5994f3b061a597ac6d63a5c9964d2883";
-        sha256 = "sha256-gp/l3SLmRHOwNV3glaMsEUEejdeMHW0CXmER4cRhYD4=";
-      };
+{ pkgs, ... }:
+let
+  floax = pkgs.tmuxPlugins.mkTmuxPlugin {
+    pluginName = "floax";
+    version = "unstable-2024-31-08";
+    src = pkgs.fetchFromGitHub {
+      owner = "omerxx";
+      repo = "tmux-floax";
+      rev = "dab0587c5994f3b061a597ac6d63a5c9964d2883";
+      sha256 = "sha256-gp/l3SLmRHOwNV3glaMsEUEejdeMHW0CXmER4cRhYD4=";
     };
-in {
-  home.packages = with pkgs; [
-    powerline-fonts
-  ];
+  };
+in
+{
+  home.packages = with pkgs; [ powerline-fonts ];
   programs.fzf.tmux.enableShellIntegration = true;
   programs.bash = {
     enable = true;
     initExtra =
-      /*
-      bash
-      */
+      # bash
       ''
             # Change the Tmux window name based on the SSH destination host
         # to more easily track open connections

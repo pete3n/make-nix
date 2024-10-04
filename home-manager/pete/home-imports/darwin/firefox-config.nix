@@ -1,18 +1,15 @@
+{ pkgs, inputs, ... }:
 {
-  pkgs,
-  inputs,
-  ...
-}: {
   programs.firefox = {
     enable = true;
     package = pkgs.firefox-bin;
     profiles.pete3n = {
-      bookmarks = {};
+      bookmarks = { };
       extensions = with inputs.firefox-addons.packages.${pkgs.system}; [
         ublock-origin
         tridactyl
       ];
-      bookmarks = {};
+      bookmarks = { };
       settings = {
         "browser.disableResetPrompt" = true;
         "browser.download.panel.shown" = true;

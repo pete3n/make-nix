@@ -1,4 +1,5 @@
-{pkgs, ...}: {
+{ pkgs, ... }:
+{
   environment.systemPackages = with pkgs; [
     acpi
     auto-cpufreq
@@ -22,7 +23,6 @@
     killall
     lazydocker
     libnotify
-    lsd
     ncdu
     nix-tree
     nmap
@@ -42,14 +42,10 @@
     tldr
     tmux
     traceroute
-    tshark
     unzip
     usbutils
     vim
-    wireshark
     wpa_supplicant
-    yazi
-    zoxide
     zip
   ];
 }

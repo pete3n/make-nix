@@ -4,16 +4,15 @@
   pkgs,
   build_target,
   ...
-}: {
-  imports =
-    builtins.attrValues outputs.homeManagerModules
-    ++ [
-      ./home-imports/cross-platform/alacritty-config.nix
-      ./home-imports/cross-platform/git-config.nix
-      ./home-imports/darwin/firefox-config.nix
-      ./home-imports/darwin/tmux-config.nix
-      ./home-imports/darwin/zsh-config.nix
-    ];
+}:
+{
+  imports = builtins.attrValues outputs.homeManagerModules ++ [
+    ./home-imports/cross-platform/alacritty-config.nix
+    ./home-imports/cross-platform/git-config.nix
+    ./home-imports/darwin/firefox-config.nix
+    ./home-imports/darwin/tmux-config.nix
+    ./home-imports/darwin/zsh-config.nix
+  ];
 
   nixpkgs = {
     overlays = [
@@ -56,7 +55,6 @@
     };
     zoxide = {
       enable = true;
-      enableBashIntegration = true;
       enableZshIntegration = true;
     };
     btop = {
@@ -83,12 +81,9 @@
     homeDirectory = "/Users/pete";
 
     packages =
-      [
-        inputs.nixvim.packages.${build_target.system}.default
-      ]
+      [ inputs.nixvim.packages.${build_target.system}.default ]
       ++ (with pkgs; [
         local.yubioath-darwin
-        fastfetch
         python312Packages.base58
       ]);
 

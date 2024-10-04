@@ -4,9 +4,14 @@
   lib,
   pkgs,
   ...
-}: {
+}:
+{
   AwesomeWM_egpu.configuration = {
-    system.nixos.tags = ["AwesomeWM" "Aorus-eGPU" "RTX-3080"];
+    system.nixos.tags = [
+      "AwesomeWM"
+      "Aorus-eGPU"
+      "RTX-3080"
+    ];
 
     hardware.nvidia = {
       package = config.boot.kernelPackages.nvidiaPackages.production;
@@ -31,8 +36,14 @@
       enable = true;
       driSupport = true;
       driSupport32Bit = true;
-      extraPackages = with pkgs; [nvidia-vaapi-driver intel-media-driver];
-      extraPackages32 = with pkgs.pkgsi686Linux; [nvidia-vaapi-driver intel-media-driver];
+      extraPackages = with pkgs; [
+        nvidia-vaapi-driver
+        intel-media-driver
+      ];
+      extraPackages32 = with pkgs.pkgsi686Linux; [
+        nvidia-vaapi-driver
+        intel-media-driver
+      ];
     };
 
     services.udev.extraRules = ''
@@ -45,7 +56,7 @@
     services.xserver = {
       enable = true;
       layout = "us";
-      videoDrivers = ["nvidia"];
+      videoDrivers = [ "nvidia" ];
 
       config = pkgs.lib.mkOverride 0 ''
 

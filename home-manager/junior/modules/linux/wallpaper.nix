@@ -4,32 +4,36 @@
   pkgs,
   lib,
   ...
-}: let
+}:
+let
   cfgWallpaper = config.programs.wallpaper;
-in {
+in
+{
   options.programs.wallpaper = with lib; {
     enable = mkEnableOption "Wallpapaer management";
 
     wallpaper = mkOption {
-      default = "/home/user/wallpapers/default_background.png"; #Template to enforce path type
+      default = "/home/user/wallpapers/default_background.png"; # Template to enforce path type
       type = types.path;
       description = ''Wallpaper image path'';
     };
   };
   config = lib.mkIf cfgWallpaper.enable {
     home.packages = with pkgs; [
-      (let
-        wallpaperSetScript = writeShellScriptBin "wallpaper-set" ''
-             	#!/bin/bash
-          defaultWallpaperPath="/home/user/wallpapers/default_background.png"
-          wallpaperPath=${cfgWallpaper.wallpaper}
-          if [ "$wallpaperPath" == "$defaultWallpaperPath" ]; then
-          	wallpaperPath="''${HOME}/wallpapers/default_background.png"
-          fi
-          swww img "$wallpaperPath"
-        '';
-      in
-        wallpaperSetScript)
+      (
+        let
+          wallpaperSetScript = writeShellScriptBin "wallpaper-set" ''
+               	#!/bin/bash
+            defaultWallpaperPath="/home/user/wallpapers/default_background.png"
+            wallpaperPath=${cfgWallpaper.wallpaper}
+            if [ "$wallpaperPath" == "$defaultWallpaperPath" ]; then
+            	wallpaperPath="''${HOME}/wallpapers/default_background.png"
+            fi
+            swww img "$wallpaperPath"
+          '';
+        in
+        wallpaperSetScript
+      )
 
       (writeShellScriptBin "wallpaper-cycle" ''
         #!/bin/bash

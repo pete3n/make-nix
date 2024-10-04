@@ -1,8 +1,5 @@
+{ pkgs, config, ... }:
 {
-  pkgs,
-  config,
-  ...
-}: {
   imports = [
     ./waybar-config.nix
     ./theme-style.nix
@@ -30,32 +27,32 @@
     enable = true;
     portal = {
       enable = true;
-      extraPortals = [
-        pkgs.xdg-desktop-portal-gtk
-      ];
+      extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
       xdgOpenUsePortal = true;
       config = {
         common = {
-          default = ["gtk"];
+          default = [ "gtk" ];
         };
       };
     };
 
-    userDirs = let
-      appendToHomeDir = path: "${config.home.homeDirectory}/${path}";
-    in {
-      enable = true;
-      documents = appendToHomeDir "documents";
-      download = appendToHomeDir "downloads";
-      music = appendToHomeDir "music";
-      pictures = appendToHomeDir "pictures";
-      publicShare = appendToHomeDir "public";
-      templates = appendToHomeDir "templates";
-      videos = appendToHomeDir "videos";
-      extraConfig = {
-        XDG_PROJECT_DIR = appendToHomeDir "projects";
+    userDirs =
+      let
+        appendToHomeDir = path: "${config.home.homeDirectory}/${path}";
+      in
+      {
+        enable = true;
+        documents = appendToHomeDir "documents";
+        download = appendToHomeDir "downloads";
+        music = appendToHomeDir "music";
+        pictures = appendToHomeDir "pictures";
+        publicShare = appendToHomeDir "public";
+        templates = appendToHomeDir "templates";
+        videos = appendToHomeDir "videos";
+        extraConfig = {
+          XDG_PROJECT_DIR = appendToHomeDir "projects";
+        };
       };
-    };
   };
 
   wayland.windowManager.hyprland = {

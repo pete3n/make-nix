@@ -1,12 +1,7 @@
+{ lib, pkgs, ... }:
 {
-  lib,
-  pkgs,
-  ...
-}: {
   home.packages = with pkgs; [
-    (blender.override {
-      cudaSupport = true;
-    }) # 3D modelling
+    (blender.override { cudaSupport = true; }) # 3D modelling
     ffmpeg # Video encoding/transcoding
     gimp-with-plugins # Image editing
     handbrake # DVD wripping

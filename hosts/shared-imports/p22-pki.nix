@@ -1,4 +1,5 @@
-{...}: {
+{ ... }:
+{
   # Additional p22 trusted root cert
   security.pki.certificates = [
     ''

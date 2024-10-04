@@ -4,9 +4,14 @@
   lib,
   pkgs,
   ...
-}: {
+}:
+{
   AwesomeWM.configuration = {
-    system.nixos.tags = ["AwesomeWM" "Intel-UHD" "RTX_3050"];
+    system.nixos.tags = [
+      "AwesomeWM"
+      "Intel-UHD"
+      "RTX_3050"
+    ];
 
     hardware.nvidia = {
       package = config.boot.kernelPackages.nvidiaPackages.production;
@@ -27,15 +32,24 @@
       enable = true;
       driSupport = true;
       driSupport32Bit = true;
-      extraPackages = with pkgs; [nvidia-vaapi-driver intel-media-driver];
-      extraPackages32 = with pkgs.pkgsi686Linux; [nvidia-vaapi-driver intel-media-driver];
+      extraPackages = with pkgs; [
+        nvidia-vaapi-driver
+        intel-media-driver
+      ];
+      extraPackages32 = with pkgs.pkgsi686Linux; [
+        nvidia-vaapi-driver
+        intel-media-driver
+      ];
     };
 
     services.kmscon.enable = lib.mkForce false;
 
     services.xserver = {
       enable = true;
-      videoDrivers = ["modesetting" "nvidia"];
+      videoDrivers = [
+        "modesetting"
+        "nvidia"
+      ];
       displayManager.startx.enable = true;
     };
   };

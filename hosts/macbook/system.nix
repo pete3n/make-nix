@@ -1,8 +1,4 @@
-{
-  pkgs,
-  build_target,
-  ...
-}:
+{ pkgs, build_target, ... }:
 ###################################################################################
 #
 #  macOS's System configuration
@@ -70,12 +66,6 @@
   time.timeZone = "America/New_York";
 
   fonts = {
-    packages = with pkgs; [
-      (nerdfonts.override {
-        fonts = [
-          "JetBrainsMono"
-        ];
-      })
-    ];
+    packages = with pkgs; [ (nerdfonts.override { fonts = [ "JetBrainsMono" ]; }) ];
   };
 }

@@ -1,4 +1,5 @@
-{pkgs, ...}: {
+{ pkgs, ... }:
+{
   environment.systemPackages = with pkgs; [
     opensc
     pam_u2f
@@ -14,9 +15,7 @@
 
   services = {
     pcscd.enable = true; # Enable smart card daemon
-    udev.packages = [
-      pkgs.yubikey-personalization
-    ];
+    udev.packages = [ pkgs.yubikey-personalization ];
   };
   programs.gnupg.agent.enable = true;
 

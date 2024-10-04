@@ -1,4 +1,5 @@
-{...}: {
+{ ... }:
+{
   programs.bash.enable = false;
   programs.zsh = {
     enable = true;
@@ -7,9 +8,7 @@
     syntaxHighlighting.enable = true;
     defaultKeymap = "viins";
     profileExtra =
-      /*
-      bash
-      */
+      # bash
       ''
         export EDITOR=nvim
 
@@ -20,9 +19,7 @@
         fi
       '';
     initExtra =
-      /*
-      bash
-      */
+      # bash
       ''
         alias ls=lsd
         alias lsc='lsd --classic'

@@ -1,11 +1,11 @@
 # AwesomeWM config for Radeon 780M
+{ lib, pkgs, ... }:
 {
-  lib,
-  pkgs,
-  ...
-}: {
   AwesomeWM.configuration = {
-    system.nixos.tags = ["AwesomeWM" "Radeon780M"];
+    system.nixos.tags = [
+      "AwesomeWM"
+      "Radeon780M"
+    ];
 
     imports = [
       ../../../shared-imports/X11-tools.nix
@@ -28,7 +28,7 @@
 
     services.xserver = {
       enable = true;
-      videoDrivers = ["modesetting"];
+      videoDrivers = [ "modesetting" ];
       displayManager.startx.enable = true;
     };
   };

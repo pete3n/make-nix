@@ -1,10 +1,9 @@
 # This file defined flake-wide overlays
-{inputs, ...}: {
+{ inputs, ... }:
+{
   # Import local pkgs from ./ as overlays.local-packages and prepend them with
   # local to differentiate between nixpkgs version. Call with pkgs.local
-  local-packages = final: _prev: {
-    local = import ../pkgs {pkgs = final;};
-  };
+  local-packages = final: _prev: { local = import ../packages { pkgs = final; }; };
 
   # Individual package modifications, can be accessed by applying the
   # outputs.overlays.mod-packages overlay to nixpkgs. Call with pkgs.mod

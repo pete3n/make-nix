@@ -1,8 +1,5 @@
+{ config, pkgs, ... }:
 {
-  config,
-  pkgs,
-  ...
-}: {
   home.packages = with pkgs; [
     ffmpeg # Video encoding/transcoding
     gimp # Image editing
@@ -115,7 +112,10 @@
       }
       {
         key = "/";
-        command = ["find" "find_item_forward"];
+        command = [
+          "find"
+          "find_item_forward"
+        ];
       }
       {
         key = "n";

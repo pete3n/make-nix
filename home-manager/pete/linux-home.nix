@@ -1,10 +1,12 @@
 {
   inputs,
+  outputs,
   pkgs,
   build_target,
   ...
-}: {
-  imports = [
+}:
+{
+  imports = builtins.attrValues outputs.homeManagerModules ++ [
     ./home-imports/cross-platform/alacritty-config.nix
     ./home-imports/cross-platform/git-config.nix
     ./home-imports/linux/bash-config.nix
@@ -22,6 +24,7 @@
     ./home-imports/linux/tmux-config.nix
     ./home-imports/linux/waybar-config.nix
   ];
+
   nixpkgs = {
     config = {
       allowUnfree = true;
@@ -36,24 +39,36 @@
     username = "pete";
     homeDirectory = "/home/pete";
     packages =
-      [
-        inputs.nixvim.packages.${build_target.system}.default
-      ]
+      [ inputs.nixvim.packages.${build_target.system}.default ]
       ++ (with pkgs; [
         fd
-        fastfetch
         python311Packages.base58
-        ripgrep
+        ripgrep-all # rg with PDF, office doc, compress file support
         xdg-user-dirs
       ]);
   };
 
   programs = {
     home-manager.enable = true;
-    fzf.enable = true;
+    wallpaper-scripts = {
+      enable = true;
+      os = "linux";
+    };
+
+    # Better cat
     bat = {
       enable = true;
+      config = {
+        theme = "TwoDark";
+      };
+      extraPackages = with pkgs.bat-extras; [
+        batdiff
+        batman
+        batgrep
+        batwatch
+      ];
     };
+    # Better top resource monitor
     btop = {
       enable = true;
       settings = {
@@ -62,12 +77,37 @@
         color_theme = "nord";
       };
     };
+    # LSDeluxe improved ls command
+    lsd = {
+      enable = true;
+      enableAliases = true;
+    };
+    # Fastfetch neofetch replacement
+    fastfetch = {
+      enable = true;
+    };
+    # Fuzzy finder
+    fzf = {
+      enable = true;
+      enableBashIntegration = true;
+    };
+    # Recursive grep
+    ripgrep = {
+      enable = true;
+    };
+    # Yazi cli file manager
+    yazi = {
+      enable = true;
+      enableBashIntegration = true;
+    };
     # Zathura PDF viewer with VIM motions
     zathura = {
       enable = true;
     };
+    # Zoxide better cd replacement with memory
     zoxide = {
       enable = true;
+      enableBashIntegration = true;
     };
     firefox = {
       enable = true;
