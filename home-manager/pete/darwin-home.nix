@@ -32,6 +32,7 @@
       enable = true;
       os = "darwin";
     };
+    # Better cat
     bat = {
       enable = true;
       config = {
@@ -44,20 +45,7 @@
         batwatch
       ];
     };
-    fastfetch.enable = true;
-    fzf = {
-      enable = true;
-      enableZshIntegration = true;
-    };
-    gpg.enable = true;
-    lsd = {
-      enable = true;
-      enableAliases = true;
-    };
-    zoxide = {
-      enable = true;
-      enableZshIntegration = true;
-    };
+    # Better top resource monitor
     btop = {
       enable = true;
       settings = {
@@ -66,7 +54,35 @@
         color_theme = "nord";
       };
     };
-
+    fastfetch.enable = true;
+    fzf = {
+      enable = true;
+      enableZshIntegration = true;
+    };
+    gpg.enable = true;
+    # LSDeluxe improved ls command
+    lsd = {
+      enable = true;
+      enableAliases = true;
+    };
+    # Recursive grep
+    ripgrep = {
+      enable = true;
+    };
+    # Yazi cli file manager
+    yazi = {
+      enable = true;
+      enableZshIntegration = true;
+    };
+    # Zathura PDF viewer with VIM motions
+    zathura = {
+      enable = true;
+    };
+		# Zoxide better cd replacement with memory
+    zoxide = {
+      enable = true;
+      enableZshIntegration = true;
+    };
     starship = {
       enable = true;
       enableZshIntegration = true;
@@ -87,9 +103,6 @@
         local.yubioath-darwin
         python312Packages.base58
       ]);
-
-    sessionVariables = {
-      EDITOR = "nvim";
     };
 
     # This value determines the Home Manager release that your
