@@ -91,6 +91,15 @@
       enable = true;
       enableBashIntegration = true;
     };
+    keychain = {
+      enable = true;
+      enableBashIntegration = true;
+      agents = [
+        "ssh"
+        "gpg"
+      ];
+      keys = [ "pete3n" ];
+    };
     # Recursive grep
     ripgrep = {
       enable = true;
