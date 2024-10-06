@@ -1,6 +1,6 @@
 { pkgs, ... }:
 {
-  home.packages = [ pkgs.dconf ];
+  home.packages = [ pkgs.dconf ]; # Needed by gtk
 
   home.pointerCursor = {
     gtk.enable = true;

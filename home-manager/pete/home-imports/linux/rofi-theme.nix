@@ -1,6 +1,6 @@
 # This is the ugly way to create a dotfile when there are no
 # supported module options
-{ pkgs, ... }:
+{ ... }:
 {
   home.file.".config/rofi/config.rasi".text = ''
     @theme "/dev/null"

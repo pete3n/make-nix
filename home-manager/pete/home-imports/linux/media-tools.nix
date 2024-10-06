@@ -1,33 +1,23 @@
 { config, pkgs, ... }:
 {
-  home.packages = with pkgs; [
-    ffmpeg # Video encoding/transcoding
-    gimp # Image editing
-    handbrake # DVD wripping
-    helvum # Audio patch panel for pipewire
-    mpc-cli # MPD CLI
-    pavucontrol # Pulse audio volume control
-    rhythmbox
-    shotcut # Video editing
-    vlc # Videolan client
-    yt-dlp # Youtube download Python
-    ytfzf # Youtbue fuzzy finder and console viewer
+  home.packages = [
+    pkgs.mpc-cli # Media player daemon CLI interface
   ];
 
   services.mpd = {
     enable = true;
     extraConfig = ''
       audio_output {
-      		type            "pipewire"
-      		name            "PipeWire Sound Server"
+      	type            "pipewire"
+      	name            "PipeWire Sound Server"
       }
 
-          audio_output {
-          		type						"fifo"
-          		name						"ncmpcpp visualizer"
-          		path						"${config.xdg.dataHome}/mpd/mpd.fifo"
-          		format					"44100:16:1"
-        }
+      audio_output {
+      	type						"fifo"
+      	name						"ncmpcpp visualizer"
+      	path						"${config.xdg.dataHome}/mpd/mpd.fifo"
+      	format					"44100:16:1"
+      }
     '';
   };
 
@@ -145,7 +135,7 @@
   };
 
   programs.bash.initExtra = ''
-    alias music_player=ncmpcpp
-      alias music_visualizer=cava
+        alias music_player=ncmpcpp
+    		alias music_visualizer=cava
   '';
 }

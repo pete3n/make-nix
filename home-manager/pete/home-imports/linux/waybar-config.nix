@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ pkgs, ... }:
 let
   # Custom Nix snowflake info tooltip script
   nixVersions = pkgs.writeShellScript "get-nix-versions" ''
@@ -10,6 +10,8 @@ let
   '';
 in
 {
+  home.packages = [ pkgs.pavucontrol ];
+
   programs.waybar = {
     enable = true;
     settings = {
@@ -127,64 +129,56 @@ in
     };
 
     style = ''
-            * {    
-                border: none;    
-      	  border-radius: 0;    
-      	  font-size: 14px;
-      	  min-height: 25px;
-            }  
-
-            window#waybar {    
-      	background: transparent;    
-            }  
-
-            #snowflake {
-      	background: transparent;
-           	color: #5277c3;
-      	border-radius: 5px;
-      	padding-left: 10px;
-            }
-
-            #workspaces {
-              border-radius: 10px;
-      	background-color: transparent;
-      	color: #5277c3;
-      	padding-right: 10px;
-            }
-
-            #workspaces button {    
-              background: transparent;
-              color: #5277c3;
-              padding: 0 5px;  
-            }
-
-            #clock {
-      	border-radius: 10px;
-      	background-color: transparent;
-      	color: #7ebae4;
-            }
-
-            #backlight, #wdisplays {
-      	border-radius: 10px;
-      	background-color: transparent;
-      	color: #5277c3;
-      	padding-left: 10px;
-      	padding-right: 10px;
-            }
-
-            #pulseaudio {
-      	border-radius: 0px;
-      	background-color: transparent;
-      	color: #5277c3;
-      	padding-right: 10px;
-            }
-
-            #battery {
-      	border-radius: 0px;
-      	background-color: transparent;
-      	color: #5277c3;
-      	padding-right: 0px;
-            }
+          	* {    
+              	border: none;    
+            	  border-radius: 0;    
+            	  font-size: 14px;
+            	  min-height: 25px;
+              }  
+              window#waybar {    
+            		background: transparent;    
+              }  
+              #snowflake {
+            		background: transparent;
+                color: #5277c3;
+            		border-radius: 5px;
+            		padding-left: 10px;
+              }
+              #workspaces {
+              	border-radius: 10px;
+            		background-color: transparent;
+            		color: #5277c3;
+            		padding-right: 10px;
+              }
+              #workspaces button {    
+              	background: transparent;
+                color: #5277c3;
+                padding: 0 5px;  
+              }
+              #clock {
+            		border-radius: 10px;
+            		background-color: transparent;
+            		color: #7ebae4;
+              }
+              #backlight, #wdisplays {
+            		border-radius: 10px;
+            		background-color: transparent;
+      					color: #5277c3;
+      					padding-left: 10px;
+      					padding-right: 10px;
+              }
+              #pulseaudio {
+      					border-radius: 0px;
+      					background-color: transparent;
+      					color: #5277c3;
+      					padding-right: 10px;
+              }
+              #battery {
+      					border-radius: 0px;
+      					background-color: transparent;
+      					color: #5277c3;
+      					padding-right: 0px;
+              }
     '';
   };
 }

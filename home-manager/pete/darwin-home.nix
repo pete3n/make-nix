@@ -78,7 +78,7 @@
     zathura = {
       enable = true;
     };
-		# Zoxide better cd replacement with memory
+    # Zoxide better cd replacement with memory
     zoxide = {
       enable = true;
       enableZshIntegration = true;
@@ -103,8 +103,6 @@
         local.yubioath-darwin
         python312Packages.base58
       ]);
-    };
-
     # This value determines the Home Manager release that your
     # configuration is compatible with. This helps avoid breakage
     # when a new Home Manager release introduces backwards
