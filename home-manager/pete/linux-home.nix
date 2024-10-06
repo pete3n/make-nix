@@ -34,6 +34,8 @@
   fonts.fontconfig.enable = true;
 
   home = {
+    # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
+    stateVersion = "24.05";
     username = "pete";
     homeDirectory = "/home/pete";
     packages =
@@ -239,7 +241,4 @@
     };
     ssh-agent.enable = true;
   };
-
-  # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
-  home.stateVersion = "24.05";
 }
