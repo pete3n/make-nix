@@ -13,3 +13,6 @@ home-manager cleanup
 NixOS boot cleanup / set default
 
 hash script for correct hashing
+
+- Easy way to set a prompt
+  nix shell nixpkgs#lazygit -c bash --rcfile <(echo 'PS1="lazygit> "')
