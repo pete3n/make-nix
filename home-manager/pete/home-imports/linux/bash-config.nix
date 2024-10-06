@@ -2,22 +2,24 @@
 { config, ... }:
 {
   programs.bash = {
+    enableCompletion = true;
+    shellAliases = {
+      cd = "z";
+      home-manager-rollback = "home-manager generations | fzf | awk -F '-> ' '{print \$2 \"/activate\"}'";
+      screenshot = "grim";
+      lsc = "lsd --classic";
+    };
     initExtra =
       let
         ssh-private-key = "pete3n";
       in
       # bash
       ''
-        if command -v keychain > /dev/null 2>&1; then
-        	eval $(keychain --eval --nogui ${ssh-private-key} --quiet);
-        fi
+        #if command -v keychain > /dev/null 2>&1; then
+        #	eval $(keychain --eval --nogui ${ssh-private-key} --quiet);
+        #fi
 
         set -o vi
-        alias cd=z
-        alias home-manager-rollback="home-manager generations | fzf | awk -F '-> ' '{print \$2 \"/activate\"}'"
-        alias screenshot=grim
-        alias ls=lsd
-        alias lsc='lsd --classic'
       '';
 
     profileExtra =
