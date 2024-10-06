@@ -3,49 +3,28 @@
   environment.systemPackages = with pkgs; [
     acpi
     auto-cpufreq
-    binwalk
     cryptsetup
     dhcpcd
     dig
     docker-compose
-    entr
-    eza
-    fd
-    file
-    fzf
-    git
     gnumake
     gparted
+    gptfdisk
     home-manager
     iw
-    jq
-    keychain
     killall
-    lazydocker
     libnotify
-    ncdu
-    nix-tree
-    nmap
     openvpn
     parted
     pavucontrol
     pciutils
     pipewire
-    procs
     qemu
     qemu-utils
-    ripgrep
-    sd
-    sshs
     tcpdump
     thermald
-    tldr
-    tmux
     traceroute
-    unzip
     usbutils
-    vim
     wpa_supplicant
-    zip
   ];
 }
