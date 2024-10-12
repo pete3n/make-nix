@@ -16,3 +16,8 @@ hash script for correct hashing
 
 - Easy way to set a prompt
   nix shell nixpkgs#lazygit -c bash --rcfile <(echo 'PS1="lazygit> "')
+
+- Build local package for cross platform
+  nix build --impure --expr 'with import <nixpkgs> { crossSystem = "aarch64-linux"; }; pkgsCross.aarch64-multiplatform.callPackage ./angryoxide {}'
+- Build local package
+  nix build --impure --expr 'with import <nixpkgs> { system = "x86_64-linux"; }; pkgs.callPackage ./angryoxide {}'
