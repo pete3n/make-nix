@@ -7,10 +7,7 @@
       "Radeon780M"
     ];
 
-    imports = [
-      ../../../shared-imports/X11-tools.nix
-      ../../../shared-imports/nvidia-scripts.nix
-    ];
+    imports = [ ../../../shared-imports/linux/X11-tools.nix ];
 
     # Enable OpenGL
     hardware.opengl = {
@@ -31,5 +28,6 @@
       videoDrivers = [ "modesetting" ];
       displayManager.startx.enable = true;
     };
+
   };
 }

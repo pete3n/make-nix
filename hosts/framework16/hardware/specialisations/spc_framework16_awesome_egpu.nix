@@ -1,5 +1,10 @@
 # Special config for external Aorus RTX 3080 GPU
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  outputs,
+  ...
+}:
 {
   AwesomeWM_egpu.configuration = {
     system.nixos.tags = [
@@ -8,9 +13,8 @@
       "RTX-3080"
     ];
 
-    imports = [
-      ../../../shared-imports/X11-tools.nix
-      ../../../shared-imports/nvidia-scripts.nix
+    imports = builtins.attrValues outputs.nixosModules ++ [
+      ../../../shared-imports/linux/X11-tools.nix
     ];
 
     hardware.nvidia = {
@@ -86,5 +90,7 @@
         startx.enable = true;
       };
     };
+
+    programs.nvidia-scripts.nvrun.enable = true;
   };
 }

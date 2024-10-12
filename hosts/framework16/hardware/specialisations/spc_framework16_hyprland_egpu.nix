@@ -3,6 +3,7 @@
   config,
   lib,
   pkgs,
+  outputs,
   ...
 }:
 {
@@ -16,6 +17,8 @@
       allowUnfree = true;
       cudaSupport = true; # For eGPU config
     };
+
+    imports = builtins.attrValues outputs.nixosModules;
 
     environment.systemPackages = with pkgs; [ cudaPackages.cudatoolkit ];
 
@@ -86,5 +89,9 @@
 
     services.kmscon.enable = lib.mkForce false;
     programs.hyprland.enable = lib.mkForce true;
+    programs.nvidia-scripts = {
+      nvrun.enable = true;
+      hypr-nvidia.enable = true;
+    };
   };
 }

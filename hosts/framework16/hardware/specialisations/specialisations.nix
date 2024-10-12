@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  outputs,
   ...
 }:
 let
@@ -11,7 +12,15 @@ let
     filename: lib.hasPrefix "spc_framework16" filename
   ) currentDirFiles;
   importedSpecializations = map (
-    filename: import (./. + "/${filename}") { inherit pkgs config lib; }
+    filename:
+    import (./. + "/${filename}") {
+      inherit
+        outputs
+        pkgs
+        config
+        lib
+        ;
+    }
   ) specializationFilenames;
 in
 {
