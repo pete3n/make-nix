@@ -4,12 +4,12 @@
 { pkgs, build_target, ... }:
 {
   imports = [
-    ./hardware/hardware-configuration.nix
+    ./hardware-configuration.nix
     # This is the hardware configuration created by the installer
     # Most importantly it contains the UUIDs for your boot and root filesystems
     # Do not use anyone other host's hardware-configuration.nix or you will be
     # unable to boot
-    ./hardware/specialisations/specialisations.nix
+    ./specialisations/specialisations.nix
     # These provide different boot menu options for configurations that must
     # but implemented prior to booting Linux, such as an external GPU
     ../shared-imports/iptables-services.nix
