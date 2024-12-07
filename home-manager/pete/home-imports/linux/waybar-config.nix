@@ -1,12 +1,15 @@
 { pkgs, ... }:
 let
   # Custom Nix snowflake info tooltip script
-  nixVersions = pkgs.writeShellScript "get-nix-versions" ''
-        #!/bin/sh
-    	nixosVer=$(nixos-version)
-    	kernelVer=$(uname -r)
-    	nixVer=$(nix --version)
-    	echo "{\"tooltip\": \"NixOS: $nixosVer\nLinux Kernel: $kernelVer\n$nixVer\"}"
+  jq = pkgs.jq;
+  nixVersions = pkgs.writeShellScriptBin "get-nix-versions" ''
+        nixosVer=$(nixos-version)
+        kernelVer=$(uname -r)
+        nixVer=$(nix --version)
+        ${jq}/bin/jq -c -n --arg nixos "NixOS: $nixosVer" \
+    			--arg kernel "Linux Kernel: $kernelVer" \
+    			--arg nix "$nixVer" \
+    			'{"tooltip": "\($nixos)\r\($kernel)\r\($nix)"}'
   '';
 in
 {
@@ -22,6 +25,7 @@ in
         height = 25;
         margin-left = 15;
         margin-right = 15;
+
         modules-left = [
           "custom/snowflake"
           "hyprland/workspaces"
@@ -35,15 +39,16 @@ in
           "pulseaudio"
           "battery"
         ];
+
         "custom/snowflake" = {
+          exec = "${nixVersions}/bin/get-nix-versions";
           format = "{icon}";
-          tooltip-format = "{tooltip}";
-          exec = "${nixVersions}";
-          return-type = "json";
           format-icons = {
             default = "❄️";
           };
-          tooltip = true;
+          return-type = "json";
+          tooltip = false; # Disable tooltip
+          on-click = "${pkgs.libnotify}/bin/notify-send 'Nix Info' \"$(${nixVersions}/bin/get-nix-versions | jq -r '.tooltip')\"";
         };
 
         "hyprland/workspaces" = {
