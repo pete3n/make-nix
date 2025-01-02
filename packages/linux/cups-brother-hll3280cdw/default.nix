@@ -15,7 +15,7 @@ stdenv.mkDerivation rec {
   version = "3.5.1";
   src = fetchurl {
     url = "https://download.brother.com/welcome/dlf105735/hll3280cdwpdrv-${version}-1.i386.deb";
-    sha256 = "";
+    sha256 = "sha256-2JG7C+sC57f6+rKTWTjwnhvHrRp0qoFilQ/7KODNbr4=";
   };
 
   nativeBuildInputs = [
