@@ -144,6 +144,7 @@
         termshark
         wireshark
       ]);
+    #++ (if display_server == "x11" then [ pkgs.hello ] else [ ]);
   };
 
   # Modules with additional program configuration
