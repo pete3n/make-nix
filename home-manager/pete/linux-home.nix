@@ -10,13 +10,14 @@
     ./home-imports/cross-platform/alacritty-config.nix
     ./home-imports/cross-platform/git-config.nix
     ./home-imports/cross-platform/cli-programs.nix
+    ./home-imports/linux/awesome-config.nix
     ./home-imports/linux/bash-config.nix
     ./home-imports/linux/firefox-config.nix
     ./home-imports/linux/hyprland-config.nix
-    ./home-imports/linux/rofi-theme.nix
+    ./home-imports/linux/media-tools.nix
+    #./home-imports/linux/rofi-theme.nix
     ./home-imports/linux/theme-style.nix
     ./home-imports/linux/tmux-config.nix
-    ./home-imports/linux/waybar-config.nix
   ];
 
   nixpkgs = {
@@ -31,8 +32,6 @@
       allowUnfreePredicate = _: true;
     };
   };
-
-  fonts.fontconfig.enable = true;
 
   home = {
     # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion

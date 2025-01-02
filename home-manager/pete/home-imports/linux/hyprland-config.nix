@@ -203,7 +203,6 @@ in
 {
   imports = [
     ./waybar-config.nix
-    ./theme-style.nix
     #./rofi-theme.nix
   ];
 

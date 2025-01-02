@@ -46,6 +46,9 @@
                 makeWrapperArgs+=(--set QT_QPA_PLATFORM "xcb")
               '';
           });
+
+          #          rofi-calc-wayland = prev.rofi-calc.override { rofi-unwrapped = prev.rofi-wayland-unwrapped; };
+          #          rofi-emoji-wayland = prev.rofi-emoji.override { rofi-unwrapped = prev.rofi-wayland-unwrapped; };
         }
       else
         throw "The 'unstable' or 'local' overlay is missing. The mod overlay \

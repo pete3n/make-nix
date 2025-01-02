@@ -125,7 +125,7 @@
   ### Fonts and Locale ###
   i18n.defaultLocale = "en_US.UTF-8";
   time.timeZone = "America/New_York";
-  fonts.packages = with pkgs; [ (nerdfonts.override { fonts = [ "JetBrainsMono" ]; }) ];
+  #fonts.packages = with pkgs; [ (nerdfonts.override { fonts = [ "JetBrainsMono" ]; }) ];
 
   # See: https://wiki.hyprland.org/Nix
   services.printing.enable = true; # Enable CUPS
