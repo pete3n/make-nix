@@ -45,7 +45,7 @@
         # Misc
         bottles # Wine container manager
         browsh # Terminal browser
-        cryptomator
+        unstable.cryptomator
         fdupes # Duplicate file finder
         heroic # Heroic game launcher
         litemdview # Simple markdown viewer
@@ -58,8 +58,11 @@
         remmina
         standardnotes
         thunderbird
-        unstable.bisq-desktop
+        # EOL should be replaced with bisq2 when PR is accepted
+        # https://github.com/NixOS/nixpkgs/pull/347160
+        #unstable.bisq-desktop 
         unstable.monero-cli
+        unstable.bisq2
         unstable.monero-gui
         unzip
         xdg-user-dirs
