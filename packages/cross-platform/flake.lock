@@ -1,0 +1,41 @@
+{
+  "nodes": {
+    "angryoxide": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1,
+        "narHash": "sha256-JXogE/vqfaHYFsFD68py5niQPTdMj429+QFwoUHnsHQ=",
+        "path": "./angryoxide",
+        "type": "path"
+      },
+      "original": {
+        "path": "./angryoxide",
+        "type": "path"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1730741070,
+        "narHash": "sha256-edm8WG19kWozJ/GqyYx2VjW99EdhjKwbY3ZwdlPAAlo=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "d063c1dd113c91ab27959ba540c0d9753409edf3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-24.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "angryoxide": "angryoxide",
+        "nixpkgs": "nixpkgs"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

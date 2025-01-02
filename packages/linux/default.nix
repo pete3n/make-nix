@@ -1,2 +1,5 @@
 # Linux only packages
-{ pkgs, ... }: { }
+{ pkgs, ... }:
+{
+  cups-brother-hll3280cdw = pkgs.callPackage ./cups-brother-hll3280cdw/default.nix { };
+}
