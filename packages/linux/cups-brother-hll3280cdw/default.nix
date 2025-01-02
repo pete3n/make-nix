@@ -33,21 +33,21 @@ stdenv.mkDerivation rec {
   unpackPhase = "dpkg-deb -x $src .";
 
   installPhase = ''
-    runHook preInstall
+     runHook preInstall
 
-    mkdir -p "$out"
-    cp -pr opt "$out"
-    cp -pr usr/bin "$out/bin"
-    rm "$out/opt/brother/Printers/hll3280cdw/cupswrapper/cupswrapperhll3280cdw"
+     mkdir -p "$out"
+     cp -pr opt "$out"
+    # cp -pr usr/bin "$out/bin"
+     rm "$out/opt/brother/Printers/hll3280cdw/cupswrapper/cupswrapperhll3280cdw"
 
-    mkdir -p "$out/lib/cups/filter" "$out/share/cups/model"
+     mkdir -p "$out/lib/cups/filter" "$out/share/cups/model"
 
-    ln -s "$out/opt/brother/Printers/hll3280cdw/cupswrapper/brother_lpdwrapper_hll3280cdw" \
-      "$out/lib/cups/filter/brother_lpdwrapper_hll3280cdw"
-    ln -s "$out/opt/brother/Printers/hll3280cdw/cupswrapper/brother_hll3280cdw_printer_en.ppd" \
-      "$out/share/cups/model/brother_hll3280cdw_printer_en.ppd"
+     ln -s "$out/opt/brother/Printers/hll3280cdw/cupswrapper/brother_lpdwrapper_hll3280cdw" \
+       "$out/lib/cups/filter/brother_lpdwrapper_hll3280cdw"
+     ln -s "$out/opt/brother/Printers/hll3280cdw/cupswrapper/brother_hll3280cdw_printer_en.ppd" \
+       "$out/share/cups/model/brother_hll3280cdw_printer_en.ppd"
 
-    runHook postInstall
+     runHook postInstall
   '';
 
   # Fix global references and replace auto discovery mechanism

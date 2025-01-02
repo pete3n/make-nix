@@ -18,25 +18,25 @@
         iptables = "${pkgs.iptables}/bin/iptables";
       in
       ''
-          # Flush existing rules
-          ${iptables} -F
+        	# Flush existing rules
+        	${iptables} -F
 
-          # Delete nixos-fw chains
-          for chain in $({iptables} -L -n | grep 'Chain nixos-fw' awk '{print $2}'); do
-            ${iptables} -F $chain
-            ${iptables} -X $chain
-          done
+        	# Delete nixos-fw chains
+        	for chain in $({iptables} -L -n | grep 'Chain nixos-fw' awk '{print $2}'); do
+        	${iptables} -F $chain
+        	${iptables} -X $chain
+        	done
 
-          # Set default policies
-          ${iptables} -P INPUT DROP
-          ${iptables} -P FORWARD ACCEPT
-          ${iptables} -P OUTPUT ACCEPT
+        	# Set default policies
+        	${iptables} -P INPUT DROP
+        	${iptables} -P FORWARD ACCEPT
+        	${iptables} -P OUTPUT ACCEPT
 
-          # Rules
-          ${iptables} -I INPUT -i lo -j ACCEPT
-          ${iptables} -I INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-        ${iptables} -A INPUT -p udp --dport 53 -j ACCEPT
-          ${iptables} -A INPUT -j DROP
+        	# Rules
+        	${iptables} -I INPUT -i lo -j ACCEPT
+        	${iptables} -I INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+        	${iptables} -A INPUT -p udp --dport 53 -j ACCEPT
+        	${iptables} -A INPUT -j DROP
       '';
   };
 }
