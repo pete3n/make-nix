@@ -1,18 +1,25 @@
-# Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running `nixos-help`).
+# TODO:
+# - Brother CUPS driver
+# - Fix duplicate Waybar
+# - Fix missing Unicode chars
+# - Fix Yubi PAM
+# - Fix Keyring issues (Skype others)
 { pkgs, build_target, ... }:
 {
   imports = [
-    ./hardware-configuration.nix
     # This is the hardware configuration created by the installer
     # Most importantly it contains the UUIDs for your boot and root filesystems
     # Do not use anyone other host's hardware-configuration.nix or you will be
     # unable to boot
-    ./specialisations/specialisations.nix
+    ./hardware-configuration.nix
+
     # These provide different boot menu options for configurations that must
     # but implemented prior to booting Linux, such as an external GPU
-    ../shared-imports/iptables-services.nix
+    ./specialisations.nix
+
+    ../shared-imports/iptables-services.nix # Override NixOS firewall rules
+    # and use custom iptables based ruleset
+
     ../shared-imports/p22-pki.nix
     ../shared-imports/p22-nfs.nix
     ../shared-imports/p22-printers.nix
@@ -22,9 +29,8 @@
     ../shared-imports/linux/linux-packages.nix
     ../shared-imports/usrp-sdr.nix
   ];
-
   boot = {
-    kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages_6_12;
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
     supportedFilesystems = [ "ntfs" ];
