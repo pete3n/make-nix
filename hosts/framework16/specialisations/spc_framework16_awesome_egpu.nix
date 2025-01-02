@@ -7,15 +7,14 @@
 }:
 {
   AwesomeWM_egpu.configuration = {
+    display_server = "x11";
     system.nixos.tags = [
       "AwesomeWM"
       "Aorus-eGPU"
       "RTX-3080"
     ];
 
-    imports = builtins.attrValues outputs.nixosModules ++ [
-      ../../../shared-imports/linux/X11-tools.nix
-    ];
+    imports = builtins.attrValues outputs.nixosModules ++ [ ../../shared-imports/linux/X11-tools.nix ];
 
     hardware.nvidia = {
       package = config.boot.kernelPackages.nvidiaPackages.mkDriver {

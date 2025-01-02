@@ -2,6 +2,7 @@
 { lib, pkgs, ... }:
 {
   AwesomeWM.configuration = {
+    display_server = "x11";
     system.nixos.tags = [
       "AwesomeWM"
       "Radeon780M"
