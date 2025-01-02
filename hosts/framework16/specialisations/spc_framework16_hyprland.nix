@@ -2,6 +2,7 @@
 { lib, pkgs, ... }:
 {
   Hyprland.configuration = {
+    display_server = "wayland";
     system.nixos.tags = [
       "Hyprland"
       "Radeon780M"

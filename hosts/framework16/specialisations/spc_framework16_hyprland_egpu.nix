@@ -8,6 +8,7 @@
 }:
 {
   Hyprland_egpu.configuration = {
+    display_server = "wayland";
     system.nixos.tags = [
       "Hyprland"
       "Aorus-eGPU"

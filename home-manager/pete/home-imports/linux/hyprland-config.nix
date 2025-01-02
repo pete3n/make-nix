@@ -299,8 +299,10 @@ in
     enable = true;
     package = pkgs.hyprland;
     xwayland.enable = true;
-
     settings = {
+      debug = {
+        disable_logs = false;
+      };
       # Mitigate Xwayland pixelation scaling issues
       xwayland = {
         force_zero_scaling = true;

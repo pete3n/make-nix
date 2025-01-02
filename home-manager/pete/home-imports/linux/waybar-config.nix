@@ -17,6 +17,7 @@ in
 
   programs.waybar = {
     enable = true;
+    systemd.enable = true;
     settings = {
       mainBar = {
         layer = "top";
@@ -42,10 +43,7 @@ in
 
         "custom/snowflake" = {
           exec = "${nixVersions}/bin/get-nix-versions";
-          format = "{icon}";
-          format-icons = {
-            default = "❄️";
-          };
+          format = "❄️";
           return-type = "json";
           tooltip = false; # Disable tooltip
           on-click = "${pkgs.libnotify}/bin/notify-send 'Nix Info' \"$(${nixVersions}/bin/get-nix-versions | jq -r '.tooltip')\"";
@@ -65,7 +63,7 @@ in
           format = "{icon}";
           tooltip = false;
           format-icons = {
-            default = [ "🖥️" ];
+            default = [ "S" ];
           };
           on-click = "wdisplays";
         };
@@ -143,13 +141,14 @@ in
               window#waybar {    
             		background: transparent;    
               }  
-              #snowflake {
+              #custom-snowflake {
+            	  font-size: 20px;
             		background: transparent;
                 color: #5277c3;
             		border-radius: 5px;
             		padding-left: 10px;
               }
-              #workspaces {
+              #hyprland-workspaces {
               	border-radius: 10px;
             		background-color: transparent;
             		color: #5277c3;
@@ -165,7 +164,7 @@ in
             		background-color: transparent;
             		color: #7ebae4;
               }
-              #backlight, #wdisplays {
+              #backlight, #custom-wdisplays {
             		border-radius: 10px;
             		background-color: transparent;
       					color: #5277c3;
