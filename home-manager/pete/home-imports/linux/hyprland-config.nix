@@ -310,7 +310,6 @@ in
       exec-once = [
         "wl-paste --type text --watch cliphist store" # Store clipboard text
         "wl-paste --type image --watch cliphist store" # Store clipboard images
-        "waybar"
         "swww init"
         "wallpaper-set"
       ];

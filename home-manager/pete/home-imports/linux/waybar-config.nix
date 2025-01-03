@@ -17,7 +17,6 @@ in
 
   programs.waybar = {
     enable = true;
-    systemd.enable = true;
     settings = {
       mainBar = {
         layer = "top";
@@ -54,8 +53,8 @@ in
           tooltip = false;
           all-outputs = true;
           format-icons = {
-            "active" = "";
-            "default" = "";
+            "active" = " ";
+            "default" = " ";
           };
         };
 
