@@ -63,7 +63,7 @@ in
           format = "{icon}";
           tooltip = false;
           format-icons = {
-            default = [ "S" ];
+            default = [ "💻⚙️ " ];
           };
           on-click = "wdisplays";
         };
