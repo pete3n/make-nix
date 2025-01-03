@@ -33,24 +33,20 @@
       cycle = true;
       location = "center";
       theme = config.rofi.theme;
-      #plugins = (
-      #  with pkgs;
-      #  [
-      #    mod.rofi-calc-wayland
-      #    mod.rofi-emoji-wayland
-      #  ]
-      #);
+      plugins = (
+        with pkgs;
+        [
+          mod.rofi-calc-wayland
+          rofi-emoji-wayland
+        ]
+      );
       xoffset = 0;
       yoffset = -20;
       extraConfig = {
         show-icons = true;
         kb-cancel = "Escape,Super+space";
-        modi = "combi,window,run";
-        # TODO: Fix calc for 24.11
-        #modi = "combi,window,run,calc"; 
-        #modi = "window,run,ssh,emoji,calc,systemd";
+        modi = "combi,window,run,calc";
         sort = true;
-        # levenshtein-sort = true;
       };
     };
   };
@@ -248,9 +244,9 @@
         "$mainMod, return, exec, alacritty"
         "$mainMod SHIFT, w, exec, wallpaper-cycle"
         "$mainMod, C, killactive"
-        "$mainMod, M, exit"
-        #"$mainMod, E, exec, dolphin"
         "$mainMod, R, exec, rofi -show-icons -combi-modi drun,run -show combi"
+        "$mainMod, M, exec, rofi -show-icons -combi-modi drun,run -show calc"
+        "$mainMod, E, exec, rofi -show-icons -combi-modi drun,run -show emoji"
         "$mainMod, P, pseudo, # dwindle"
         "$mainMod, V, togglesplit, # dwindle"
         "$mainMod, W, exec, pkill -SIGUSR1 waybar" # Toggle waybar visibility
