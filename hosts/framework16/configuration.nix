@@ -23,7 +23,9 @@
     ../shared-imports/p22-pki.nix
     ../shared-imports/p22-nfs.nix
     ../shared-imports/p22-printers.nix
-    ../shared-imports/${build_target.user}-yubikey-sc.nix
+
+    # Ensure u2f keys are present in ~/.config/Yubico/u2f_keys before enabling
+    ../shared-imports/yubikey-sc.nix
     ../shared-imports/ollama-services.nix
     ../shared-imports/crypto-services.nix
     ../shared-imports/linux/linux-packages.nix

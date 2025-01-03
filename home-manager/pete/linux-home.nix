@@ -15,9 +15,9 @@
     ./home-imports/linux/firefox-config.nix
     ./home-imports/linux/hyprland-config.nix
     ./home-imports/linux/media-tools.nix
-    #./home-imports/linux/rofi-theme.nix
     ./home-imports/linux/theme-style.nix
     ./home-imports/linux/tmux-config.nix
+    ./home-imports/linux/yubikey-u2f.nix
   ];
 
   nixpkgs = {
