@@ -63,7 +63,7 @@ in
           format = "{icon}";
           tooltip = false;
           format-icons = {
-            default = [ "💻⚙️ " ];
+            default = [ "🖵 " ];
           };
           on-click = "wdisplays";
         };
@@ -131,58 +131,65 @@ in
       };
     };
 
-    style = ''
-          	* {    
-              	border: none;    
-            	  border-radius: 0;    
-            	  font-size: 14px;
-            	  min-height: 25px;
-              }  
-              window#waybar {    
-            		background: transparent;    
-              }  
-              #custom-snowflake {
-            	  font-size: 20px;
-            		background: transparent;
+    style = # css
+      ''
+                * {    
+                border: none;    
+                border-radius: 0;    
+                font-size: 14px;
+                min-height: 25px;  
+                }  
+                window#waybar {    
+                background: transparent;    
+                }  
+                #custom-snowflake {
+                font-size: 20px;
+                background: transparent;
                 color: #5277c3;
-            		border-radius: 5px;
-            		padding-left: 10px;
-              }
-              #hyprland-workspaces {
-              	border-radius: 10px;
-            		background-color: transparent;
-            		color: #5277c3;
-            		padding-right: 10px;
-              }
-              #workspaces button {    
-              	background: transparent;
+                border-radius: 5px;
+                padding-left: 10px;
+                }
+                #hyprland-workspaces {
+                background-color: transparent;
+                color: #5277c3;
+                padding-right: 10px;
+                }
+                #workspaces button {    
+                background: transparent;
                 color: #5277c3;
                 padding: 0 5px;  
-              }
-              #clock {
-            		border-radius: 10px;
-            		background-color: transparent;
-            		color: #7ebae4;
-              }
-              #backlight, #custom-wdisplays {
-            		border-radius: 10px;
-            		background-color: transparent;
-      					color: #5277c3;
-      					padding-left: 10px;
-      					padding-right: 10px;
-              }
-              #pulseaudio {
-      					border-radius: 0px;
-      					background-color: transparent;
-      					color: #5277c3;
-      					padding-right: 10px;
-              }
-              #battery {
-      					border-radius: 0px;
-      					background-color: transparent;
-      					color: #5277c3;
-      					padding-right: 0px;
-              }
-    '';
+                }
+                #clock {
+                background-color: transparent;
+                color: #7ebae4;
+                }
+                #custom-wdisplays {
+                background-color: transparent;
+                color: #5277c3;
+        				padding-top: 3px;
+                padding-left: 15px;
+                padding-right: 10px;
+                }
+                #backlight {
+                background-color: transparent;
+                color: #5277c3;
+                padding-top: 2px;
+                padding-bottom: 2px;
+                padding-left: 10px;
+                padding-right: 10px;
+                }
+                #pulseaudio {
+                border-radius: 0px;
+                background-color: transparent;
+                color: #5277c3;
+                padding-right: 10px;
+                }
+                #battery {
+                border-radius: 0px;
+                background-color: transparent;
+                color: #5277c3;
+                padding-right: 0px;
+                }
+      '';
   };
 }
