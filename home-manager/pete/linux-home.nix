@@ -90,7 +90,6 @@
         hyperfine # CLI benchmark tool
         jc # JSON converter
         jq # JSON processor
-        lazydocker # Docker TUI
         lynx # Text-mode browser
         magic-wormhole # Easy remote file transfer - python
         magic-wormhole-rs # Easy remote file transfer - rust
@@ -153,6 +152,30 @@
 
     firefox = {
       enable = true;
+    };
+
+    lazydocker = {
+      enable = true;
+      customCommands = {
+        containers = [
+          {
+            name = "Interactive bash shell";
+            attach = true;
+            command = "docker exec -it {{ .Container.ID }} /bin/bash";
+            serviceNames = [ ];
+            stream = true;
+            description = "Open an interactive bash shell in the running container.";
+          }
+          {
+            name = "Interactive sh shell";
+            attach = true;
+            command = "docker exec -it {{ .Container.ID }} /bin/sh";
+            serviceNames = [ ];
+            stream = true;
+            description = "Open an interactive sh shell in the running container.";
+          }
+        ];
+      };
     };
   };
 
