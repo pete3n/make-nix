@@ -166,13 +166,15 @@
             stream = true;
             description = "Open an interactive bash shell in the running container.";
           }
+        ];
+        images = [
           {
-            name = "Interactive sh shell";
+            name = "Run shell in new container from image";
             attach = true;
-            command = "docker exec -it {{ .Container.ID }} /bin/sh";
+            command = "docker run -it --rm {{ .Image.ID }} /bin/sh";
             serviceNames = [ ];
             stream = true;
-            description = "Open an interactive sh shell in the running container.";
+            description = "Run shell in new container from an image";
           }
         ];
       };
