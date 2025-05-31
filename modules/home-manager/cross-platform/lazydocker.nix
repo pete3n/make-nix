@@ -32,108 +32,96 @@ let
   );
 in
 {
-  options.programs.lazydocker = {
-    enable = lib.mkEnableOption "lazydocker HM module";
+  options.programs.lazydocker.customCommands = {
+		containers = lib.mkOption {
+			type = lib.types.listOf (
+				lib.types.submodule {
+					options = {
+						name = lib.mkOption {
+							type = lib.types.str;
+							description = "The name of the custom command.";
+						};
 
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = pkgs.lazydocker;
-      description = "The lazydocker package to install.";
-    };
+						attach = lib.mkOption {
+							type = lib.types.bool;
+							default = false;
+							description = "Whether the command should attach to the container.";
+						};
 
-    customCommands = {
-      containers = lib.mkOption {
-        type = lib.types.listOf (
-          lib.types.submodule {
-            options = {
-              name = lib.mkOption {
-                type = lib.types.str;
-                description = "The name of the custom command.";
-              };
+						command = lib.mkOption {
+							type = lib.types.str;
+							description = "The actual docker command to execute.";
+						};
 
-              attach = lib.mkOption {
-                type = lib.types.bool;
-                default = false;
-                description = "Whether the command should attach to the container.";
-              };
+						serviceNames = lib.mkOption {
+							type = lib.types.listOf lib.types.str;
+							default = [ ];
+							description = "List of service names this command applies to.";
+						};
 
-              command = lib.mkOption {
-                type = lib.types.str;
-                description = "The actual docker command to execute.";
-              };
+						stream = lib.mkOption {
+							type = lib.types.bool;
+							default = false;
+							description = "Whether the command should stream the output.";
+						};
 
-              serviceNames = lib.mkOption {
-                type = lib.types.listOf lib.types.str;
-                default = [ ];
-                description = "List of service names this command applies to.";
-              };
+						description = lib.mkOption {
+							type = lib.types.str;
+							default = "";
+							description = "A short description of the command.";
+						};
+					};
+				}
+			);
+			default = [ ];
+			description = "List of custom commands for containers.";
+		};
+		images = lib.mkOption {
+			type = lib.types.listOf (
+				lib.types.submodule {
+					options = {
+						name = lib.mkOption {
+							type = lib.types.str;
+							description = "The name of the image command.";
+						};
 
-              stream = lib.mkOption {
-                type = lib.types.bool;
-                default = false;
-                description = "Whether the command should stream the output.";
-              };
+						attach = lib.mkOption {
+							type = lib.types.bool;
+							default = false;
+							description = "Whether the command should attach to the container.";
+						};
 
-              description = lib.mkOption {
-                type = lib.types.str;
-                default = "";
-                description = "A short description of the command.";
-              };
-            };
-          }
-        );
-        default = [ ];
-        description = "List of custom commands for containers.";
-      };
-      images = lib.mkOption {
-        type = lib.types.listOf (
-          lib.types.submodule {
-            options = {
-              name = lib.mkOption {
-                type = lib.types.str;
-                description = "The name of the image command.";
-              };
+						command = lib.mkOption {
+							type = lib.types.str;
+							description = "The actual docker command to execute.";
+						};
 
-              attach = lib.mkOption {
-                type = lib.types.bool;
-                default = false;
-                description = "Whether the command should attach to the container.";
-              };
+						serviceNames = lib.mkOption {
+							type = lib.types.listOf lib.types.str;
+							default = [ ];
+							description = "List of service names this command applies to.";
+						};
 
-              command = lib.mkOption {
-                type = lib.types.str;
-                description = "The actual docker command to execute.";
-              };
+						stream = lib.mkOption {
+							type = lib.types.bool;
+							default = false;
+							description = "Whether the command should stream the output.";
+						};
 
-              serviceNames = lib.mkOption {
-                type = lib.types.listOf lib.types.str;
-                default = [ ];
-                description = "List of service names this command applies to.";
-              };
-
-              stream = lib.mkOption {
-                type = lib.types.bool;
-                default = false;
-                description = "Whether the command should stream the output.";
-              };
-
-              description = lib.mkOption {
-                type = lib.types.str;
-                default = "";
-                description = "A short description of the command.";
-              };
-            };
-          }
-        );
-        default = [ ];
-        description = "List of custom commands for images.";
-      };
-    };
+						description = lib.mkOption {
+							type = lib.types.str;
+							default = "";
+							description = "A short description of the command.";
+						};
+					};
+				}
+			);
+			default = [ ];
+			description = "List of custom commands for images.";
+		};
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ cfg.package ];
-
     home.file.".config/lazydocker/config.yml".source = configFile;
   };
 }
