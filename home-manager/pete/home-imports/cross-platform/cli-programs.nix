@@ -38,7 +38,6 @@ in
     # LSDeluxe improved ls command
     lsd = {
       enable = true;
-      enableAliases = true;
     };
     # Fastfetch neofetch replacement
     fastfetch = {
