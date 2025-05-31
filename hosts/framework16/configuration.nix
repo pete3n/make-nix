@@ -1,10 +1,13 @@
 # TODO:
 # - Brother CUPS driver
-# - Fix duplicate Waybar
-# - Fix missing Unicode chars
 # - Fix Yubi PAM
-# - Fix Keyring issues (Skype others)
-{ pkgs, build_target, ... }:
+
+{
+  pkgs,
+  outputs,
+  build_target,
+  ...
+}:
 {
   imports = [
     # This is the hardware configuration created by the installer
@@ -60,10 +63,9 @@
   nixpkgs = {
     # You can add overlays here
     overlays = [
-      # Add overlays your own flake exports (from overlays and pkgs dir):
-      #outputs.overlays.additions
-      #outputs.overlays.modifications
-      #outputs.overlays.unstable-packages
+      outputs.overlays.unstable-packages
+      outputs.overlays.local-packages
+      outputs.overlays.mod-packages
     ];
   };
 
@@ -136,7 +138,6 @@
   #fonts.packages = with pkgs; [ (nerdfonts.override { fonts = [ "JetBrainsMono" ]; }) ];
 
   # See: https://wiki.hyprland.org/Nix
-  services.printing.enable = true; # Enable CUPS
   services.hardware.bolt.enable = true; # boltctl
 
   # Portals must be enable system wide for Flatpak support

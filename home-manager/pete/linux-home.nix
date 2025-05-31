@@ -56,11 +56,8 @@
         pika-backup
         protonmail-bridge
         remmina
-        standardnotes
+        unstable.standardnotes
         thunderbird
-        # EOL should be replaced with bisq2 when PR is accepted
-        # https://github.com/NixOS/nixpkgs/pull/347160
-        #unstable.bisq-desktop 
         unstable.monero-cli
         unstable.bisq2
         unstable.monero-gui
@@ -71,8 +68,8 @@
 
         ## Messaging apps
         mod.no-gpu-signal-desktop
+        rustdesk-flutter
         unstable.element-desktop
-        unstable.skypeforlinux
         unstable.teams-for-linux
 
         ## CLI utilities
@@ -100,6 +97,7 @@
         nix-tree # Interactively browse Nix store dependencies
         procs # Better process viewer
         python311Packages.base58
+        repgrep # ripgrep replace
         ripgrep-all # rg with PDF, office doc, compress file support
         rsync
         sd # Better sed
@@ -112,9 +110,11 @@
         ### Media tools
         drawio # Open Visio replacement
         gimp # Image editing
+
         handbrake # DVD wripping
+        inkscape-with-extensions # Vector graphics
         rhythmbox # Music player
-        shotcut # Video editing
+        kdenlive # Video editing
         vlc # Media player
         unstable.yt-dlp # Youtube download Python version
         ytfzf # Youtbue fuzzy finder and console viewer
@@ -179,6 +179,12 @@
         ];
       };
     };
+
+    # TODO: Config
+    lazygit = {
+      enable = true;
+    };
+
   };
 
   # Nicely reload system units when changing configs

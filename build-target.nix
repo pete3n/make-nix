@@ -23,5 +23,5 @@
 
   # Specialisation options
   egpu = false;
-  display_server = "wayland";
+  display_server = "wayland"; # x11 or wayland
 }
