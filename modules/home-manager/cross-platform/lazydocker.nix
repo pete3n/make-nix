@@ -1,127 +1,107 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+{ config, lib, ... }:
 
 let
-  cfg = config.programs.lazydocker;
-  configFile = pkgs.writeText "lazydocker-config.yml" (
-    builtins.toJSON {
-      customCommands = {
-        containers = map (cmd: {
-          name = cmd.name;
-          attach = cmd.attach or false;
-          command = cmd.command;
-          serviceNames = cmd.serviceNames or [ ];
-          stream = cmd.stream or false;
-          description = cmd.description or "";
-        }) cfg.customCommands.containers;
+	  cfg = config.programs.lazydocker;
+in {
+	  options.programs.lazydocker.customCommands = {
+	    containers = lib.mkOption {
+	      type = lib.types.listOf (
+	        lib.types.submodule {
+	          options = {
+	            name = lib.mkOption {
+	              type = lib.types.str;
+	              description = "The name of the custom command.";
+	            };
+	            attach = lib.mkOption {
+	              type = lib.types.bool;
+	              default = false;
+	              description = "Attach to container.";
+	            };
+	            command = lib.mkOption {
+	              type = lib.types.str;
+	              description = "Docker command to run.";
+	            };
+	            serviceNames = lib.mkOption {
+	              type = lib.types.listOf lib.types.str;
+	              default = [];
+	              description = "Applies to these services.";
+	            };
+	            stream = lib.mkOption {
+	              type = lib.types.bool;
+	              default = false;
+	              description = "Stream output.";
+	            };
+	            description = lib.mkOption {
+	              type = lib.types.str;
+	              default = "";
+	              description = "Command description.";
+	            };
+	          };
+	        }
+	      );
+      default = [];
+	      description = "Container commands.";
+	    };
 
-        images = map (cmd: {
-          name = cmd.name;
-          attach = cmd.attach or false;
-          command = cmd.command;
-          serviceNames = cmd.serviceNames or [ ];
-          stream = cmd.stream or false;
-          description = cmd.description or "";
-        }) cfg.customCommands.images;
-      };
-    }
-  );
-in
-{
-  options.programs.lazydocker.customCommands = {
-		containers = lib.mkOption {
-			type = lib.types.listOf (
-				lib.types.submodule {
-					options = {
-						name = lib.mkOption {
-							type = lib.types.str;
-							description = "The name of the custom command.";
-						};
-
-						attach = lib.mkOption {
-							type = lib.types.bool;
-							default = false;
-							description = "Whether the command should attach to the container.";
-						};
-
-						command = lib.mkOption {
-							type = lib.types.str;
-							description = "The actual docker command to execute.";
-						};
-
-						serviceNames = lib.mkOption {
-							type = lib.types.listOf lib.types.str;
-							default = [ ];
-							description = "List of service names this command applies to.";
-						};
-
-						stream = lib.mkOption {
-							type = lib.types.bool;
-							default = false;
-							description = "Whether the command should stream the output.";
-						};
-
-						description = lib.mkOption {
-							type = lib.types.str;
-							default = "";
-							description = "A short description of the command.";
-						};
-					};
-				}
-			);
-			default = [ ];
-			description = "List of custom commands for containers.";
-		};
-		images = lib.mkOption {
-			type = lib.types.listOf (
-				lib.types.submodule {
-					options = {
-						name = lib.mkOption {
-							type = lib.types.str;
-							description = "The name of the image command.";
-						};
-
-						attach = lib.mkOption {
-							type = lib.types.bool;
-							default = false;
-							description = "Whether the command should attach to the container.";
-						};
-
-						command = lib.mkOption {
-							type = lib.types.str;
-							description = "The actual docker command to execute.";
-						};
-
-						serviceNames = lib.mkOption {
-							type = lib.types.listOf lib.types.str;
-							default = [ ];
-							description = "List of service names this command applies to.";
-						};
-
-						stream = lib.mkOption {
-							type = lib.types.bool;
-							default = false;
-							description = "Whether the command should stream the output.";
-						};
-
-						description = lib.mkOption {
-							type = lib.types.str;
-							default = "";
-							description = "A short description of the command.";
-						};
-					};
-				}
-			);
-			default = [ ];
-			description = "List of custom commands for images.";
-		};
-  };
+    images = lib.mkOption {
+	      type = lib.types.listOf (
+	        lib.types.submodule {
+	          options = {
+	            name = lib.mkOption {
+	              type = lib.types.str;
+	              description = "The name of the image command.";
+	            };
+	            attach = lib.mkOption {
+	              type = lib.types.bool;
+	              default = false;
+	              description = "Attach to container.";
+	            };
+	            command = lib.mkOption {
+	              type = lib.types.str;
+	              description = "Docker command to run.";
+	            };
+	            serviceNames = lib.mkOption {
+	              type = lib.types.listOf lib.types.str;
+	              default = [];
+	              description = "Applies to these services.";
+	            };
+	            stream = lib.mkOption {
+	              type = lib.types.bool;
+	              default = false;
+	              description = "Stream output.";
+	            };
+	            description = lib.mkOption {
+	              type = lib.types.str;
+	              default = "";
+	              description = "Command description.";
+	            };
+	          };
+	        }
+	      );
+      default = [];
+	      description = "Image commands.";
+	    };
+	  };
 
   config = lib.mkIf cfg.enable {
-    home.file.".config/lazydocker/config.yml".source = configFile;
+	    programs.lazydocker.settings = {
+	      customCommands = {
+	        containers = map (cmd: {
+	          inherit (cmd) name command;
+	          attach = cmd.attach or false;
+	          serviceNames = cmd.serviceNames or [];
+	          stream = cmd.stream or false;
+	          description = cmd.description or "";
+	        }) cfg.customCommands.containers;
+
+	        images = map (cmd: {
+	          inherit (cmd) name command;
+	          attach = cmd.attach or false;
+	          serviceNames = cmd.serviceNames or [];
+	          stream = cmd.stream or false;
+	          description = cmd.description or "";
+	        }) cfg.customCommands.images;
+	      };
+    };
   };
 }
