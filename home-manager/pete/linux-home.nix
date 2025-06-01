@@ -114,7 +114,7 @@
         handbrake # DVD wripping
         inkscape-with-extensions # Vector graphics
         rhythmbox # Music player
-        kdenlive # Video editing
+        kdePackages.kdenlive # Video editing
         vlc # Media player
         unstable.yt-dlp # Youtube download Python version
         ytfzf # Youtbue fuzzy finder and console viewer
