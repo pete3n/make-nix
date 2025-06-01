@@ -14,6 +14,7 @@
     ./home-imports/linux/bash-config.nix
     ./home-imports/linux/firefox-config.nix
     ./home-imports/linux/hyprland-config.nix
+		./home-imports/linux/hypr-session-restore.nix
     ./home-imports/linux/media-tools.nix
     ./home-imports/linux/theme-style.nix
     ./home-imports/linux/tmux-config.nix

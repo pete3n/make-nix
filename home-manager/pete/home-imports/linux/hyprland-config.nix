@@ -112,6 +112,7 @@
         "wl-paste --type image --watch cliphist store" # Store clipboard images
         "swww init"
         "wallpaper-set"
+				"hypr-session-restore"
       ];
 
       gestures = {
