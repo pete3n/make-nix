@@ -5,16 +5,24 @@
 }:
 rustPlatform.buildRustPackage rec {
   pname = "angryoxide";
-  version = "0.8.28";
+	version = "master";
+  # Submodule is using ssh in this version which isn't accessible from Nix sandbox
+	# 
+	#  src = fetchFromGitHub {
+	#    owner = "Ragnt";
+	#    repo = pname;
+	#    rev = "v${version}";
+	#    hash = "";
+	#		fetchSubmodules = true;
+	#  };
 
-  src = fetchFromGitHub {
-    owner = "Ragnt";
+  src = fetchFromGitHub { owner = "Ragnt";
     repo = pname;
-    rev = "v${version}";
-    hash = "sha256-n2c1G8Y9dFV+0MZehCRBAKkzN6XOWfDX0AVWb+o08VI=";
+    rev = "6eaaaf89ef0f2e9de7f6ba32533fdf2d28058f95"; # latest master commit
+    fetchSubmodules = true;
+    hash = "sha256-3xJmi8nQeHXeTSSu3/vg1SutaejRd7WhvKZKKDGUvIY="; # run build once to get real hash
   };
-
-  cargoSha256 = "sha256-cir3UNHE7z+pq3oBdBo8U9tcRh6jCCSN/bwuDTg5rrw=";
+  cargoHash = "sha256-PcLwmC9EYi6SWaveIBT/9AQTh5mvpr6G4nkc+jcYDVM= ";
 
   meta = with lib; {
     description = "A 802.11 Attack tool built in Rust";

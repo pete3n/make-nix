@@ -1,7 +1,7 @@
 {
   description = "Build angryoxide for MIPS MUSLSF";
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     angryoxide = {
       url = "path:./angryoxide";
       flake = false;
