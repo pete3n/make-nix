@@ -3,6 +3,35 @@ define n
 
 endef
 
+define usage_text
+make <home|system|all> [host=<host>] [user=<user>] [system=<system>] [specialisation-flags]
+
+Usage examples:
+make home
+-- switches home-manager config for current user; autodetects system type.
+
+make home user=joe
+-- switches home-manager config for username joe; autodetects system type.
+
+make home user=sam system=aarch64-darwin
+-- switches home-manager config for username sam; targets an aarch64-darwin platform.
+
+make system
+-- rebuilds and switches current system config; autodetects hostname and system platform.
+
+make system host=workstation1 system=aarch64-linux
+-- rebuilds and switches the workstation1 system config; targets an aarch64-linux platform.
+
+make all
+-- rebuilds and switches current system and current user home-manager config, autodetects all settings:
+
+make all host=workstation1 system=x86_64-linux user=joe
+-- rebuilds and switches the home-manager config for username joe, on the workstation 1 system config; 
+targets an x86_64-linux platform.
+endef
+
+export usage_text
+
 ifndef user
   user := $(shell whoami)
   $(info user was not passed...$(n)Defaulting to current user: $(user)$(n))
@@ -25,33 +54,9 @@ else
 endif
 
 usage:
-	$(info Usage:$(n) \
-		make <home|system|all> [host=<host>] [user=<user>] [system=<system>] [specialisation-flags]$(n) \
-		$(n) \
-		Examples$(n) \
-		$(n) \
-		Switch home-manager config for current user, autodetecting system type:$(n) \
-		make home$(n) \
-		$(n) \
-		Switch home-manager config for a specified user, autodetecting system type:$(n) \
-	  make home user=joe$(n) \
-		$(n) \
-		Switch home-manager config for a specified user and a specified system type:$(n) \
-		make home user=sam system=aarch64-darwin$(n) \
-		$(n) \
-		Rebuild and switch current system config, autodetecting hostname and system type:$(n) \
-		make system$(n) \
-		$(n) \
-		Rebuild and switch the specified host config for the specified system type:$(n) \
-		make system host=workstation1 system=aarch64-linux$(n) \
-		$(n) \
-		Rebuild and switch current system and current user home-manager config, autodetecting all:$(n) \
-		make all$(n) \
-		$(n) \
-		Rebuild and switch the specified host config for the specified system type and \
-		home-manager configuration for the specified user:$(n) \
-		$(n) \
-		make all host=workstation1 system=x86_64-linux user=joe$(n))
+	@echo "You must provide a make target."
+	echo "Usage:"
+	printf '%s\n' "$$usage_text"
 
 build-target.nix:
 	@echo "Writing build-target.nix with:"; \
@@ -68,7 +73,15 @@ build-target.nix:
 
 clean:
 	@echo "Removing build-target.nix..."
-	@rm -f build-target.nix
+	rm -f build-target.nix
+
+darwin-home: build-target.nix
+	@echo "Switching home-manager config for Darwin..."
+	home-manager switch -b backup --flake .#$(user)@$(host)
+
+linux-home: build-target.nix
+	@echo "Switching home-manager config for Linux..."
+	home-manager switch -b backup --flake .#$(user)@$(host)
 
 darwin-system:
 	nix build .#darwinConfigurations.$(host).system \
@@ -84,12 +97,17 @@ linux-system:
 	# Activate system
 	sudo ./result/sw/bin/nixos-rebuild switch --flake .#$(host)
 
+# Branch to buiding for either Nix-Darwin or NixOS
 home: build-target.nix
-	@echo "Switching home-manager config for Darwin..."
-	home-manager switch -b backup --flake .#$(user)
+ifeq ($(isLinux),true)
+	$(MAKE) linux-home
+
+else
+	$(MAKE) darwin-home
+endif
 
 # Branch to buiding for either Nix-Darwin or NixOS
-system:  build-target.nix
+system: build-target.nix
 ifeq ($(isLinux),true)
 	$(MAKE) linux-system
 
@@ -101,5 +119,8 @@ all: build-target.nix
 	$(MAKE) system
 	$(MAKE) home
 
+test:
+	@echo "No tests defined."
+
 .PHONY: build-target.nix # Overwrite existing
-.PHONY: usage clean home system linux-system darwin-system all
+.PHONY: usage clean home system linux-system darwin-system all test
