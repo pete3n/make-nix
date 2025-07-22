@@ -155,12 +155,12 @@ build-target.nix:
 		printf '  display_server = "%s";\n' "$(display_server)" >> build-target.nix; \
 		printf '}\n' >> build-target.nix; \
 	}	
-	@git update-index --skip-worktree build-target.nix || true
+	@git add build-target.nix
 
 clean:
 	@{ if [ -f build-target.nix ]; then \
 			echo "Removing build-target.nix..."; \
-			@git rm --cached build-target.nix 2>/dev/null || true
+			@git rm build-target.nix; \
 			rm -f build-target.nix; \
 		fi; \
 	}
