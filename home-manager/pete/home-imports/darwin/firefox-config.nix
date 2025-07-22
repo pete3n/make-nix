@@ -2,7 +2,7 @@
 {
   programs.firefox = {
     enable = true;
-    package = pkgs.firefox-bin;
+    package = pkgs.firefox;
     profiles.pete3n = {
       bookmarks = { };
       extensions.packages = with inputs.firefox-addons.packages.${pkgs.system}; [
