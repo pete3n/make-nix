@@ -1,10 +1,12 @@
-# Pete3n's Multi-platform NixOS and Home-manager flake
+# Pete3n's Dotfiles Flake
+- A NixOS, Nix-Darwin, and Home-manager configuration repo.
 
 ## Makefile documentation
 To view the Makefile documentation in your terminal, run:
 ```
 make
 ```
+or
 
 ```
 make usage
