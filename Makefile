@@ -220,7 +220,7 @@ ifeq ($(DRY_RUN),1)
 	@echo "Dry-run enabled, skipping system activation."
 else
 	@echo "Activating system config for Darwin..."
-	./result/sw/bin/darwin-rebuild switch --flake .#$(host)
+	sudo ./result/sw/bin/darwin-rebuild switch --flake .#$(host)
 endif
 
 build-linux-system:
