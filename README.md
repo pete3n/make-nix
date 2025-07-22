@@ -1,6 +1,15 @@
 # Pete3n's Multi-platform NixOS and Home-manager flake
 
-## Makefile usage
+## Makefile documentation
+To view the Makefile documentation in your terminal, run:
+```
+make
+```
+
+```
+make usage
+```
+
 <details>
 <summary>📘 <strong>Usage</strong></summary>
 
