@@ -162,8 +162,7 @@ clean:
 			echo "Removing build-target.nix..."; \
 			@git rm build-target.nix; \
 			rm -f build-target.nix; \
-		fi; \
-	}
+		fi; }
 
 darwin-home:
 	@{ \
