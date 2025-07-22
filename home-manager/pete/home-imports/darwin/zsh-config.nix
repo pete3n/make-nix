@@ -32,16 +32,13 @@
           zstyle :omz:plugins:ssh-agent identities pete3n
         '';
     };
-    # TODO: Ninjection + Nix-eval support for this style injection
     initContent = lib.mkMerge [
-      # sh
       (lib.mkOrder 500 ''
         # early init
         # Ignore unsafe directory warnings from Darwin
         ZSH_DISABLE_COMPFIX="true"
       '')
 
-      # sh
       (lib.mkOrder 1000 ''
         # profile init
         # Show fastfetch at login but not for every new TMUX pane/window
