@@ -67,6 +67,6 @@
   time.timeZone = "America/New_York";
 
   fonts.packages = [
-		pkgs.nerd-fonts.JetBrains-Mono
+		pkgs.nerd-fonts.jetbrains-mono
   ];
 }
