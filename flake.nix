@@ -5,11 +5,8 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
-    nixpkgs-darwin.url = "github:nixos/nixpkgs/nixpkgs-25.05-darwin";
-    nix-darwin = {
-      url = "github:lnl7/nix-darwin";
-      inputs.nixpkgs.follows = "nixpkgs-darwin";
-    };
+    nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.05";
+		nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     home-manager = {
       url = "github:nix-community/home-manager/release-25.05";
@@ -49,7 +46,6 @@
       home-manager,
       home-manager-darwin,
       nixpkgs,
-      nixpkgs-darwin,
       nix-darwin,
       self,
       ...
@@ -195,7 +191,7 @@
           {
             # Home-manager configuration for Darwin based systems
             "${build_target.user}@${build_target.host}" = home-manager-darwin.lib.homeManagerConfiguration {
-              pkgs = nixpkgs-darwin.legacyPackages.${build_target.system};
+              pkgs = nix-darwin.legacyPackages.${build_target.system};
               extraSpecialArgs = {
                 inherit inputs outputs build_target;
               };
