@@ -4,7 +4,7 @@
 #  macOS's System configuration
 #
 #  All the configuration options are documented here:
-#    https://daiderd.com/nix-darwin/manual/index.html#sec-options
+#    https://nix-darwin.github.io/nix-darwin/manual
 #
 ###################################################################################
 {
@@ -67,7 +67,4 @@
   fonts = {
     packages = with pkgs; [ (nerdfonts.override { fonts = [ "JetBrainsMono" ]; }) ];
   };
-
-	# Migration mechanism for running activation scripts as root.
-	primaryUser = "pete";
 }
