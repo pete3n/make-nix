@@ -66,7 +66,7 @@
 
   time.timeZone = "America/New_York";
 
-  fonts = {
-    packages = with pkgs; [ (nerdfonts.override { fonts = [ "JetBrainsMono" ]; }) ];
-  };
+  fonts.packages = [
+		pkgs.nerd-fonts.JetBrainsMono
+  ];
 }
