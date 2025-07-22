@@ -1,11 +1,6 @@
-# TODO:
-# - Brother CUPS driver
-# - Fix Yubi PAM
-
 {
   pkgs,
   outputs,
-  build_target,
   ...
 }:
 {

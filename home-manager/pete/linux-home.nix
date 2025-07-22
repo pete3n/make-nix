@@ -121,7 +121,7 @@
         ytfzf # Youtbue fuzzy finder and console viewer
 
         ## Pen testing, network recon, binary analysis tools
-        local.angryoxide
+        angryoxide
         aircrack-ng
         bettercap
         bingrep # Binary analysis search
