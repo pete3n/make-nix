@@ -32,16 +32,17 @@
           zstyle :omz:plugins:ssh-agent identities pete3n
         '';
     };
-    # TODO: Ninjection + Nix-eval support for ${} variable references
+    # TODO: Ninjection + Nix-eval support for this style injection
     initContent = lib.mkMerge [
-      (lib.mkOrder 500 # sh
-			''
+      # sh
+      (lib.mkOrder 500 ''
         # early init
         # Ignore unsafe directory warnings from Darwin
         ZSH_DISABLE_COMPFIX="true"
       '')
-      (lib.mkOrder 1000 #sh 
-			''
+
+      # sh
+      (lib.mkOrder 1000 ''
         # profile init
         # Show fastfetch at login but not for every new TMUX pane/window
         if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
