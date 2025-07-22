@@ -5,10 +5,10 @@
       dconf # Needed by gtk
       gnome-tweaks
       themechanger
-			nerd-fonts.jetbrains-mono
-			noto-fonts
-			noto-fonts-color-emoji
-			noto-fonts-monochrome-emoji
+      nerd-fonts.jetbrains-mono
+      noto-fonts
+      noto-fonts-color-emoji
+      noto-fonts-monochrome-emoji
     ];
 
     pointerCursor = {

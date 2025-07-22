@@ -7,6 +7,7 @@ let
     hyprctl dispatch exec "[workspace 1] alacritty -e tmux attach -t 0"
     hyprctl dispatch workspace 1
   '';
-in {
+in
+{
   home.packages = [ hyprSessionRestore ];
 }

@@ -5,18 +5,19 @@
 }:
 rustPlatform.buildRustPackage rec {
   pname = "angryoxide";
-	version = "master";
+  version = "master";
   # Submodule is using ssh in this version which isn't accessible from Nix sandbox
-	# 
-	#  src = fetchFromGitHub {
-	#    owner = "Ragnt";
-	#    repo = pname;
-	#    rev = "v${version}";
-	#    hash = "";
-	#		fetchSubmodules = true;
-	#  };
+  #
+  #  src = fetchFromGitHub {
+  #    owner = "Ragnt";
+  #    repo = pname;
+  #    rev = "v${version}";
+  #    hash = "";
+  #		fetchSubmodules = true;
+  #  };
 
-  src = fetchFromGitHub { owner = "Ragnt";
+  src = fetchFromGitHub {
+    owner = "Ragnt";
     repo = pname;
     rev = "6eaaaf89ef0f2e9de7f6ba32533fdf2d28058f95"; # latest master commit
     fetchSubmodules = true;

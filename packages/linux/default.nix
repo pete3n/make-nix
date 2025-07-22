@@ -1,2 +1,5 @@
 # Linux only packages
-{ pkgs, ... }: { }
+{ pkgs, ... }:
+{
+  #cryptomator-cli = pkgs.callPackage ./cryptomator-cli {  };
+}

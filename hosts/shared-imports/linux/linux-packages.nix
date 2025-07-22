@@ -16,6 +16,7 @@
       iw
       killall
       libnotify
+      nixos-rebuild-ng
 
       openvpn
       parted
