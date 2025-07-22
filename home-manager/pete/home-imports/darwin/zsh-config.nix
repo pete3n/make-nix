@@ -33,18 +33,23 @@
         '';
     };
     # TODO: Ninjection + Nix-eval support for ${} variable references
-    initContent =
-      lib.mkBefore # sh
-        ''
-          # Ignore unsafe directory warnings from Darwin
-          ZSH_DISABLE_COMPFIX="true"
-
-          # Show fastfetch at login but not for every new TMUX pane/window
-          if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
-            export FASTFETCH_EXECUTED=1
-            command -v ${pkgs.fastfetch}/bin/fastfetch &> /dev/null &&
-              ${pkgs.fastfetch}/bin/fastfetch
-          fi
-        '';
+    initContent = lib.mkMerge [
+      (lib.mkOrder 500 # sh
+			''
+        # early init
+        # Ignore unsafe directory warnings from Darwin
+        ZSH_DISABLE_COMPFIX="true"
+      '')
+      (lib.mkOrder 1000 #sh 
+			''
+        # profile init
+        # Show fastfetch at login but not for every new TMUX pane/window
+        if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
+          export FASTFETCH_EXECUTED=1
+          command -v ${pkgs.fastfetch}/bin/fastfetch &> /dev/null &&
+            ${pkgs.fastfetch}/bin/fastfetch
+        fi
+      '')
+    ];
   };
 }
