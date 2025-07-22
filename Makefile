@@ -160,7 +160,7 @@ build-target.nix:
 clean:
 	@{ if [ -f build-target.nix ]; then \
 			echo "Removing build-target.nix..."; \
-			@git rm build-target.nix; \
+			git rm build-target.nix; \
 			rm -f build-target.nix; \
 		fi; }
 
