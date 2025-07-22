@@ -2,15 +2,17 @@
 let
   # Custom Nix snowflake info tooltip script
   jq = pkgs.jq;
-  nixVersions = pkgs.writeShellScriptBin "get-nix-versions" ''
+  nixVersions =
+    pkgs.writeShellScriptBin "get-nix-versions" # sh
+      ''
         nixosVer=$(nixos-version)
         kernelVer=$(uname -r)
         nixVer=$(nix --version)
         ${jq}/bin/jq -c -n --arg nixos "NixOS: $nixosVer" \
-    			--arg kernel "Linux Kernel: $kernelVer" \
-    			--arg nix "$nixVer" \
-    			'{"tooltip": "\($nixos)\r\($kernel)\r\($nix)"}'
-  '';
+        	--arg kernel "Linux Kernel: $kernelVer" \
+        	--arg nix "$nixVer" \
+        	'{"tooltip": "\($nixos)\r\($kernel)\r\($nix)"}'
+      '';
 in
 {
   home.packages = [ pkgs.pavucontrol ];
@@ -133,63 +135,63 @@ in
 
     style = # css
       ''
-                * {    
-                border: none;    
-                border-radius: 0;    
-                font-size: 14px;
-                min-height: 25px;  
-                }  
-                window#waybar {    
-                background: transparent;    
-                }  
-                #custom-snowflake {
-                font-size: 20px;
-                background: transparent;
-                color: #5277c3;
-                border-radius: 5px;
-                padding-left: 10px;
-                }
-                #hyprland-workspaces {
-                background-color: transparent;
-                color: #5277c3;
-                padding-right: 10px;
-                }
-                #workspaces button {    
-                background: transparent;
-                color: #5277c3;
-                padding: 0 5px;  
-                }
-                #clock {
-                background-color: transparent;
-                color: #7ebae4;
-                }
-                #custom-wdisplays {
-                background-color: transparent;
-                color: #5277c3;
-        				padding-top: 3px;
-                padding-left: 15px;
-                padding-right: 10px;
-                }
-                #backlight {
-                background-color: transparent;
-                color: #5277c3;
-                padding-top: 2px;
-                padding-bottom: 2px;
-                padding-left: 10px;
-                padding-right: 10px;
-                }
-                #pulseaudio {
-                border-radius: 0px;
-                background-color: transparent;
-                color: #5277c3;
-                padding-right: 10px;
-                }
-                #battery {
-                border-radius: 0px;
-                background-color: transparent;
-                color: #5277c3;
-                padding-right: 0px;
-                }
+        * {
+          border: none;
+          border-radius: 0;
+          font-size: 14px;
+          min-height: 25px;
+        }
+        window#waybar {
+          background: transparent;
+        }
+        #custom-snowflake {
+          font-size: 20px;
+          background: transparent;
+          color: #5277c3;
+          border-radius: 5px;
+          padding-left: 10px;
+        }
+        #hyprland-workspaces {
+          background-color: transparent;
+          color: #5277c3;
+          padding-right: 10px;
+        }
+        #workspaces button {
+          background: transparent;
+          color: #5277c3;
+          padding: 0 5px;
+        }
+        #clock {
+          background-color: transparent;
+          color: #7ebae4;
+        }
+        #custom-wdisplays {
+          background-color: transparent;
+          color: #5277c3;
+          padding-top: 3px;
+          padding-left: 15px;
+          padding-right: 10px;
+        }
+        #backlight {
+          background-color: transparent;
+          color: #5277c3;
+          padding-top: 2px;
+          padding-bottom: 2px;
+          padding-left: 10px;
+          padding-right: 10px;
+        }
+        #pulseaudio {
+          border-radius: 0px;
+          background-color: transparent;
+          color: #5277c3;
+          padding-right: 10px;
+        }
+        #battery {
+          border-radius: 0px;
+          background-color: transparent;
+          color: #5277c3;
+          padding-right: 0px;
+        }
       '';
   };
 }
