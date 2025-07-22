@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 {
   programs.zsh = {
     enable = true;
@@ -31,21 +31,24 @@
           zstyle :omz:plugins:ssh-agent identities pete3n
         '';
     };
-    initExtraFirst =
-      #bash
-      ''
-        # Ignore unsafe directory warnings from Darwin
-        ZSH_DISABLE_COMPFIX="true"
-      '';
-    profileExtra =
-      # bash
-      ''
-        # Show fastfetch at login but not for every new TMUX pain/window
-        if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
-        	export FASTFETCH_EXECUTED=1
-        	command -v ${pkgs.fastfetch}/bin/fastfetch &> /dev/null &&
-        	${pkgs.fastfetch}/bin/fastfetch
-        fi
-      '';
+    # TODO: Ninjection + Nix-eval support for ${} variable references
+    initContent =
+      lib.mkBefore # sh
+        ''
+          # early init
+          # Ignore unsafe directory warnings from Darwin
+          ZSH_DISABLE_COMPFIX="true"
+        ''
+      +
+        #sh
+        ''
+          # profile init
+          # Show fastfetch at login but not for every new TMUX pain/window
+          if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
+          	export FASTFETCH_EXECUTED=1
+          	command -v ${pkgs.fastfetch}/bin/fastfetch &> /dev/null &&
+          	${pkgs.fastfetch}/bin/fastfetch
+          fi
+        '';
   };
 }
