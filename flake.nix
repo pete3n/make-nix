@@ -191,7 +191,7 @@
           {
             # Home-manager configuration for Darwin based systems
             "${build_target.user}@${build_target.host}" = home-manager-darwin.lib.homeManagerConfiguration {
-              pkgs = nix-darwin.legacyPackages.${build_target.system};
+              pkgs = nixpkgs.legacyPackages.${build_target.system};
               extraSpecialArgs = {
                 inherit inputs outputs build_target;
               };
