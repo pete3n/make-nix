@@ -3,7 +3,7 @@
   programs.zsh =
     let
       earlyInit =
-        lib.mkOrder 500 # sh
+        lib.mkOrder 500
           ''
             # early init
             # Ignore unsafe directory warnings from Darwin
@@ -11,7 +11,7 @@
           '';
 
       profileInit =
-        lib.mkOrder 1000 # sh
+        lib.mkOrder 1000
           ''
             # profile init
             # Show fastfetch at login but not for every new TMUX pane/window
