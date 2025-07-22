@@ -33,55 +33,57 @@ make usage
 <summary>🧪 <strong>Examples</strong></summary>
 
 ---
-
-- **Switch the home-manager configuration for the current user** (auto-detect system):
+- Switch the home-manager configuration for current user; autodetect system type:
   ```sh
   make home
   ```
 
-- **Switch config for user `joe`**:
+- Switch the home-manager configuration for user joe; autodetect system type:
   ```sh
   make home user=joe
   ```
 
-- **Switch config for user `sam`, target `aarch64-darwin`**:
+- Switch the home-manager configuration for user sam; target an aarch64-darwin platform:
   ```sh
   make home user=sam system=aarch64-darwin
   ```
 
-- **Rebuild and switch current system config** (auto-detect hostname/system):
+- Rebuild and switch the current system's configuration; autodetect hostname and system platform:
   ```sh
   make system
   ```
 
-- **Rebuild system config for host `workstation1` targeting `aarch64-linux`**:
+- Rebuild and switch the system configuration for host workstation1; target an aarch64-linux platform:
   ```sh
   make system host=workstation1 system=aarch64-linux
   ```
 
-- **Rebuild system + home-manager config (auto-detect all settings)**:
+- Rebuild and switch the current system's configuration and current user's home-manager configuration;  
+  autodetect all settings:
   ```sh
   make all
   ```
 
-- **Dry run evaluation (no build or switch):**
+- Evaluate the current system's configuration and current user's home-manager config;  
+  autodetect all settings:
   ```sh
   make all DRY_RUN=1
   ```
 
-- **Build and boot into Wayland specialisation:**
+- Rebuild and switch the current system's configuration and current user's home-manager configuration;  
+  autodetect all settings:
   ```sh
   make all WAYLAND=1 BOOT_SPECIAL=1
   ```
 
-- **Full target config for user `joe` on `workstation1`:**
+- Rebuild and switch the system configuration for host workstation1, and home-manager configuration for user joe;  
+  target an x86_64-linux platform:
   ```sh
   make all host=workstation1 system=x86_64-linux user=joe
   ```
 
-- **Run `nix flake check` for all configurations:**
+- Run 'nix flake check' for all system and home-manager configurations:
   ```sh
   make test
   ```
-
 </details>
