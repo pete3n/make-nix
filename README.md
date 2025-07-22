@@ -76,8 +76,7 @@ make usage
   make all WAYLAND=1 BOOT_SPECIAL=1
   ```
 
-- Rebuild and switch the system configuration for host workstation1, and home-manager configuration for user joe;  
-  target an x86_64-linux platform:
+- Rebuild and switch the system configuration for host workstation1, and home-manager configuration for user joe; target an x86_64-linux platform:
   ```sh
   make all host=workstation1 system=x86_64-linux user=joe
   ```
