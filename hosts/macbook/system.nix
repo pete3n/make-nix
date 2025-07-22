@@ -42,7 +42,7 @@
   system.defaults.smb.NetBIOSName = "${build_target.host}";
 
   # Add ability to used TouchID for sudo authentication
-  security.pam.enableSudoTouchIdAuth = false;
+  security.pam.services.sudo_local.touchIdAuth = false;
 
   # Create /etc/zshrc that loads the nix-darwin environment.
   # this is required if you want to use darwin's default shell - zsh
@@ -60,7 +60,6 @@
       bash
       zsh
     ];
-    loginShell = pkgs.zsh;
   };
 
   time.timeZone = "America/New_York";
@@ -68,4 +67,7 @@
   fonts = {
     packages = with pkgs; [ (nerdfonts.override { fonts = [ "JetBrainsMono" ]; }) ];
   };
+
+	# Migration mechanism for running activation scripts as root.
+	primaryUser = "pete";
 }
