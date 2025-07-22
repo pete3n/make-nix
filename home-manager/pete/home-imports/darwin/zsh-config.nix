@@ -23,6 +23,7 @@
         "colored-man-pages"
         "git"
         "ssh-agent"
+				"vi-mode"
       ];
       theme = "robbyrussell";
       extraConfig =
