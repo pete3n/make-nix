@@ -2,25 +2,29 @@
 {
   programs.zsh =
     let
-      earlyInit =
-        lib.mkOrder 500
-          ''
-            # early init
-            # Ignore unsafe directory warnings from Darwin
-            ZSH_DISABLE_COMPFIX="true"
-          '';
+      check_fastfetch = # sh
+        ''
+          	# Show fastfetch at login but not for every new TMUX pane/window
+          	if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
+          		export FASTFETCH_EXECUTED=1
+          		command -v ${pkgs.fastfetch}/bin/fastfetch &> /dev/null &&
+          		${pkgs.fastfetch}/bin/fastfetch
+          	fi
+        '';
 
-      profileInit =
-        lib.mkOrder 1000
-          ''
-            # profile init
-            # Show fastfetch at login but not for every new TMUX pane/window
-            if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
-            	export FASTFETCH_EXECUTED=1
-            	command -v ${pkgs.fastfetch}/bin/fastfetch &> /dev/null &&
-            	${pkgs.fastfetch}/bin/fastfetch
-            fi
-          '';
+      no_compfix = # sh
+        ''
+          	# Ignore unsafe directory warnings from Darwin
+          	ZSH_DISABLE_COMPFIX="true"
+        '';
+
+      earlyInit = lib.mkOrder 550 ''
+        	${no_compfix}
+      '';
+
+      afterInit = lib.mkOrder 1000 ''
+        ${check_fastfetch}
+      '';
     in
     {
       enable = true;
@@ -56,7 +60,7 @@
       };
       initContent = lib.mkMerge [
         earlyInit
-        profileInit
+        afterInit
       ];
     };
 }
