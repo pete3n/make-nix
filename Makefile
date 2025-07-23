@@ -4,6 +4,8 @@
 # Nix Home-manager configurations.
 # Please see https://github.com/pete3n/dotfiles for documentation.
 
+REQUIRED_UTILS = cat curl cut find git hostname printf sh shasum sudo uname whoami
+
 # nix-2.30.1 install script 
 NIX_INSTALL_URL=https://releases.nixos.org/nix/nix-2.30.1/install
 # sha1 hash as of 22-Jul-2025
@@ -132,6 +134,21 @@ usage:
 	@printf "\nYou must provide a make target.\n"
 	@printf "Usage:\n"
 	@printf '%b\n' "$$usage_text"
+
+check-deps:
+	@missing=0; \
+	for cmd in $(REQUIRED_UTILS); do \
+		if ! command -v $$cmd >/dev/null 2>&1; then \
+			echo "Missing: $$cmd"; \
+			missing=1; \
+		fi; \
+	done; \
+	if [ "$$missing" -eq 0 ]; then \
+		echo "✅ All required dependencies are installed."; \
+	else \
+		echo "❌ Some dependencies are missing."; \
+		exit 1; \
+	fi
 
 os_check:
 	@{ UNAME_S=$$(uname -s); case $$UNAME_S in Linux|Darwin) \
