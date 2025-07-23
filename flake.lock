@@ -61,11 +61,11 @@
       },
       "locked": {
         "dir": "pkgs/firefox-addons",
-        "lastModified": 1753157005,
-        "narHash": "sha256-fTdJ2yYjR8O3kEWsveBGu/d8ilEFxVnGkF4wS3N1Was=",
+        "lastModified": 1753243420,
+        "narHash": "sha256-mcMoAW40bqNFPA96Y0mYriPwFb6QzGn00FS/JUpl0Uo=",
         "owner": "rycee",
         "repo": "nur-expressions",
-        "rev": "a38f383959d8bf0c1d5d555469a4c63c4632701f",
+        "rev": "80459cc810983d818196d6ed858b5c1951bc5446",
         "type": "gitlab"
       },
       "original": {
@@ -307,11 +307,11 @@
         "xdph": "xdph"
       },
       "locked": {
-        "lastModified": 1753175652,
-        "narHash": "sha256-bZvBovQ/c/F26QaOEm3IVOnLCxa17oc9QZ5ot18mqck=",
+        "lastModified": 1753265439,
+        "narHash": "sha256-A2DvUVtYzlgX8x8tc7Cc37Nc8wsdPTcSgWOGv4JnOh8=",
         "ref": "refs/heads/main",
-        "rev": "fdbbad04bbf2382e9a980418c976668fc062f195",
-        "revCount": 6305,
+        "rev": "2d2a5bebff72c73cd27db3b9e954b8fa2a7623e8",
+        "revCount": 6307,
         "submodules": true,
         "type": "git",
         "url": "https://github.com/hyprwm/Hyprland"
@@ -649,11 +649,11 @@
         "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1753146744,
-        "narHash": "sha256-6V1y+lQHZCFqx0/St7YnJsstWe+jY0TEolvyFSyY2XQ=",
+        "lastModified": 1753233189,
+        "narHash": "sha256-7tyb3Q0TB0ejROa3/sRTPU0JkwAGgVq5NmqkrynpvqU=",
         "owner": "bandithedoge",
         "repo": "nixpkgs-firefox-darwin",
-        "rev": "2843fbe21fdf560377788bde5933c4620f00bc8d",
+        "rev": "150fca00af9745bc3d47f251d358dba4e9c4d787",
         "type": "github"
       },
       "original": {
@@ -781,11 +781,11 @@
         "nixvim": "nixvim_2"
       },
       "locked": {
-        "lastModified": 1753064442,
-        "narHash": "sha256-7OcPviEC/n6aJgMzv4v9h1bHH3Occl/uWtXXJfwXRQg=",
+        "lastModified": 1753274973,
+        "narHash": "sha256-tEe5zlIkm9dJVdZWU4sf7hPPypbQS64TMuCb95ssafQ=",
         "owner": "pete3n",
         "repo": "nixvim-flake",
-        "rev": "b5634a3dcdde98b2ac02bb7d37625de0ce3185ed",
+        "rev": "86cea4f0dff6cc92843c42ca31bcb34e22693fc6",
         "type": "github"
       },
       "original": {
