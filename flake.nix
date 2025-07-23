@@ -130,13 +130,10 @@
       overlays = import ./overlays { inherit inputs build_target; };
 
       # Provide an easy import for all home-manager modules to each configuration
-      homeManagerModules = import ./modules/home-manager;
+      homeModules = import ./modules/home-manager;
 
       # Provide an import for all nixos system modules to each configuration
       nixosModules = import ./modules;
-
-      # User defintions for the system (careful these create/overwrite users)
-      systemUsers = import ./users;
 
       # System configuration for Linux based systems
       nixosConfigurations =

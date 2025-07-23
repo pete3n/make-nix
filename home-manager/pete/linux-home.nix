@@ -6,7 +6,7 @@
   ...
 }:
 {
-  imports = builtins.attrValues outputs.homeManagerModules ++ [
+  imports = builtins.attrValues outputs.homeModules ++ [
     ./home-imports/cross-platform/alacritty-config.nix
     ./home-imports/cross-platform/git-config.nix
     ./home-imports/cross-platform/cli-programs.nix
