@@ -155,6 +155,15 @@ run_nix_installer:
 		./scripts/nix_installer.sh $$INSTALL_FLAGS; \
 	}
 
+maybe_install_nix_darwin:
+	@if [ "$(NIX_DARWIN)" = "1" ]; then \
+		if [ "$$(uname -s)" = "Darwin" ]; then \
+			sudo nix run .#nix-darwin.darwin-rebuild -- switch; \
+		else \
+			printf "Skipping nix-darwin install: macOS not detected.\n"; \
+		fi; \
+	fi
+
 define check_git_dirty
 	if [ -n "$$(git status --porcelain)" ]; then \
 		printf '$(YELLOW)⚠️ Warning: Git tree is dirty!\n$(RESET)'; \
@@ -350,7 +359,7 @@ ifeq ($(boot_special),true)
 	}
 endif
 
-install_nix: os_check integrity_check run_nix_installer
+install_nix: os_check integrity_check run_nix_installer maybe_install_nix_darwin
 install-with-clean:
 	@$(MAKE) install_nix || true; \
 	$(MAKE) clean
