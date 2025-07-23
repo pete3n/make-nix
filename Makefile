@@ -1,5 +1,18 @@
-# This Makefile creates a build-target.nix containing an attribute set to configure
-# systems, users, and specialisation options for the flake.nix.
+# make-Nix v0.11
+# This Makefile provides targets to install and configure Nix and NixOS for 
+# MacOS and Linux systems. It can build and deploy both NixOS system and 
+# Nix Home-manager configurations.
+# Please see https://github.com/pete3n/dotfiles for documentation.
+
+# nix-2.30.1 install script 
+NIX_INSTALL_URL=https://releases.nixos.org/nix/nix-2.30.1/install
+# sha1 hash as of 22-Jul-2025
+NIX_INSTALL_HASH="b8ef91a7faf2043a1a3705153eb38881a49de158"
+
+# Determinate Systems Nix installer 3.8.2
+DETERMINATE_INSTALL_URL=https://raw.githubusercontent.com/DeterminateSystems/nix-installer/6beefac4d23bd9a0b74b6758f148aa24d6df3ca9/nix-installer.sh
+# sha1 hash as of 22-Jul-2025
+DETERMINATE_INSTALL_HASH="ac1bc597771e10eecf2cb4e85fc35c4848981a70"
 
 ifeq ($(DRY_RUN),1)
 	dry_run := --dry-run
@@ -29,20 +42,14 @@ endif
 
 ifndef user
 user := $(shell whoami)
-$(info user was not passed...)
-$(info Defaulting to current user: $(user))
 endif
 
 ifndef host
 host := $(shell hostname)
-$(info host was not passed...)
-$(info Defaulting to current hostname: $(host))
 endif
 
 ifndef system
 system := $(shell nix eval --impure --raw --expr 'builtins.currentSystem')
-$(info system was not passed...)
-$(info Defaulting to current system: $(system))
 endif
 
 ifeq ($(findstring linux,$(system)),linux)
@@ -62,7 +69,7 @@ YELLOW=\033[1;33m
 RESET=\033[0m
 
 define usage_text
-  $(RED)make$(RESET) $(BOLD)<home|system|all|test>$(RESET) [$(CYAN)host$(RESET)$(RED)=$(RESET)<host>]\
+  $(RED)make$(RESET) $(BOLD)<install|home|system|all|test>$(RESET) [$(CYAN)host$(RESET)$(RED)=$(RESET)<host>]\
 [$(CYAN)user$(RESET)$(RED)=$(RESET)<user>] [$(CYAN)system$(RESET)$(RED)=$(RESET)<system>]\
 [$(BLUE)option variables$(RESET)]
 
@@ -75,6 +82,9 @@ Evaluate the target but do not build or switch the configuration.$(RESET)
 Build the X11 host specialisation.$(RESET)
   $(BLUE)BOOT_SPECIAL$(RESET)$(RED)=$(RESET)1 $(GREEN)-\
 Set the default boot menu option to the built specialisation.$(RESET)
+  $(BLUE)SINGLE_USER$(RESET)$(RED)=$(RESET)1 $(GREEN)Install Nix for single-user mode.$(RESET)
+  $(BLUE)DETERMINATE$(RESET)$(RED)=$(RESET)1 $(GREEN)User the Determinate Systems installer.$(RESET)
+  $(BLUE)NIX_DARWIN$(RESET)$(RED)=$(RESET)1 $(GREEN)Install Nix-Darwin for MacOS.$(RESET)
 
   Usage examples:
   $(GREEN)- Switch the home-manager configuration for current user; autodetect system type:$(RESET)
@@ -123,6 +133,28 @@ usage:
 	@printf "Usage:\n"
 	@printf '%b\n' "$$usage_text"
 
+os_check:
+	@{ UNAME_S=$$(uname -s); case $$UNAME_S in Linux|Darwin) \
+			;; \
+			*) echo "Unsupported OS: $$UNAME_S"; exit 1 ;; \
+		esac; }
+
+integrity_check:
+	@$(if $(DETERMINATE), \
+		scripts/nix_integrity.sh $(DETERMINATE_INSTALL_URL) $(DETERMINATE_INSTALL_HASH), \
+		scripts/nix_integrity.sh $(NIX_INSTALL_URL) $(NIX_INSTALL_HASH))
+
+run_nix_installer:
+	@{ \
+		printf "\n>>> Installing Nix...\n"; \
+	 	if [ -z "$(DETERMINATE)" ]; then \
+			INSTALL_FLAGS="$(if $(SINGLE_USER),--no-daemon,--daemon)"; \
+		else \
+			INSTALL_FLAGS="install"; \
+		fi; \
+		./scripts/nix_installer.sh $$INSTALL_FLAGS; \
+	}
+
 define check_git_dirty
 	if [ -n "$$(git status --porcelain)" ]; then \
 		printf '$(YELLOW)⚠️ Warning: Git tree is dirty!\n$(RESET)'; \
@@ -155,14 +187,21 @@ build-target.nix:
 		printf '  display_server = "%s";\n' "$(display_server)" >> build-target.nix; \
 		printf '}\n' >> build-target.nix; \
 	}	
-	@git add build-target.nix
+	@git add --sparse build-target.nix
 
-clean:
-	@{ if [ -f build-target.nix ]; then \
-			echo "Removing build-target.nix..."; \
-			git rm -f build-target.nix; \
+remove_build_target:
+	@{ \
+		printf "\n Cleaning up...\n"; \
+		if [ -f build-target.nix ]; then \
+			git rm --sparse -f build-target.nix; \
 			rm -f build-target.nix; \
-		fi; }
+		fi; \
+	}
+
+remove_nix_installer:
+	@{ if [ -f scripts/nix_installer.sh ]; then rm -f scripts/nix_installer.sh; fi; }
+
+clean: remove_build_target remove_nix_installer
 
 darwin-home:
 	@{ \
@@ -311,10 +350,16 @@ ifeq ($(boot_special),true)
 	}
 endif
 
-test: flake-check clean
+install_nix: os_check integrity_check run_nix_installer
+install-with-clean:
+	@$(MAKE) install_nix || true; \
+	$(MAKE) clean
+
+install: install-with-clean
 home: home-main
 system: system-main set-specialisation-boot
 all: system home clean
+test: flake-check clean
 
 .PHONY: build-target.nix # Overwrite build targets
-.PHONY: usage home system all clean test
+.PHONY: usage install home system all clean test
