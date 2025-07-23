@@ -193,7 +193,7 @@ remove_build_target:
 	@{ \
 		printf "\n Cleaning up...\n"; \
 		if [ -f build-target.nix ]; then \
-			git rm --sparse -f build-target.nix; \
+			git rm --sparse --cached --ignore-unmatch --quiet -f build-target.nix; \
 			rm -f build-target.nix; \
 		fi; \
 	}
