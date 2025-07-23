@@ -135,7 +135,7 @@ usage:
 	@printf "Usage:\n"
 	@printf '%b\n' "$$usage_text"
 
-check-deps:
+dep_check:
 	@missing=0; \
 	for cmd in $(REQUIRED_UTILS); do \
 		if ! command -v $$cmd >/dev/null 2>&1; then \
@@ -232,7 +232,7 @@ clean: remove_build_target remove_nix_installer
 darwin-home:
 	@{ \
 		echo "Switching home-manager config for Darwin..."; \
-		home-manager switch -b backup $(dry_run) --flake .#$(user)@$(host); \
+		nix run nixpkgs#home-manager -- switch -b backup $(dry_run) --flake .#$(user)@$(host); \
 		status=$$?; \
 		if [ $$status -ne 0 ]; then \
 			$(check_git_dirty) \
@@ -243,7 +243,7 @@ darwin-home:
 linux-home:
 	@{ \
 		echo "Switching home-manager config for Linux..."; \
-		home-manager switch -b backup $(dry_run) --flake .#$(user)@$(host); \
+		nix run nixpkgs#home-manager -- switch -b backup $(dry_run) --flake .#$(user)@$(host); \
 		status=$$?; \
 		if [ $$status -ne 0 ]; then \
 			$(check_git_dirty) \
@@ -381,11 +381,11 @@ install-with-clean:
 	@$(MAKE) install_nix || true; \
 	$(MAKE) clean
 
-install: install-with-clean
-home: home-main
-system: system-main set-specialisation-boot
-all: system home clean
-test: flake-check clean
+install: dep_check install-with-clean
+home: dep_check home-main
+system: dep_check system-main set-specialisation-boot
+all: dep_check system home clean
+test: dep_check flake-check clean
 
 .PHONY: build-target.nix # Overwrite build targets
 .PHONY: usage install home system all clean test
