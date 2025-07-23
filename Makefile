@@ -213,7 +213,6 @@ build-target.nix:
 		printf '  display_server = "%s";\n' "$(display_server)" >> build-target.nix; \
 		printf '}\n' >> build-target.nix; \
 	}	
-	@git add --sparse build-target.nix
 
 remove_build_target:
 	@{ \
