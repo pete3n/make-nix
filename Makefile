@@ -89,14 +89,6 @@ write-build-target:
 check-dirty-warn:
 	@sh scripts/check_dirty_warn.sh
 
-.PHONY: remove_build_target
-remove_build_target:
-	@{ printf "\n Cleaning up...\n"; \
-		if [ -f test-build-target.nix ]; then \
-			git rm -f build-target.nix; \
-			rm -f build-target.nix; \
-		fi; }
-
 .PHONY: remove_nix_installer
 remove_nix_installer:
 	@{ if [ -f scripts/nix_installer.sh ]; then rm -f scripts/nix_installer.sh; fi; }
@@ -106,7 +98,7 @@ remove_build_log:
 	@{ if [ -f $(LOG_PATH) ]; then rm -f $(LOG_PATH); fi; }
 
 .PHONY: clean
-clean: remove_build_target remove_nix_installer remove_build_log
+clean: remove_nix_installer remove_build_log
 
 .PHONY: build-darwin-home
 build-darwin-home:
