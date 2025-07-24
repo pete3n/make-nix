@@ -257,7 +257,7 @@ install-with-clean:
 
 .PHONY: install home system all test
 install: check-dependencies install-with-clean
-home: check-dependencies write-build-target home-platforms check-dirty-warn
-system: check-dependencies write-build-target system-platforms check-dirty-warn set-specialisation-boot
+home: check-dependencies write-build-target home-platforms check-dirty-warn clean
+system: check-dependencies write-build-target system-platforms check-dirty-warn set-specialisation-boot clean
 all: check-dependencies system home clean
 test: check-dependencies write-build-target flake-check check-dirty-warn clean
