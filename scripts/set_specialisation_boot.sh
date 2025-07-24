@@ -25,7 +25,8 @@ if [ -z "$default_conf" ]; then
 	exit 1
 fi
 
-special_conf="${default_conf}%-specialisation-${first_spec}.conf"
+default_base=${default_conf%.conf}
+special_conf="${default_base}-specialisation-${first_spec}.conf"
 
 if [ -f "/boot/loader/entries/$special_conf" ]; then
 	printf "Found /boot/loader/entries/%s\n" "$special_conf"
