@@ -77,8 +77,10 @@ check-nix-integrity:
 
 .PHONY: launch-installers
 launch-installers:
-	NIXGL=$(NIXGL) NIX_DARWIN=$(NIX_DARWIN) DETERMINATE=$(DETERMINATE) SINGLE_USER=$(SINGLE_USER) UNAME_S=$(UNAME_S) \
-	sh scripts/launch_installers.sh
+	@{ \ 
+		NIXGL=$(NIXGL) NIX_DARWIN=$(NIX_DARWIN) DETERMINATE=$(DETERMINATE) SINGLE_USER=$(SINGLE_USER) UNAME_S=$(UNAME_S) \
+		sh scripts/launch_installers.sh; \
+	}
 
 .PHONY: write-build-target
 write-build-target:

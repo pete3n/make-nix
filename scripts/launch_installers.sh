@@ -7,12 +7,10 @@ printf "\n>>> Installing Nix...\n"
 
 if [ -n "${DETERMINATE:-}" ]; then
 	INSTALL_FLAGS="install"
+elif [ -n "${SINGLE_USER:-}" ]; then
+	INSTALL_FLAGS="--no-daemon"
 else
-	if [ -n "${SINGLE_USER:-}" ]; then
-		INSTALL_FLAGS="--no-daemon"
-	else
-		INSTALL_FLAGS="--daemon"
-	fi
+	INSTALL_FLAGS="--daemon"
 fi
 
 if [ -f "$(dirname "$0")/nix_installer.sh" ]; then
