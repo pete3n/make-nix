@@ -1,4 +1,4 @@
-# make-Nix v0.11
+# make-Nix v0.12
 # This Makefile provides targets to install and configure Nix and NixOS for 
 # MacOS and Linux systems. It can build and deploy both NixOS system and 
 # Nix Home-manager configurations.
@@ -242,20 +242,8 @@ flake-check:
 set-specialisation-boot:
 ifeq ($(boot_special),true)
 	@{ \
-		echo ""; \
-		echo "Attempting to set default boot option for specialisation..."; \
-		conf_file=$$(grep '^default ' /boot/loader/loader.conf | cut -d' ' -f2); \
-		special_conf=$${conf_file%.conf}-specialisation-$(specialisation).conf; \
-		if [ -f "/boot/loader/entries/$$special_conf" ]; then \
-			echo "Found /boot/loader/entries/$$special_conf"; \
-			echo "Backing up /boot/loader/loader.conf"; \
-			sudo cp /boot/loader/loader.conf /boot/loader/loader.backup; \
-			echo "Setting default boot to $$special_conf"; \
-			sudo sed -i "s|^default .*|default $$special_conf|" /boot/loader/loader.conf; \
-		else \
-			echo "⚠️ Specialisation config not found: /boot/loader/entries/$$special_conf"; \
-			exit 1; \
-		fi \
+		spec=$(spec) \
+		sh scripts/set_specialisation_boot.sh; \
 	}
 endif
 
