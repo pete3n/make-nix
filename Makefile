@@ -61,7 +61,7 @@ launch-installers:
 
 .PHONY: write-build-target
 write-build-target:
-	@{ \ 
+	@{ \
 		host="$(host)" user="$(user)" system="$(system)" \
 		sh scripts/write_build_target.sh $(if $(spec),spec=$(spec)); \
 	}
