@@ -92,7 +92,7 @@ check-dirty-warn:
 .PHONY: remove_build_target
 remove_build_target:
 	@{ printf "\n Cleaning up...\n"; \
-		if [ -f test-build-target.nix ]; then 
+		if [ -f test-build-target.nix ]; then \
 			git rm -f build-target.nix; \
 			rm -f build-target.nix; \
 		fi; }
