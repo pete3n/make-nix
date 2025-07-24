@@ -6,17 +6,6 @@
 LOG_PATH = /tmp/make-nix.out
 UNAME_S := $(shell uname -s)
 
-# ANSI Colors
-GREEN=\033[1;32m
-BLUE=\033[1;34m
-RESET=\033[0m
-
-ifeq ($(DRY_RUN),1)
-	dry_run := --dry-run
-else
-	dry_run :=
-endif
-
 ifeq ($(BOOT_SPEC),1)
 	boot_special := true
 else
@@ -91,41 +80,14 @@ clean: remove_nix_installer remove_build_log
 
 .PHONY: build-darwin-home
 build-darwin-home:
-ifeq ($(DRY_RUN),1)
-	@{ \
-		printf "\n%bDry-run%b %benabled%b: configuration will not be activated.\n" "$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"; \
-		printf "Building home-manager config for Darwin...\n"; \
-		if script -q -c true >/dev/null 2>&1; then \
-			script -q -c "nix run nixpkgs#home-manager -- build -b backup $(dry_run) --flake .#$(user)@$(host)" $(LOG_PATH); \
-		else \
-			nix run nixpkgs#home-manager -- build -b backup $(dry_run) --flake .#$(user)@$(host) | tee $(LOG_PATH); \
-		fi \
+	@{ /
+		LOG_PATH=$(LOG_PATH) DRY_RUN=$(DRY_RUN) sh scripts/build_darwin_home.sh
 	}
-else
-	@{ \
-		printf "Building home-manager configuration for Darwin...\n"; \
-		if script -q -c true >/dev/null 2>&1; then \
-			script -q -c "nix run nixpkgs#home-manager -- build -b backup --flake .#$(user)@$(host)" $(LOG_PATH); \
-		else \
-			nix run nixpkgs#home-manager -- build -b backup --flake .#$(user)@$(host) | tee $(LOG_PATH); \
-		fi \
-	}
-endif
 
 .PHONY: activate-darwin-home
-activate-darwin-home:
-ifeq ($(DRY_RUN),1)
-	@printf "\n%bDry-run%b %benabled%b: skipping home activiation...\n" "$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"
-else
-	@{
-		printf "\nSwitching home-manager configuration...\n"; \
-		printf nix run nixpkgs#home-manager -- switch -b backup --flake .#$(user)@$(host); \
-		if script -q -c true >/dev/null 2>&1; then \
-			script -q -c "nix run nixpkgs#home-manager -- switch -b backup --flake .#$(user)@$(host)" $(LOG_PATH); \
-		else \
-			nix run nixpkgs#home-manager -- switch -b backup --flake .#$(user)@$(host)" | tee $(LOG_PATH); \
+	@{ /
+		LOG_PATH=$(LOG_PATH) DRY_RUN=$(DRY_RUN) sh scripts/activate_darwin_home.sh
 	}
-endif
 
 .PHONY: build-linux-home
 build-linux-home:
