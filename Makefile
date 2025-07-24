@@ -55,13 +55,16 @@ check-nix-integrity:
 .PHONY: launch-installers
 launch-installers:
 	@{ \
-		DETERMINATE=$(DETERMINATE) UNAME_S=$(UNAME_S) sh scripts/launch_installers.sh; \
+		DETERMINATE=$(DETERMINATE) UNAME_S=$(UNAME_S) NIX_DARWIN=$(NIX_DARWIN) \
+		sh scripts/launch_installers.sh; \
 	}
 
 .PHONY: write-build-target
 write-build-target:
-	@host="$(host)" user="$(user)" system="$(system)" \
-	sh scripts/write_build_target.sh $(if $(spec),spec=$(spec))
+	@{ \ 
+		host="$(host)" user="$(user)" system="$(system)" \
+		sh scripts/write_build_target.sh $(if $(spec),spec=$(spec)); \
+	}
 
 .PHONY: check-dirty-warn
 check-dirty-warn:

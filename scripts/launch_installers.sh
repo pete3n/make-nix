@@ -21,7 +21,7 @@ else
 	fi
 fi
 
-if nix true >/dev/null 2>&1; then
+if nix --version >/dev/null 2>&1; then
 	NIX_FOUND=1
 fi
 
