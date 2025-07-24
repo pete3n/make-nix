@@ -69,11 +69,12 @@ fi
 if [ -f build-target.nix ]; then
 	if [ -f .git/info/exclude ]; then
 		grep -qxF 'build-target.nix' .git/info/exclude || printf 'build-target.nix' >>.git/info/exclude
+		git add -f build-target.nix
 	else
 		mkdir -p .git/info
 		printf 'build-target.nix' >>.git/info/exclude
+		git add -f build-target.nix
 	fi
-	#git add -f build-target.nix
 else
 	printf "\n build-target.nix not found!\n"
 	exit 1
