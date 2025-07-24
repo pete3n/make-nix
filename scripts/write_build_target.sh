@@ -68,11 +68,11 @@ fi
 # Kludge to prevent Git tree from being marked as dirty
 if [ -f build-target.nix ]; then
 	if [ -f .git/info/exclude ]; then
-		grep -qxF 'build-target.nix' .git/info/exclude || printf 'build-target.nix' >>.git/info/exclude
+		grep -qxF 'build-target.nix' .git/info/exclude || printf 'build-target.nix\n' >>.git/info/exclude
 		git add -f build-target.nix
 	else
 		mkdir -p .git/info
-		printf 'build-target.nix' >>.git/info/exclude
+		printf 'build-target.nix\n' >>.git/info/exclude
 		git add -f build-target.nix
 	fi
 else
