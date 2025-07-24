@@ -68,7 +68,7 @@ fi
 # Kludge to prevent Git tree from being marked as dirty
 if [ -f build-target.nix ]; then
 	git add -f build-target.nix
-	git commit -m "build: target artifact"
+	git commit -m "build: target artifact" || true
 else
 	printf "\n build-target.nix not found!\n"
 	exit 1
