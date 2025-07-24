@@ -88,8 +88,12 @@ check-nix-integrity:
 launch-installers:
 	@{ \
 		$(DETERMINE_INSTALLER_BLOCK); \
-		sh scripts/launch_installers.sh \
-		NIXGL=$(NIXGL) NIX_DARWIN=$(NIX_DARWIN) SINGLE_USER=$(SINGLE_USER) UNAME_S=$(UNAME_S) DETERMINATE=$$DETERMINATE; \
+		export DETERMINATE; \
+		export NIXGL=$(NIXGL); \
+		export NIX_DARWIN=$(NIX_DARWIN); \
+		export SINGLE_USER=$(SINGLE_USER); \
+		export UNAME_S=$(UNAME_S); \
+		sh scripts/launch_installers.sh; \
 	}
 
 .PHONY: write-build-target
