@@ -16,7 +16,7 @@ else
   if [ "${SINGLE_USER:-0}" -eq 1 ]; then
     INSTALL_FLAGS="--no-daemon"
   else
-    INSTALL_FLAGS="$NIX_INSTALL_MODE"
+    INSTALL_FLAGS="$NIX_INSTALL_MODE" 
   fi
 fi
 

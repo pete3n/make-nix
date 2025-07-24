@@ -95,13 +95,13 @@ ifeq ($(DRY_RUN),1)
 	@{ \
 		printf "\n%bDry-run%b %benabled%b: configuration will not be activated.\n" "$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"; \
 		printf "Building home-manager config for Darwin...\n"; \
-		script -q -c "nix run nixpkgs#home-manager -- build -b backup $(dry_run) \
+		script -q "nix run nixpkgs#home-manager -- build -b backup $(dry_run) \
 			--flake .#$(user)@$(host)" $(LOG_PATH); \
 	}
 else
 	@{ \
 		printf "Building home-manager configuration for Darwin...\n"; \
-		script -q -c "nix run nixpkgs#home-manager -- build -b backup --flake .#$(user)@$(host)" $(LOG_PATH); \
+		script -q "nix run nixpkgs#home-manager -- build -b backup --flake .#$(user)@$(host)" $(LOG_PATH); \
 	}
 endif
 
@@ -113,7 +113,7 @@ else
 	@{
 		printf "\nSwitching home-manager configuration...\n"; \
 		printf nix run nixpkgs#home-manager -- switch -b backup --flake .#$(user)@$(host); \
-		script -q -c "nix run nixpkgs#home-manager -- switch -b backup --flake .#$(user)@$(host)" $(LOG_PATH); \
+		script -q "nix run nixpkgs#home-manager -- switch -b backup --flake .#$(user)@$(host)" $(LOG_PATH); \
 	}
 endif
 
@@ -124,13 +124,13 @@ ifeq ($(DRY_RUN),1)
 		printf "\n%bDry-run%b %benabled%b: configuration will not be activated.\n" \
 			"$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"; \
 		printf "Building home-manager configuration for Linux...\n"; \
-		script -q -c "nix run nixpkgs#home-manager -- build $(dry_run) \
+		script -q "nix run nixpkgs#home-manager -- build $(dry_run) \
 			--flake .#$(user)@$(host)" $(LOG_PATH); \
 	}
 else
 	@{ \
 		printf "Building home-manager config for Linux...\n"; \
-		script -q -c "nix run nixpkgs#home-manager -- build --flake .#$(user)@$(host)" $(LOG_PATH); \
+		script -q "nix run nixpkgs#home-manager -- build --flake .#$(user)@$(host)" $(LOG_PATH); \
 	}
 endif
 
@@ -142,7 +142,7 @@ else
 	@{
 		printf "\nSwitching home-manager configuration...\n"; \
 		printf nix run nixpkgs#home-manager -- switch -b backup --flake .#$(user)@$(host); \
-		script -q -c "nix run nixpkgs#home-manager -- switch -b backup --flake .#$(user)@$(host)" $(LOG_PATH); \
+		script -q "nix run nixpkgs#home-manager -- switch -b backup --flake .#$(user)@$(host)" $(LOG_PATH); \
 	}
 endif
 
@@ -152,15 +152,15 @@ ifeq ($(DRY_RUN),1)
 	@{ \
 		printf "\n%bDry-run%b %benabled%b, nothing will be built.\n" "$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"; \
 		printf nix build --dry-run .#darwinConfigurations.$(host).system --extra-experimental-features 'nix-command flakes'; \
-		nix build $(dry_run) .#darwinConfigurations.$(host).system \
-		 --extra-experimental-features 'nix-command flakes'; \
+		script -q "nix build $(dry_run) .#darwinConfigurations.$(host).system \
+		 --extra-experimental-features 'nix-command flakes'" $(LOG_PATH); \
 	}
 else
 	@{ \
 		printf "\nBuilding system config for Darwin...\n"; \
 		printf nix build .#darwinConfigurations.$(host).system --extra-experimental-features 'nix-command flakes'; \
-		nix build .#darwinConfigurations.$(host).system \
-		 --extra-experimental-features 'nix-command flakes'; \
+		script -q "nix build .#darwinConfigurations.$(host).system \
+		 --extra-experimental-features 'nix-command flakes'" $(LOG_PATH); \
 	}
 endif
 
@@ -179,14 +179,14 @@ ifeq ($(DRY_RUN),1)
 	@{ \
 		printf "\n%bDry-run%b %benabled:%b nothing will be built...\n" "$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"; \
 		printf nix build --dry-run .#nixosConfigurations.$(host).config.system.build.toplevel --extra-experimental-features 'nix-command flakes'; \
-		script -q -c "nix build $(dry_run) .#nixosConfigurations.$(host).config.system.build.toplevel \
+		script -q "nix build $(dry_run) .#nixosConfigurations.$(host).config.system.build.toplevel \
 		 --extra-experimental-features 'nix-command flakes'" $(LOG_PATH); \
 	}
 else
 	@{ \
 		printf "\nBuilding system config for Linux...\n"; \
 		printf nix build .#nixosConfigurations.$(host).config.system.build.toplevel --extra-experimental-features 'nix-command flakes'; \
-		script -q -c "nix build .#nixosConfigurations.$(host).config.system.build.toplevel \
+		script -q "nix build .#nixosConfigurations.$(host).config.system.build.toplevel \
 		 --extra-experimental-features 'nix-command flakes'" $(LOG_PATH); \
 	}
 endif
