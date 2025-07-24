@@ -54,7 +54,7 @@ print_line "  ${BLUE}NIXGL${RESET}${RED}=1${RESET}        - Install NixGL; OpenG
 print_line ""
 print_line "Home|system|all option flags:"
 print_line "  ${BLUE}DRY_RUN${RESET}${RED}=1${RESET}      - Evaluate the new configuration, but don't change the current configuration."
-print_line "  ${BLUE}BOOT_SPECIAL${RESET}${RED}=1${RESET} - Set the default boot menu option to the ${BOLD}first${RESET} listed specialisation."
+print_line "  ${BLUE}BOOT_SPEC${RESET}${RED}=1${RESET} - Set the default boot menu option to the ${BOLD}first${RESET} listed specialisation."
 
 print_line ""
 print_line "Usage examples:"
@@ -74,7 +74,7 @@ print_line "  ${GREEN}- Rebuild and switch the system configuration for host wor
 print_line "    ${RED}make${RESET} ${BOLD}system${RESET} ${CYAN}host${RESET}${RED}=${RESET}workstation1 ${CYAN}system${RESET}${RED}=${RESET}aarch64-linux"
 
 print_line "  ${GREEN}- Rebuild and switch the system configuration for host workstation1; autodetect platform; build specialisation configurations for wayland and x11_egpu; set default boot menu selection to wayland:${RESET}"
-print_line "    ${RED}make${RESET} ${BOLD}system${RESET} ${CYAN}host${RESET}${RED}=${RESET}workstation1 ${CYAN}spec${RESET}${RED}=${RESET}wayland${RED},${RESET}x11_egpu ${BLUE}BOOT_SPECIAL${RESET}${RED}=1${RESET}"
+print_line "    ${RED}make${RESET} ${BOLD}system${RESET} ${CYAN}host${RESET}${RED}=${RESET}workstation1 ${CYAN}spec${RESET}${RED}=${RESET}wayland${RED},${RESET}x11_egpu ${BLUE}BOOT_SPEC${RESET}${RED}=1${RESET}"
 
 print_line "  ${GREEN}- Rebuild and switch the current system's configuration and current user's home-manager configuration; autodetect all settings:${RESET}"
 print_line "    ${RED}make${RESET} ${BOLD}all${RESET}"

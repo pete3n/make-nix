@@ -23,7 +23,7 @@ else
 	dry_run :=
 endif
 
-ifeq ($(BOOT_SPECIAL),1)
+ifeq ($(BOOT_SPEC),1)
 	boot_special := true
 else
 	boot_special := false

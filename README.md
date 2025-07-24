@@ -25,7 +25,7 @@ make usage
 - `EGPU=1` – *Build the eGPU host specialisation.*
 - `WAYLAND=1` – *Build the Wayland host specialisation.*
 - `X11=1` – *Build the X11 host specialisation.*
-- `BOOT_SPECIAL=1` – *Set the default boot menu option to the built specialisation.*
+- `BOOT_SPEC=1` – *Set the default boot menu option to the built specialisation.*
 
 </details>
 
@@ -73,7 +73,7 @@ make usage
 - Rebuild and switch the current system's configuration and current user's home-manager configuration;  
   autodetect all settings:
   ```sh
-  make all WAYLAND=1 BOOT_SPECIAL=1
+  make all WAYLAND=1 BOOT_SPEC=1
   ```
 
 - Rebuild and switch the system configuration for host workstation1, and home-manager configuration for user joe; target an x86_64-linux platform:
