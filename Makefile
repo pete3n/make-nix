@@ -63,18 +63,10 @@ os-check:
 		exit 1; \
 	fi
 
-define DETERMINE_INSTALLER_BLOCK
-if [ "$(DETERMINATE)" = "1" ] || [ "$(UNAME_S)" = "Darwin" ]; then \
-  DETERMINATE=1; \
-else \
-  DETERMINATE=0; \
-fi
-endef
-
 .PHONY: check-nix-integrity
 check-nix-integrity:
 	@{ \
-		$(DETERMINE_INSTALLER_BLOCK); \
+		if [ "$(UNAME_S)" = "Darwin" ]; then DETERMINATE=1; else DETERMINATE=0; fi; \
 		if [ "$$DETERMINATE" = "1" ]; then \
 			printf "\nDownloading Determinate Systems installer...\n"; \
 			sh scripts/check_nix_integrity.sh "$(DETERMINATE_INSTALL_URL)" "$(DETERMINATE_INSTALL_HASH)"; \
@@ -87,13 +79,13 @@ check-nix-integrity:
 .PHONY: launch-installers
 launch-installers:
 	@{ \
-		$(DETERMINE_INSTALLER_BLOCK); \
-		export DETERMINATE="$$DETERMINATE"; \
-		export NIXGL=$(NIXGL); \
-		export NIX_DARWIN=$(NIX_DARWIN); \
-		export SINGLE_USER=$(SINGLE_USER); \
-		export UNAME_S=$(UNAME_S); \
-		sh scripts/launch_installers.sh; \
+		if [ "$(UNAME_S)" = "Darwin" ]; then DETERMINATE=1; else DETERMINATE=0; fi; \
+		export DETERMINATE; \
+		export NIXGL="$(NIXGL)"; \
+		export NIX_DARWIN="$(NIX_DARWIN)"; \
+		export SINGLE_USER="$(SINGLE_USER)"; \
+		export UNAME_S="$(UNAME_S)"; \
+		exec sh scripts/launch_installers.sh; \
 	}
 
 .PHONY: write-build-target
