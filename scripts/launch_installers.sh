@@ -9,22 +9,31 @@ set -eu
 printf "\n>>> Lauching installer...\n"
 
 INSTALL_FLAGS=""
+NIX_FOUND=0
 
 if [ "${DETERMINATE:-0}" -eq 1 ]; then
-  INSTALL_FLAGS="$DETERMINATE_INSTALL_MODE"
+	INSTALL_FLAGS="$DETERMINATE_INSTALL_MODE"
 else
-  if [ "${SINGLE_USER:-0}" -eq 1 ]; then
-    INSTALL_FLAGS="--no-daemon"
-  else
-    INSTALL_FLAGS="$NIX_INSTALL_MODE" 
-  fi
+	if [ "${SINGLE_USER:-0}" -eq 1 ]; then
+		INSTALL_FLAGS="--no-daemon"
+	else
+		INSTALL_FLAGS="$NIX_INSTALL_MODE"
+	fi
 fi
 
-if [ -f "$(dirname "$0")/nix_installer.sh" ]; then
-	sh "$(dirname "$0")/nix_installer.sh" "$INSTALL_FLAGS"
+if nix true >/dev/null 2>&1; then
+	NIX_FOUND=1
+fi
+
+if [ "$NIX_FOUND" -eq 1 ]; then
+	printf "%binfo:%b Nix found, installation skipped...\n" "$BLUE" "$RESET"
 else
-	printf "%berror:%b Could not execute 'nix_installer.sh'.\n" "$RED" "$RESET"
-	exit 1
+	if [ -f "$(dirname "$0")/nix_installer.sh" ]; then
+		sh "$(dirname "$0")/nix_installer.sh" "$INSTALL_FLAGS"
+	else
+		printf "%berror:%b Could not execute 'nix_installer.sh'.\n" "$RED" "$RESET"
+		exit 1
+	fi
 fi
 
 if [ "${NIX_DARWIN:-0}" -eq 1 ]; then
