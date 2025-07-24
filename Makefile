@@ -3,37 +3,24 @@
 # MacOS and Linux systems. It can build and deploy both NixOS system and 
 # Nix Home-manager configurations.
 # Please see https://github.com/pete3n/dotfiles for documentation.
+LOG_PATH = /tmp/make-nix.out
+UNAME_S := $(shell uname -s)
 
-REQUIRED_UTILS = cat curl cut find git hostname printf sh shasum sudo uname whoami
+# ANSI Colors
+GREEN=\033[1;32m
+BLUE=\033[1;34m
+RESET=\033[0m
 
-# nix-2.30.1 install script 
-NIX_INSTALL_URL=https://releases.nixos.org/nix/nix-2.30.1/install
-# sha1 hash as of 22-Jul-2025
-NIX_INSTALL_HASH="b8ef91a7faf2043a1a3705153eb38881a49de158"
-
-# Determinate Systems Nix installer 3.8.2
-DETERMINATE_INSTALL_URL=https://raw.githubusercontent.com/DeterminateSystems/nix-installer/6beefac4d23bd9a0b74b6758f148aa24d6df3ca9/nix-installer.sh
-# sha1 hash as of 22-Jul-2025
-DETERMINATE_INSTALL_HASH="ac1bc597771e10eecf2cb4e85fc35c4848981a70"
+ifeq ("$(wildcard installer.env)","")
+  $(error installer.env not found. Please create it with install URLs and hashes.)
+endif
+include installer.env
+export
 
 ifeq ($(DRY_RUN),1)
 	dry_run := --dry-run
 else
 	dry_run :=
-endif
-
-ifeq ($(X11),1)
-	display_server := x11
-endif
-
-ifeq ($(WAYLAND),1)
-	display_server := wayland
-endif
-
-ifeq ($(EGPU),1)
-	egpu := true
-else
-	egpu := false
 endif
 
 ifeq ($(BOOT_SPECIAL),1)
@@ -60,301 +47,198 @@ else
 	isLinux := false
 endif
 
-# ANSI escape sequences for formatting
-BOLD=\033[1m
-BLUE=\033[1;34m
-CYAN=\033[1;36m
-GREEN=\033[1;32m
-MAGENTA=\033[0;35m
-RED=\033[0;31m
-YELLOW=\033[1;33m
-RESET=\033[0m
-
-define usage_text
-  $(RED)make$(RESET) $(BOLD)<install|home|system|all|test>$(RESET) [$(CYAN)host$(RESET)$(RED)=$(RESET)<host>]\
-[$(CYAN)user$(RESET)$(RED)=$(RESET)<user>] [$(CYAN)system$(RESET)$(RED)=$(RESET)<system>]\
-[$(BLUE)option variables$(RESET)]
-
-  Option variables:
-  $(BLUE)DRY_RUN$(RESET)$(RED)=$(RESET)1 $(GREEN)-\
-Evaluate the target but do not build or switch the configuration.$(RESET)
-  $(BLUE)EGPU$(RESET)$(RED)=$(RESET)1 $(GREEN)- Build the eGPU host specialisation.$(RESET)
-  $(BLUE)WAYLAND$(RESET)$(RED)=$(RESET)1 $(GREEN)- Build the Wayland host specialisation.$(RESET)
-  $(BLUE)X11$(RESET)$(RED)=$(RESET)1 $(GREEN)-\
-Build the X11 host specialisation.$(RESET)
-  $(BLUE)BOOT_SPECIAL$(RESET)$(RED)=$(RESET)1 $(GREEN)-\
-Set the default boot menu option to the built specialisation.$(RESET)
-  $(BLUE)SINGLE_USER$(RESET)$(RED)=$(RESET)1 $(GREEN)Install Nix for single-user mode.$(RESET)
-  $(BLUE)DETERMINATE$(RESET)$(RED)=$(RESET)1 $(GREEN)User the Determinate Systems installer.$(RESET)
-  $(BLUE)NIX_DARWIN$(RESET)$(RED)=$(RESET)1 $(GREEN)Install Nix-Darwin for MacOS.$(RESET)
-
-  Usage examples:
-  $(GREEN)- Switch the home-manager configuration for current user; autodetect system type:$(RESET)
-    $(RED)make$(RESET) $(BOLD)home$(RESET)
-
-  $(GREEN)- Switch the home-manager configuration for user joe; autodetect system type:$(RESET)
-    $(RED)make$(RESET) $(BOLD)home$(RESET) $(CYAN)user$(RESET)$(RED)=$(RESET)joe
-
-  $(GREEN)- Switch the home-manager configuration for user sam; target an aarch64-darwin platform:$(RESET)
-    $(RED)make$(RESET) $(BOLD)home$(RESET) $(CYAN)user$(RESET)$(RED)=$(RESET)sam\
-$(CYAN)system$(RESET)$(RED)=$(RESET)aarch64-darwin
-
-  $(GREEN)- Rebuild and switch the current system's configuration; autodetect hostname and system platform:$(RESET)
-    $(RED)make$(RESET) $(BOLD)system$(RESET)
-
-  $(GREEN)- Rebuild and switch the system configuration for host workstation1; target an aarch64-linux platform:$(RESET)
-    $(RED)make$(RESET) $(BOLD)system $(CYAN)host$(RESET)=workstation1 $(CYAN)system$(RESET)=aarch64-linux
-
-  $(GREEN)- Rebuild and switch the current system's configuration and current user's home-manager configuration;
-    autodetect all settings:$(RESET)
-    $(RED)make$(RESET) $(BOLD)all$(RESET)
-
-  $(GREEN)- Evaluate the current system's configuration and current user's home-manager config;
-    autodetect all settings:$(RESET)
-    $(RED)make$(RESET) $(BOLD)all$(RESET) $(BLUE)DRY_RUN$(RESET)$(RED)=$(RESET)1
-
-  $(GREEN)- Rebuild and switch the current system's configuration and current user's home-manager configuration;
-    autodetect all settings:$(RESET)
-    $(RED)make$(RESET) $(BOLD)all$(RESET) $(BLUE)WAYLAND$(RESET)$(RED)=$(RESET)1\
-$(BLUE)BOOT_SPECIAL$(RESET)$(RED)=$(RESET)1
-
-  $(GREEN)- Rebuild and switch the system configuration for host workstation1,\
-and home-manager configuration for user joe;
-    target an x86_64-linux platform:$(RESET)
-    $(RED)make$(RESET) $(BOLD)all$(RESET) $(CYAN)host$(RESET)$(RED)=$(RESET)workstation1\
-$(CYAN)system$(RESET)$(RED)=$(RESET)x86_64-linux $(CYAN)user$(RESET)$(RED)=$(RESET)joe
-
-  $(GREEN)- Run '$(RESET)$(RED)nix flake check$(RESET)$(GREEN)' for all system and home-manager configurations:$(RESET)
-    $(RED)make$(RESET) $(BOLD)test$(RESET)
-endef
-
-export usage_text
-
-usage:
+.PHONY: help
+help:
 	@printf "\nYou must provide a make target.\n"
-	@printf "Usage:\n"
-	@printf '%b\n' "$$usage_text"
+	@sh scripts/print_help.sh
 
-dep_check:
-	@missing=0; \
-	for cmd in $(REQUIRED_UTILS); do \
-		if ! command -v $$cmd >/dev/null 2>&1; then \
-			echo "Missing: $$cmd"; \
-			missing=1; \
-		fi; \
-	done; \
-	if [ "$$missing" -eq 0 ]; then \
-		echo "✅ All required dependencies are installed."; \
-	else \
-		echo "❌ Some dependencies are missing."; \
+.PHONY: check-dependencies
+check-dependencies:
+	@sh scripts/check_dependencies.sh
+
+.PHONY: os-check
+os-check:
+	@if [ "$(UNAME_S)" != "Linux" ] && [ "$(UNAME_S)" != "Darwin" ]; then \
+		echo "Unsupported OS: $(UNAME_S)"; \
 		exit 1; \
 	fi
 
-os_check:
-	@{ UNAME_S=$$(uname -s); case $$UNAME_S in Linux|Darwin) \
-			;; \
-			*) echo "Unsupported OS: $$UNAME_S"; exit 1 ;; \
-		esac; }
-
-integrity_check:
-	@$(if $(DETERMINATE), \
-		scripts/nix_integrity.sh $(DETERMINATE_INSTALL_URL) $(DETERMINATE_INSTALL_HASH), \
-		scripts/nix_integrity.sh $(NIX_INSTALL_URL) $(NIX_INSTALL_HASH))
-
-run_nix_installer:
-	@{ \
-		printf "\n>>> Installing Nix...\n"; \
-	 	if [ -z "$(DETERMINATE)" ]; then \
-			INSTALL_FLAGS="$(if $(SINGLE_USER),--no-daemon,--daemon)"; \
-		else \
-			INSTALL_FLAGS="install"; \
-		fi; \
-		./scripts/nix_installer.sh $$INSTALL_FLAGS; \
-	}
-
-maybe_install_nix_darwin:
-	@if [ "$(NIX_DARWIN)" = "1" ]; then \
-		if [ "$$(uname -s)" = "Darwin" ]; then \
-			sudo nix run .#nix-darwin.darwin-rebuild -- switch; \
-		else \
-			printf "Skipping nix-darwin install: macOS not detected.\n"; \
-		fi; \
+.PHONY: check-nix-integrity
+check-nix-integrity:
+	@if [ "$(DETERMINATE)" = "1" ] || [ "$(UNAME_S)" = "Darwin" ]; then \
+		printf "\nDownloading Determinate Systems installer...\n"; \
+			DETERMINATE="1" \
+			sh scripts/check_nix_integrity.sh "$(DETERMINATE_INSTALL_URL)" "$(DETERMINATE_INSTALL_HASH)"; \
+	else \
+		printf "\nDownloading Nix installer...\n"; \
+			DETERMINATE="0" \
+			sh scripts/check_nix_integrity.sh "$(NIX_INSTALL_URL)" "$(NIX_INSTALL_HASH)"; \
 	fi
 
-define check_git_dirty
-	if [ -n "$$(git status --porcelain)" ]; then \
-		printf '$(YELLOW)⚠️ Warning: Git tree is dirty!\n$(RESET)'; \
-		printf "This may cause an '$(RED)error:$(RESET) path $(MAGENTA)/nix/store/...$(RESET) does not exist' error message when evaluating flakes.\n"; \
-		printf "Make sure all relevant files are tracked with Git using:\n"; \
-		printf "  $(RED)git add$(RESET) <file>\n\n"; \
-		printf "Or check for accidental changes with:\n"; \
-		printf "  $(RED)git status$(RESET)\n\n"; \
-	fi
-endef
+.PHONY: launch-installers
+launch-installers:
+	NIXGL=$(NIXGL) NIX_DARWIN=$(NIX_DARWIN) DETERMINATE=$(DETERMINATE) SINGLE_USER=$(SINGLE_USER) UNAME_S=$(UNAME_S) \
+	sh scripts/launch_installers.sh
 
-export check_git_dirty
+.PHONY: write-build-target
+write-build-target:
+	@host="$(host)" user="$(user)" system="$(system)" \
+	sh scripts/write_build_target.sh $(if $(spec),spec=$(spec))
 
-build-target.nix:
-	@{ \
-		echo ""; \
-		echo "Writing build-target.nix with:"; \
-		echo "  user = $(user)"; \
-		echo "  host = $(host)"; \
-		echo "  system = $(system)"; \
-		echo "  isLinux = $(isLinux)"; \
-		echo "  egpu = $(egpu)"; \
-		echo "  display_server = $(display_server)"; \
-		printf '{ ... }:\n{\n' > build-target.nix; \
-		printf '  user = "%s";\n' "$(user)" >> build-target.nix; \
-		printf '  host = "%s";\n' "$(host)" >> build-target.nix; \
-		printf '  system = "%s";\n' "$(system)" >> build-target.nix; \
-		printf '  isLinux = %s;\n' "$(isLinux)" >> build-target.nix; \
-		printf '  egpu = %s;\n' "$(egpu)" >> build-target.nix; \
-		printf '  display_server = "%s";\n' "$(display_server)" >> build-target.nix; \
-		printf '}\n' >> build-target.nix; \
-	}	
+.PHONY: check-dirty-warn
+check-dirty-warn:
+	@sh scripts/check_dirty_warn.sh
 
+.PHONY: remove_build_target
 remove_build_target:
-	@{ \
-		printf "\n Cleaning up...\n"; \
-		if [ -f build-target.nix ]; then \
-			git rm --cached build-target.nix; \
-			rm -f build-target.nix; \
-		fi; \
-	}
+	@{ printf "\n Cleaning up...\n"; \
+		if [ -f build-target.nix ]; then rm -f build-target.nix; fi; }
 
+.PHONY: remove_nix_installer
 remove_nix_installer:
 	@{ if [ -f scripts/nix_installer.sh ]; then rm -f scripts/nix_installer.sh; fi; }
 
-clean: remove_build_target remove_nix_installer
+.PHONY: remove_build_log
+remove_build_log:
+	@{ if [ -f $(LOG_PATH) ]; then rm -f $(LOG_PATH); fi; }
 
-darwin-home:
-	@{ \
-		echo "Switching home-manager config for Darwin..."; \
-		nix run nixpkgs#home-manager -- switch -b backup $(dry_run) --flake .#$(user)@$(host); \
-		status=$$?; \
-		if [ $$status -ne 0 ]; then \
-			$(check_git_dirty) \
-		fi; \
-		exit $$status; \
-	}
+.PHONY: clean
+clean: remove_build_target remove_nix_installer remove_build_log
 
-linux-home:
-	@{ \
-		echo "Switching home-manager config for Linux..."; \
-		nix run nixpkgs#home-manager -- switch -b backup $(dry_run) --flake .#$(user)@$(host); \
-		status=$$?; \
-		if [ $$status -ne 0 ]; then \
-			$(check_git_dirty) \
-		fi; \
-		exit $$status; \
-	}
-
-build-darwin-system:
-	@echo ""
+.PHONY: build-darwin-home
+build-darwin-home:
 ifeq ($(DRY_RUN),1)
 	@{ \
-		echo "Dry-run enabled, nothing will be built."; \
-		echo nix build --dry-run .#darwinConfigurations.$(host).system --extra-experimental-features 'nix-command flakes'; \
-		nix build $(dry_run) .#darwinConfigurations.$(host).system \
-		 --extra-experimental-features 'nix-command flakes'; \
-		status=$$?; \
-		if [ $$status -ne 0 ]; then \
-			$(check_git_dirty) \
-		fi; \
-		exit $$status; \
+		printf "\n%bDry-run%b %benabled%b: configuration will not be activated.\n" "$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"; \
+		printf "Building home-manager config for Darwin...\n"; \
+		script -q -c "nix run nixpkgs#home-manager -- build -b backup $(dry_run) \
+			--flake .#$(user)@$(host)" $(LOG_PATH); \
 	}
 else
 	@{ \
-		echo "Building system config for Darwin..."; \
-		echo nix build .#darwinConfigurations.$(host).system --extra-experimental-features 'nix-command flakes'; \
-		nix build .#darwinConfigurations.$(host).system \
-		 --extra-experimental-features 'nix-command flakes'; \
-		status=$$?; \
-		if [ $$status -ne 0 ]; then \
-			$(check_git_dirty) \
-		fi; \
-		exit $$status; \
+		printf "Building home-manager configuration for Darwin...\n"; \
+		script -q -c "nix run nixpkgs#home-manager -- build -b backup --flake .#$(user)@$(host)" $(LOG_PATH); \
 	}
 endif
 
-activate-darwin-system:
-	@echo ""
+.PHONY: activate-darwin-home
+activate-darwin-home:
 ifeq ($(DRY_RUN),1)
-	@echo "Dry-run enabled, skipping system activation."
+	@printf "\n%bDry-run%b %benabled%b: skipping home activiation...\n" "$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"
 else
-	@echo "Activating system config for Darwin..."
+	@{
+		printf "\nSwitching home-manager configuration...\n"; \
+		printf nix run nixpkgs#home-manager -- switch -b backup --flake .#$(user)@$(host); \
+		script -q -c "nix run nixpkgs#home-manager -- switch -b backup --flake .#$(user)@$(host)" $(LOG_PATH); \
+	}
+endif
+
+.PHONY: build-linux-home
+build-linux-home:
+ifeq ($(DRY_RUN),1)
+	@{ \
+		printf "\n%bDry-run%b %benabled%b: configuration will not be activated.\n" \
+			"$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"; \
+		printf "Building home-manager configuration for Linux...\n"; \
+		script -q -c "nix run nixpkgs#home-manager -- build $(dry_run) \
+			--flake .#$(user)@$(host)" $(LOG_PATH); \
+	}
+else
+	@{ \
+		printf "Building home-manager config for Linux...\n"; \
+		script -q -c "nix run nixpkgs#home-manager -- build --flake .#$(user)@$(host)" $(LOG_PATH); \
+	}
+endif
+
+.PHONY: activate-linux-home
+activate-linux-home:
+ifeq ($(DRY_RUN),1)
+	@printf "\n%bDry-run%b %benabled%b: skipping home activiation...\n" "$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"
+else
+	@{
+		printf "\nSwitching home-manager configuration...\n"; \
+		printf nix run nixpkgs#home-manager -- switch -b backup --flake .#$(user)@$(host); \
+		script -q -c "nix run nixpkgs#home-manager -- switch -b backup --flake .#$(user)@$(host)" $(LOG_PATH); \
+	}
+endif
+
+.PHONY: build-darwin-system
+build-darwin-system:
+ifeq ($(DRY_RUN),1)
+	@{ \
+		printf "\n%bDry-run%b %benabled%b, nothing will be built.\n" "$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"; \
+		printf nix build --dry-run .#darwinConfigurations.$(host).system --extra-experimental-features 'nix-command flakes'; \
+		nix build $(dry_run) .#darwinConfigurations.$(host).system \
+		 --extra-experimental-features 'nix-command flakes'; \
+	}
+else
+	@{ \
+		printf "\nBuilding system config for Darwin...\n"; \
+		printf nix build .#darwinConfigurations.$(host).system --extra-experimental-features 'nix-command flakes'; \
+		nix build .#darwinConfigurations.$(host).system \
+		 --extra-experimental-features 'nix-command flakes'; \
+	}
+endif
+
+.PHONY: activate-darwin-system
+activate-darwin-system:
+ifeq ($(DRY_RUN),1)
+	@printf "\n%bDry-run%b %benabled%b: skipping system activiation...\n" "$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"
+else
+	@printf "Activating system config for Darwin..."
 	sudo ./result/sw/bin/darwin-rebuild switch --flake .#$(host)
 endif
 
+.PHONY: build-linux-system
 build-linux-system:
-	@echo ""
 ifeq ($(DRY_RUN),1)
 	@{ \
-		echo "Dry-run enabled, nothing will be built."; \
-		echo nix build --dry-run .#nixosConfigurations.$(host).config.system.build.toplevel --extra-experimental-features 'nix-command flakes'; \
-		nix build $(dry_run) .#nixosConfigurations.$(host).config.system.build.toplevel \
-		 --extra-experimental-features 'nix-command flakes'; \
-		status=$$?; \
-		if [ $$status -ne 0 ]; then \
-			$(check_git_dirty) \
-		fi; \
-		exit $$status; \
+		printf "\n%bDry-run%b %benabled:%b nothing will be built...\n" "$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"; \
+		printf nix build --dry-run .#nixosConfigurations.$(host).config.system.build.toplevel --extra-experimental-features 'nix-command flakes'; \
+		script -q -c "nix build $(dry_run) .#nixosConfigurations.$(host).config.system.build.toplevel \
+		 --extra-experimental-features 'nix-command flakes'" $(LOG_PATH); \
 	}
 else
 	@{ \
-		echo "Building system config for Linux..."; \
-		echo nix build .#nixosConfigurations.$(host).config.system.build.toplevel --extra-experimental-features 'nix-command flakes'; \
-		nix build .#nixosConfigurations.$(host).config.system.build.toplevel \
-		 --extra-experimental-features 'nix-command flakes'; \
-		status=$$?; \
-		if [ $$status -ne 0 ]; then \
-			$(check_git_dirty) \
-		fi; \
-		exit $$status; \
+		printf "\nBuilding system config for Linux...\n"; \
+		printf nix build .#nixosConfigurations.$(host).config.system.build.toplevel --extra-experimental-features 'nix-command flakes'; \
+		script -q -c "nix build .#nixosConfigurations.$(host).config.system.build.toplevel \
+		 --extra-experimental-features 'nix-command flakes'" $(LOG_PATH); \
 	}
 endif
 
+.PHONY: activate-linux-system
 activate-linux-system:
-	@echo ""
 ifeq ($(DRY_RUN),1)
-	@echo "Dry-run enabled, skipping system activation."
+	@printf "\n%bDry-run%b %benabled%b: skipping system activiation...\n" "$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"
 else
-	@echo ""
-	@echo "Activating system config for Linux..."
+	@printf "\nActivating system config for Linux...\n"
 	@sudo ./result/sw/bin/nixos-rebuild switch --flake .#$(host)
 endif
 
-home-main: build-target.nix
-	@echo ""
+.PHONY: home-platforms
+home-platforms:
 ifeq ($(isLinux),true)
-	$(MAKE) linux-home
+	$(MAKE) build-linux-home activate-linux-home
 else
-	$(MAKE) darwin-home
+	$(MAKE) build-darwin-home activate-darwin-home
 endif
 
-system-main: build-target.nix
+.PHONY: system-platforms
+system-platforms:
 ifeq ($(isLinux),true)
 	$(MAKE) build-linux-system activate-linux-system
 else
 	$(MAKE) build-darwin-system activate-darwin-system
 endif
 
-flake-check: build-target.nix
+.PHONY: flake-check
+flake-check:
 	@{ \
-	  nix flake check --all-systems --extra-experimental-features 'nix-command flakes'; \
-	  status=$$?; \
-	  if [ $$status -ne 0 ]; then \
-			$(check_git_dirty) \
-	  fi; \
+		script -q -c "nix flake check --all-systems --extra-experimental-features 'nix-command flakes'" $(LOG_PATH); \
 	}
 
-# Determine the specialisation name
-specialisation := $(strip \
-  $(if $(WAYLAND),wayland) \
-  $(if $(X11),x11) \
-)$(if $(EGPU),_egpu)
-
+.PHONY: set-specialisation-boot
 set-specialisation-boot:
 ifeq ($(boot_special),true)
 	@{ \
@@ -375,16 +259,17 @@ ifeq ($(boot_special),true)
 	}
 endif
 
-install_nix: os_check integrity_check run_nix_installer maybe_install_nix_darwin
+.PHONY: install-nix
+install-nix: os-check check-nix-integrity launch-installers
+
+.PHONY: install-with-clean
 install-with-clean:
-	@$(MAKE) install_nix || true; \
+	@$(MAKE) install-nix || true; \
 	$(MAKE) clean
 
-install: dep_check install-with-clean
-home: dep_check home-main
-system: dep_check system-main set-specialisation-boot
-all: dep_check system home clean
-test: dep_check flake-check clean
-
-.PHONY: build-target.nix # Overwrite build targets
-.PHONY: usage install home system all clean test
+.PHONY: install home system all test
+install: check-dependencies install-with-clean
+home: check-dependencies write-build-target home-platforms check-dirty-warn
+system: check-dependencies write-build-target system-platforms check-dirty-warn set-specialisation-boot
+all: check-dependencies system home clean
+test: check-dependencies write-build-target flake-check check-dirty-warn clean
