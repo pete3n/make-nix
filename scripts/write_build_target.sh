@@ -73,7 +73,7 @@ if [ -f build-target.nix ]; then
 		mkdir -p .git/info
 		printf 'build-target.nix' >>.git/info/exclude
 	fi
-	git add -f build-target.nix
+	#git add -f build-target.nix
 else
 	printf "\n build-target.nix not found!\n"
 	exit 1
