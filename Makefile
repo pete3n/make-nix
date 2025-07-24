@@ -11,12 +11,6 @@ GREEN=\033[1;32m
 BLUE=\033[1;34m
 RESET=\033[0m
 
-ifeq ("$(wildcard installer.env)","")
-  $(error installer.env not found. Please create it with install URLs and hashes.)
-endif
-include installer.env
-export
-
 ifeq ($(DRY_RUN),1)
 	dry_run := --dry-run
 else
@@ -66,26 +60,13 @@ os-check:
 .PHONY: check-nix-integrity
 check-nix-integrity:
 	@{ \
-		if [ "$(UNAME_S)" = "Darwin" ]; then DETERMINATE=1; else DETERMINATE=0; fi; \
-		if [ "$$DETERMINATE" = "1" ]; then \
-			printf "\nDownloading Determinate Systems installer...\n"; \
-			sh scripts/check_nix_integrity.sh "$(DETERMINATE_INSTALL_URL)" "$(DETERMINATE_INSTALL_HASH)"; \
-		else \
-			printf "\nDownloading Nix installer...\n"; \
-			sh scripts/check_nix_integrity.sh "$(NIX_INSTALL_URL)" "$(NIX_INSTALL_HASH)"; \
-		fi; \
+		DETERMINATE=$(DETERMINATE) sh scripts/check_nix_integrity.sh; \
 	}
 
 .PHONY: launch-installers
 launch-installers:
 	@{ \
-		if [ "$(UNAME_S)" = "Darwin" ]; then DETERMINATE=1; else DETERMINATE=0; fi; \
-		export DETERMINATE; \
-		export NIXGL="$(NIXGL)"; \
-		export NIX_DARWIN="$(NIX_DARWIN)"; \
-		export SINGLE_USER="$(SINGLE_USER)"; \
-		export UNAME_S="$(UNAME_S)"; \
-		exec sh scripts/launch_installers.sh; \
+		DETERMINATE=$(DETERMINATE) UNAME_S=$(UNAME_S) sh scripts/launch_installers.sh; \
 	}
 
 .PHONY: write-build-target

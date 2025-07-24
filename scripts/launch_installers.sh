@@ -3,24 +3,31 @@ set -eu
 # shellcheck disable=SC1091
 . "$(dirname "$0")/ansi.env"
 
-printf "\n>>> Installing Nix...\n"
+# shellcheck disable=SC1091
+. "$(dirname "$0")/installer.env"
 
-if [ -n "${DETERMINATE:-}" ]; then
-	INSTALL_FLAGS="install"
-elif [ -n "${SINGLE_USER:-}" ]; then
-	INSTALL_FLAGS="--no-daemon"
+printf "\n>>> Lauching installer...\n"
+
+INSTALL_FLAGS=""
+
+if [ "${DETERMINATE:-0}" -eq 1 ]; then
+  INSTALL_FLAGS="$DETERMINATE_INSTALL_MODE"
 else
-	INSTALL_FLAGS="--daemon"
+  if [ "${SINGLE_USER:-0}" -eq 1 ]; then
+    INSTALL_FLAGS="--no-daemon"
+  else
+    INSTALL_FLAGS="$NIX_INSTALL_MODE"
+  fi
 fi
 
 if [ -f "$(dirname "$0")/nix_installer.sh" ]; then
-	sh "$(dirname "$0")/nix_installer.sh" $INSTALL_FLAGS
+	sh "$(dirname "$0")/nix_installer.sh" "$INSTALL_FLAGS"
 else
 	printf "%berror:%b Could not execute 'nix_installer.sh'.\n" "$RED" "$RESET"
 	exit 1
 fi
 
-if [ -n "${NIX_DARWIN:-}" ]; then
+if [ "${NIX_DARWIN:-0}" -eq 1 ]; then
 	if [ "${UNAME_S:-}" = "Darwin" ]; then
 		printf "\n>>> Installing nix-darwin...\n"
 		sudo nix run .#nix-darwin.darwin-rebuild -- switch

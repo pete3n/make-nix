@@ -3,13 +3,17 @@ set -eu
 # shellcheck disable=SC1091
 . "$(dirname "$0")/ansi.env"
 
-URL="$1"
-EXPECTED_HASH="$2"
+# shellcheck disable=SC1091
+. "$(dirname "$0")/installer.env"
 
-if [ "$DETERMINATE" = "1" ]; then
+if [ "${DETERMINATE:-0}" -eq 1 ]; then
 	printf "\n>>> Verifying Determinate Systems installer integrity...\n"
+	URL=$DETERMINATE_INSTALL_URL
+	EXPECTED_HASH=$DETERMINATE_INSTALL_HASH
 else
 	printf "\n>>> Verifying Nix installer integrity...\n"
+	URL=$NIX_INSTALL_URL
+	EXPECTED_HASH=$NIX_INSTALL_HASH
 fi
 
 curl -Ls "$URL" >scripts/nix_installer.sh
