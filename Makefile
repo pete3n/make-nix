@@ -81,12 +81,14 @@ clean: remove_nix_installer remove_build_log
 .PHONY: build-darwin-home
 build-darwin-home:
 	@{ \
-		LOG_PATH=$(LOG_PATH) DRY_RUN=$(DRY_RUN) sh scripts/build_darwin_home.sh; \
+		HOST=$(host) USER=$(user) LOG_PATH=$(LOG_PATH) DRY_RUN=$(DRY_RUN) \ 
+		sh scripts/build_darwin_home.sh; \
 	}
 
 .PHONY: activate-darwin-home
 	@{ \
-		LOG_PATH=$(LOG_PATH) DRY_RUN=$(DRY_RUN) sh scripts/activate_darwin_home.sh; \
+		HOST=$(host) USER=$(user) LOG_PATH=$(LOG_PATH) DRY_RUN=$(DRY_RUN) \ 
+		sh scripts/activate_darwin_home.sh; \
 	}
 
 .PHONY: build-linux-home
