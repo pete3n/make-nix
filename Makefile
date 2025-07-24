@@ -88,7 +88,7 @@ check-nix-integrity:
 launch-installers:
 	@{ \
 		$(DETERMINE_INSTALLER_BLOCK); \
-		export DETERMINATE; \
+		export DETERMINATE="$$DETERMINATE"; \
 		export NIXGL=$(NIXGL); \
 		export NIX_DARWIN=$(NIX_DARWIN); \
 		export SINGLE_USER=$(SINGLE_USER); \
