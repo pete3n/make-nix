@@ -47,7 +47,7 @@ print_line "  ${CYAN}spec${RESET}    - Comma separated list of system specialisa
 print_line ""
 print_line "Install option flags:"
 print_line "  ${BLUE}SINGLE_USER${RESET}${RED}=1${RESET}  - Install Nix for single-user mode."
-print_line "  ${BLUE}DETERMINATE${RESET}${RED}=1${RESET}  - Install Nix using the Determinate Systems installer (default for MacOS)."
+print_line "  ${BLUE}DETERMINATE${RESET}${RED}=1${RESET}  - Install Nix using the Determinate Systems installer."
 print_line "  ${BLUE}NIX_DARWIN${RESET}${RED}=1${RESET}   - Install Nix-Darwin for MacOS."
 print_line "  ${BLUE}NIXGL${RESET}${RED}=1${RESET}        - Install NixGL; OpenGL and Vulkan wrapper for non-NixOS systems."
 
