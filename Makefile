@@ -86,6 +86,7 @@ build-darwin-home:
 	}
 
 .PHONY: activate-darwin-home
+activate-darwin-home:
 	@{ \
 		HOST=$(host) USER=$(user) LOG_PATH=$(LOG_PATH) DRY_RUN=$(DRY_RUN) \
 		sh scripts/activate_darwin_home.sh; \
