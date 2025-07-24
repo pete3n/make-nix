@@ -63,22 +63,32 @@ os-check:
 		exit 1; \
 	fi
 
+define DETERMINE_INSTALLER_BLOCK
+if [ "$(DETERMINATE)" = "1" ] || [ "$(UNAME_S)" = "Darwin" ]; then \
+  DETERMINATE=1; \
+else \
+  DETERMINATE=0; \
+fi
+endef
+
 .PHONY: check-nix-integrity
 check-nix-integrity:
-	@if [ "$(DETERMINATE)" = "1" ] || [ "$(UNAME_S)" = "Darwin" ]; then \
-		printf "\nDownloading Determinate Systems installer...\n"; \
-			DETERMINATE="1" \
+	@{ \
+		$(DETERMINE_INSTALLER_BLOCK); \
+		if [ "$$DETERMINATE" = "1" ]; then \
+			printf "\nDownloading Determinate Systems installer...\n"; \
 			sh scripts/check_nix_integrity.sh "$(DETERMINATE_INSTALL_URL)" "$(DETERMINATE_INSTALL_HASH)"; \
-	else \
-		printf "\nDownloading Nix installer...\n"; \
-			DETERMINATE="0" \
+		else \
+			printf "\nDownloading Nix installer...\n"; \
 			sh scripts/check_nix_integrity.sh "$(NIX_INSTALL_URL)" "$(NIX_INSTALL_HASH)"; \
-	fi
+		fi; \
+	}
 
 .PHONY: launch-installers
 launch-installers:
 	@{ \
-		NIXGL=$(NIXGL) NIX_DARWIN=$(NIX_DARWIN) DETERMINATE=$(DETERMINATE) SINGLE_USER=$(SINGLE_USER) UNAME_S=$(UNAME_S) \
+		$(DETERMINE_INSTALLER_BLOCK); \
+		NIXGL=$(NIXGL) NIX_DARWIN=$(NIX_DARWIN) SINGLE_USER=$(SINGLE_USER) UNAME_S=$(UNAME_S) DETERMINATE=$$DETERMINATE \
 		sh scripts/launch_installers.sh; \
 	}
 
