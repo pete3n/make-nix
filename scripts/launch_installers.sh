@@ -39,7 +39,7 @@ fi
 if [ "${NIX_DARWIN:-0}" -eq 1 ]; then
 	if [ "${UNAME_S:-}" = "Darwin" ]; then
 		printf "\n>>> Installing nix-darwin...\n"
-		sudo nix run .#nix-darwin.darwin-rebuild -- switch
+		sudo nix run nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .
 	else
 		printf "%berror:%b Skipping nix-darwin install: macOS not detected.\n" "$RED" "$RESET"
 		exit 1
