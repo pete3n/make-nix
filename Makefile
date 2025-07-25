@@ -125,12 +125,11 @@ endif
 
 .PHONY: flake-check
 flake-check:
-	@script -q -c "nix flake check --all-systems --extra-experimental-features \
-		'nix-command flakes'" $(LOG_PATH)
+	@sh scripts/flake_check.sh
 
 .PHONY: set-specialisation-boot
 set-specialisation-boot:
-		sh scripts/set_specialisation_boot.sh
+	@sh scripts/set_specialisation_boot.sh
 
 .PHONY: install-nix
 install-nix: os-check check-nix-integrity launch-installers
