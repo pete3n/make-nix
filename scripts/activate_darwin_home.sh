@@ -5,6 +5,7 @@ set -eu
 
 : "${LOG_PATH:-"/tmp/make-nix.out"}"
 
+printf "\n%bDEBUG%b: user: $USER host: $HOST DRY_RUN: $DRY_RUN\n" "$BLUE" "$RESET"
 if [ "${DRY_RUN:-0}" -eq 1 ]; then
 	printf "\n%bDry-run%b %benabled%b: skipping home activiation...\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
 else
