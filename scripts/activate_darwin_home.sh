@@ -16,6 +16,7 @@ else
 	if script -q -c true >/dev/null 2>&1; then
 		script -q -c "nix run nixpkgs#home-manager -- switch -b backup --flake .#${USER}@${HOST}" "$LOG_PATH"
 	else
-		nix run nixpkgs#home-manager -- switch -b backup --flake ".#${USER}@${HOST}" | tee "$LOG_PATH"
+		nix run nixpkgs#home-manager -- switch -b backup --flake .#"$USER"@"$HOST"
+		#nix run nixpkgs#home-manager -- switch -b backup --flake ".#${USER}@${HOST}" | tee "$LOG_PATH"
 	fi
 fi
