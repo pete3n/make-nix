@@ -8,7 +8,7 @@ set -eu
 : "${DRY_RUN:=0}"
 
 printf "\n%bDEBUG%b: user: $USER host: $HOST DRY_RUN: $DRY_RUN\n" "$BLUE" "$RESET"
-if [ "${DRY_RUN:-0}" -eq 1 ]; then
+if [ "${DRY_RUN}" -eq 1 ]; then
 	printf "\n%bDry-run%b %benabled%b: skipping home activiation...\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
 else
 	printf "\nSwitching home-manager configuration...\n"
