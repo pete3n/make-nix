@@ -1,0 +1,53 @@
+make-nix help
+
+Usage:
+make <help|install|home|system|all|test> [host=<host>][user=<user>] [system=<system>] [spec=<spc1>,<spc2>,<spc3>,...] [option flags]
+
+Make targets:
+  help    - You are here.
+  install - Install Nix or Nix-Darwin.
+  home    - Build and activate a Home-manager configuration.
+  system  - Build and activate a NixOS or Nix-Darwin system configuration.
+  all     - Execute both the system and home targets in that order.
+  test    - Check all flake configurations.
+
+Required arguments:
+  host    - System configuration host (current hostname will be passed by default).
+  user    - User configuration (current user will be passed by default).
+  system  - System platform to target for builds: x86_64-linux, aarch64-linux, x86_64-darwin, or aarch64-darwin 
+(current platform will be passed by default.)
+
+Optional arguments:
+  spec    - Comma separated list of system specialisation configurations (no spaces).
+
+Install option flags (assigning any value will enable them):
+  SINGLE_USER=true  - Install Nix for single-user mode.
+  DETERMINATE=true  - Install Nix using the Determinate Systems installer.
+  NIX_DARWIN=true   - Install Nix-Darwin for MacOS.
+  NIXGL=true        - Install NixGL; OpenGL and Vulkan wrapper for non-NixOS systems.
+
+Home|system|all option flags:
+  DRY_RUN=true      - Evaluate the new configuration but don't activate it.
+  BOOT_SPEC=true    - Set the default boot menu option to the first listed specialisation.
+
+Usage examples:
+  - Switch the home-manager configuration for current user; autodetect system type:
+    make home
+  - Switch the home-manager configuration for user joe; autodetect system type:
+    make home user=joe
+  - Switch the home-manager configuration for user sam; target an aarch64-darwin platform:
+    make home user=sam system=aarch64-darwin
+  - Rebuild and switch the current system's configuration; autodetect hostname and system platform:
+    make system
+  - Rebuild and switch the system configuration for host workstation1; target an aarch64-linux platform:
+    make system host=workstation1 system=aarch64-linux
+  - Rebuild and switch the system configuration for host workstation1; autodetect platform; build specialisation configurations for wayland and x11_egpu; set default boot menu selection to wayland:
+    make system host=workstation1 spec=wayland,x11_egpu BOOT_SPEC=1
+  - Rebuild and switch the current system's configuration and current user's home-manager configuration; autodetect all settings:
+    make all
+  - Evaluate the current system's configuration and current user's home-manager config; autodetect all settings:
+    make all DRY_RUN=1
+  - Rebuild and switch system config and home-manager config for user joe on workstation1 (x86_64-linux):
+    make all host=workstation1 system=x86_64-linux user=joe
+  - Run 'nix flake check' for all configurations:
+    make test

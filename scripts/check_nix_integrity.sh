@@ -1,10 +1,9 @@
 #!/usr/bin/env sh
 set -eu
-# shellcheck disable=SC1091
-. "$(dirname "$0")/ansi.env"
+env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp working and in your path.}"
 
-# shellcheck disable=SC1091
-. "$(dirname "$0")/installer.env"
+# shellcheck disable=SC1090
+. "$env_file"
 
 if [ "${DETERMINATE:-0}" -eq 1 ]; then
 	printf "\n>>> Verifying Determinate Systems installer integrity...\n"
@@ -16,17 +15,17 @@ else
 	EXPECTED_HASH=$NIX_INSTALL_HASH
 fi
 
-curl -Ls "$URL" >scripts/nix_installer.sh
+curl -Ls "$URL" >"$MAKE_NIX_INSTALLER"
 # shellcheck disable=SC2002
-ACTUAL_HASH=$(cat scripts/nix_installer.sh | shasum | cut -d ' ' -f 1)
+ACTUAL_HASH=$(cat "$MAKE_NIX_INSTALLER" | shasum | cut -d ' ' -f 1)
 
 if [ "$ACTUAL_HASH" != "$EXPECTED_HASH" ]; then
 	printf "%bIntegrity check failed!%b" "$YELLOW" "$RESET"
 	printf "Expected: %b" "$EXPECTED_HASH\n"
 	printf "Actual:   %b" "$RED$ACTUAL_HASH$RESET\n"
-	rm scripts/nix_installer.sh
+	rm "$MAKE_NIX_INSTALLER"
 	exit 1
 fi
 
 printf "%b>>> Integrity check passed.%b\n" "$GREEN" "$RESET"
-chmod +x scripts/nix_installer.sh
+chmod +x "$MAKE_NIX_INSTALLER"

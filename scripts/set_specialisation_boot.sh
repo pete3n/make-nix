@@ -1,10 +1,12 @@
 #!/usr/bin/env sh
 set -eu
-# shellcheck disable=SC1091
-. "$(dirname "$0")/ansi.env"
+env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp working and in your path.}"
+
+# shellcheck disable=SC1090
+. "$env_file"
 
 if [ -z "${spec:-}" ]; then
-	printf "%binfo:%b No specialisation specified. Cannot set default boot specialisation...\n" "$BLUE" "$RESET"
+	printf "%binfo:%b No specialisations specified.\nSkipping setting boot specialisation...\n" "$BLUE" "$RESET"
 	exit 0
 fi
 

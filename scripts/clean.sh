@@ -1,11 +1,18 @@
 #!/usr/bin/env sh
-# shellcheck disable=SC1091
-. "$(dirname "$0")/installer.env"
+set -eu
+env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp working and in your path.}"
 
-if [ -f "$(dirname "$0")/nix_installer.sh" ]; then
-	rm -f "$(dirname "$0")/nix_installer.sh"
+# shellcheck disable=SC1090
+. "$env_file"
+
+if [ -f "$MAKE_NIX_LOG" ]; then
+	rm -f "$MAKE_NIX_LOG"
 fi
 
-if [ -f "$LOG_PATH" ]; then
-	rm -f "$LOG_PATH"
+if [ -f "$MAKE_NIX_ENV" ]; then
+	rm -f "$MAKE_NIX_ENV"
+fi
+
+if [ -f "$MAKE_NIX_INSTALLER" ]; then
+	rm -f "$MAKE_NIX_INSTALLER"
 fi

@@ -1,10 +1,9 @@
 #!/usr/bin/env sh
 set -eu
-# shellcheck disable=SC1091
-. "$(dirname "$0")/ansi.env"
+env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp working and in your path.}"
 
-# shellcheck disable=SC1091
-. "$(dirname "$0")/installer.env"
+# shellcheck disable=SC1090
+. "$env_file"
 
 host="${ACTIVATE_DARWIN_HOST:? error: host must be set.}"
 
@@ -13,5 +12,5 @@ if [ -n "${DRY_RUN+x}" ]; then
 	exit 0
 else
 	@printf "Activating system config for Darwin..."
-	sudo ./result/sw/bin/darwin-rebuild switch --flake .#"${host}"
+	sudo ./result/sw/bin/darwin-rebuild switch --flake .#"$host}"
 fi

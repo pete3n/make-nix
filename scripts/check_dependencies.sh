@@ -1,11 +1,13 @@
 #!/usr/bin/env sh
 set -eu
-# shellcheck disable=SC1091
-. "$(dirname "$0")/ansi.env"
+env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp working and in your path.}"
 
-required_utils="cat chmod curl cut dirname git grep hostname mkdir printf rm \
+# shellcheck disable=SC1090
+. "$env_file"
+
+required_utils="cat chmod command curl cut dirname git grep hostname mkdir printf rm \
 	shasum sudo tee uname whoami"
-optional_utils="read script tput"
+optional_utils="less read script"
 
 missing_required=0
 missing_optional=0
@@ -19,15 +21,15 @@ done
 
 for cmd in $optional_utils; do
 	if ! command -v "$cmd" >/dev/null 2>&1; then
-		printf 'Missing optional dependency: %s\n' "$cmd"
-		missing_optional=1
+			printf 'Missing optional dependency: %s\n' "$cmd"
+			missing_optional=1
 	fi
 done
 
 if [ "$missing_required" -eq 0 ]; then
 	printf "%b✅%b All required dependencies are installed.\n" "$GREEN" "$RESET"
 	if [ "$missing_optional" -eq 1 ]; then
-		printf '%b⚠️%b  Some optional dependencies are missing.\n' "$YELLOW" "$RESET"
+			printf '%b⚠️%b  Some optional dependencies are missing.\n' "$YELLOW" "$RESET"
 	fi
 	exit 0
 else

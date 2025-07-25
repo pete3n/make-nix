@@ -1,10 +1,11 @@
 #!/usr/bin/env sh
 set -eu
-# shellcheck disable=SC1091
-. "$(dirname "$0")/ansi.env"
+env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp working and in your path.}"
 
-log_file=/tmp/make-nix.out
-if grep -qE "path .+ does not exist" "$log_file" && [ -n "$(git diff-index HEAD)" ]; then
+# shellcheck disable=SC1090
+. "$env_file"
+
+if grep -qE "path .+ does not exist" "${MAKE_NIX_LOG:-}" && [ -n "$(git diff-index HEAD)" ]; then
 	printf "%b  ⚠️ Warning: git tree is dirty!\n%b" "$YELLOW" "$RESET"
 	printf "  If you see this error message:\n  '%berror:%b path %b/nix/store/...%b does not exist'\n\n" \
 		"$RED" "$RESET" "$MAGENTA" "$RESET"

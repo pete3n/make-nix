@@ -1,63 +1,48 @@
 #!/usr/bin/env sh
 set -eu
+env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp working and in your path.}"
+
+# shellcheck disable=SC1090
+. "$env_file"
 
 user="${BUILD_TARGET_USER:? error: user must be set.}"
 host="${BUILD_TARGET_HOST:? error: host must be set.}"
 system="${BUILD_TARGET_SYSTEM:? error: system must be set.}"
-
-spec_list=""
-for arg in "$@"; do
-	case $arg in
-	spec=*)
-		spec_list=${arg#spec=}
-		;;
-	*)
-		printf 'Unknown argument: %s\n' "$arg" >&2
-		exit 1
-		;;
-	esac
-done
-
-isLinux=false
-case "$system" in
-x86_64-linux | aarch64-linux) isLinux=true ;;
-esac
+is_linux="${BUILD_TARGET_IS_LINUX:? error: unabled to determine if target is Linux or Darwin.}"
+specialisations="${BUILD_TARGET_SPECIALISATIONS:-}"
 
 printf "Writing build-target.nix with the attributes:\n"
-printf "  user              = %s\n" "$user"
-printf "  host              = %s\n" "$host"
-printf "  system            = %s\n" "$system"
-printf "  isLinux           = %s\n" "$isLinux"
-
-if [ -n "$spec_list" ]; then
-	printf "  specialisations   = ["
+printf '  user              = "%s"\n' "$user"
+printf '  host              = "%s"\n' "$host"
+printf '  system            = "%s"\n' "$system"
+printf "  isLinux           = %s\n" "$is_linux"
+printf "  specialisations   = ["
+if [ -n "$specialisations" ]; then
 	old_ifs=$IFS
 	IFS=','
-	for spec in $spec_list; do
-		printf ' %s' "$spec"
+	for spec in $specialisations; do
+		printf " %s" "$spec"
 	done
 	IFS=$old_ifs
-	printf ' ]\n'
-else
-	printf "  specialisations   = [ ]\n"
 fi
+printf " ]\n"
 
 {
-	printf '{ ... }:\n{\n'
+	printf "{ ... }:\n{\n"
 	printf '  user = "%s";\n' "$user"
 	printf '  host = "%s";\n' "$host"
 	printf '  system = "%s";\n' "$system"
-	printf '  isLinux = %s;\n' "$isLinux"
-	printf '  specialisations = ['
-	old_ifs=$IFS
-	IFS=','
-	if [ -n "$spec_list" ]; then
-		for spec in $spec_list; do
-			printf ' "%s"' "$spec"
+	printf '  isLinux = %s;\n' "$is_linux"
+	printf "  specialisations   = ["
+	if [ -n "$specialisations" ]; then
+		old_ifs=$IFS
+		IFS=","
+		for spec in $specialisations; do
+			printf " %s" "$spec"
 		done
 		IFS=$old_ifs
 	fi
-	printf ' ];\n'
+	printf " ];\n"
 	printf '}\n'
 } >build-target.nix
 
