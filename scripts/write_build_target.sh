@@ -1,13 +1,9 @@
 #!/usr/bin/env sh
 set -eu
 
-: "${host:?host is required, but was not passed.}"
-: "${user:?user is required, but was not passed.}"
-: "${system:?system is required, but was not passed.}"
-
-if [ -z "$host" ] || [ -z "$user" ] || [ -z "$system" ]; then
-	exit 1
-fi
+user="${BUILD_TARGET_USER:? error: user must be set.}"
+host="${BUILD_TARGET_HOST:? error: host must be set.}"
+system="${BUILD_TARGET_SYSTEM:? error: system must be set.}"
 
 spec_list=""
 for arg in "$@"; do

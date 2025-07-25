@@ -6,8 +6,8 @@ set -eu
 # shellcheck disable=SC1091
 . "$(dirname "$0")/installer.env"
 
-user="${ACTIVATE_NIX_USER:? error: user must be set.}"
-host="${ACTIVATE_NIX_HOST:? error: host must be set.}"
+user="${ACTIVATE_LINUX_USER:? error: user must be set.}"
+host="${ACTIVATE_LINUX_HOST:? error: host must be set.}"
 
 if [ -n "${DRY_RUN+x}" ]; then
 	printf "\n%bDry-run%b %benabled%b: skipping home activiation...\n" "$BLUE" "$RESET" "$GREEN" "$RESET"

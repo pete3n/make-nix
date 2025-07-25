@@ -8,35 +8,35 @@ set -eu
 
 printf "\n>>> Lauching installer...\n"
 
-INSTALL_FLAGS=""
-NIX_FOUND=0
+install_flags=""
+nix_found=0
 
-if [ "${DETERMINATE:-0}" -eq 1 ]; then
-	INSTALL_FLAGS="$DETERMINATE_INSTALL_MODE"
+if [ -n "${DETERMINATE+x}" ]; then
+	install_flags="$DETERMINATE_INSTALL_MODE"
 else
 	if [ "${SINGLE_USER:-0}" -eq 1 ]; then
-		INSTALL_FLAGS="--no-daemon"
+		install_flags="--no-daemon"
 	else
-		INSTALL_FLAGS="$NIX_INSTALL_MODE"
+		install_flags="$NIX_INSTALL_MODE"
 	fi
 fi
 
 if nix --version >/dev/null 2>&1; then
-	NIX_FOUND=1
+	nix_found=1
 fi
 
-if [ "$NIX_FOUND" -eq 1 ]; then
+if [ "$nix_found" -eq 1 ]; then
 	printf "%binfo:%b Nix found, installation skipped...\n" "$BLUE" "$RESET"
 else
 	if [ -f "$(dirname "$0")/nix_installer.sh" ]; then
-		sh "$(dirname "$0")/nix_installer.sh" "$INSTALL_FLAGS"
+		sh "$(dirname "$0")/nix_installer.sh" "$install_flags"
 	else
 		printf "%berror:%b Could not execute 'nix_installer.sh'.\n" "$RED" "$RESET"
 		exit 1
 	fi
 fi
 
-if [ "${NIX_DARWIN:-0}" -eq 1 ]; then
+if [ -n "${NIX_DARWIN+x}" ]; then
 	if [ "${UNAME_S:-}" = "Darwin" ]; then
 		printf "\n>>> Installing nix-darwin...\n"
 		sudo nix run nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .

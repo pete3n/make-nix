@@ -53,7 +53,7 @@ print_line "  ${BLUE}NIXGL${RESET}${RED}=${RESET}true        - Install NixGL; Op
 
 print_line ""
 print_line "Home|system|all option flags:"
-print_line "  ${BLUE}DRY_RUN${RESET}${RED}=${RESET}true      - Evaluate the new configuration, but don't change the current configuration."
+print_line "  ${BLUE}DRY_RUN${RESET}${RED}=${RESET}true      - Evaluate the new configuration but don't activate it."
 print_line "  ${BLUE}BOOT_SPEC${RESET}${RED}=${RESET}true    - Set the default boot menu option to the ${BOLD}first${RESET} listed specialisation."
 
 print_line ""

@@ -5,8 +5,8 @@ set -eu
 # shellcheck disable=SC1091
 . "$(dirname "$0")/installer.env"
 
-user=$BUILD_NIX_USER
-host=$BUILD_NIX_HOST
+user=$BUILD_LINUX_USER
+host=$BUILD_LINUX_HOST
 
 if [ -n "${DRY_RUN+x}" ]; then
 	printf "\n%bDry-run%b %benabled%b: configuration will not be activated.\n" "$BLUE" "$RESET" "$GREEN" "$RESET"

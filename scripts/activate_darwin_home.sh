@@ -6,14 +6,18 @@ set -eu
 # shellcheck disable=SC1091
 . "$(dirname "$0")/installer.env"
 
+user="${ACTIVATE_DARWIN_USER:? error: user must be set.}"
+host="${ACTIVATE_DARWIN_HOST:? error: host must be set.}"
+
 if [ -n "${DRY_RUN+x}" ]; then
 	printf "\n%bDry-run%b %benabled%b: skipping home activiation...\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
+	exit 0
 else
-	printf "\nSwitching home-manager configuration...\n"
-	printf "nix run nixpkgs#home-manager -- switch -b backup --flake .#%s@%s" "$USER" "$HOST"
+	printf "\nActivating home-manager configuration...\n"
+	printf "nix run nixpkgs#home-manager -- switch -b backup --flake .#%s@%s" "$user" "$host"
 	if script -q -c true >/dev/null 2>&1; then
-		script -q -c "nix run nixpkgs#home-manager -- switch -b backup --flake .#${USER}@${HOST}" "$LOG_PATH"
+		script -q -c "nix run nixpkgs#home-manager -- switch -b backup --flake .#${user}@${host}" "$LOG_PATH"
 	else
-		nix run nixpkgs#home-manager -- switch -b backup --flake ".#${USER}@${HOST}" | tee "$LOG_PATH"
+		nix run nixpkgs#home-manager -- switch -b backup --flake ".#${user}@${host}" | tee "$LOG_PATH"
 	fi
 fi

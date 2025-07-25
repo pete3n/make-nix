@@ -5,12 +5,6 @@
 # Please see https://github.com/pete3n/dotfiles for documentation.
 UNAME_S := $(shell uname -s)
 
-ifeq ($(BOOT_SPEC),1)
-	boot_special := true
-else
-	boot_special := false
-endif
-
 ifndef user
 user := $(shell whoami)
 endif
@@ -47,133 +41,71 @@ os-check:
 
 .PHONY: check-nix-integrity
 check-nix-integrity:
-	@{ \
-		DETERMINATE=$(DETERMINATE) sh scripts/check_nix_integrity.sh; \
-	}
+	@sh scripts/check_nix_integrity.sh
 
 .PHONY: launch-installers
 launch-installers:
-	@{ \
-		DETERMINATE=$(DETERMINATE) UNAME_S=$(UNAME_S) NIX_DARWIN=$(NIX_DARWIN) \
-		sh scripts/launch_installers.sh; \
-	}
+	@export UNAME_S=$(UNAME_S); \ 
+	sh scripts/launch_installers.sh
 
 .PHONY: write-build-target
 write-build-target:
-	@{ \
-		host="$(host)" user="$(user)" system="$(system)" \
-		sh scripts/write_build_target.sh $(if $(spec),spec=$(spec)); \
-	}
+	@export BUILD_TARGET_HOST="$(host)"; \
+	export BUILD_TARGET_USER="$(user)"; \
+	export BUILD_TARGET_SYSTEM="$(system)"; \
+	sh scripts/write_build_target.sh $(if $(spec),spec=$(spec));
 
 .PHONY: check-dirty-warn
 check-dirty-warn:
 	@sh scripts/check_dirty_warn.sh
 
-.PHONY: remove_nix_installer
-remove_nix_installer:
-	@{ if [ -f scripts/nix_installer.sh ]; then rm -f scripts/nix_installer.sh; fi; }
-
-.PHONY: remove_build_log
-remove_build_log:
-	@{ if [ -f $(LOG_PATH) ]; then rm -f $(LOG_PATH); fi; }
-
 .PHONY: clean
-clean: remove_nix_installer remove_build_log
+clean: 
+	@sh scripts/clean.sh
 
 .PHONY: build-darwin-home
 build-darwin-home:
-	@export HOST=$(host); \
-	export USER=$(user); \
+	@export BUILD_DARWIN_HOST=$(host); \
+	export BUILD_DARWIN_USER=$(user); \
 	sh scripts/build_darwin_home.sh
 
 .PHONY: activate-darwin-home
 activate-darwin-home:
-	@export HOST=$(host); \
-	export USER=$(user); \
+	@export ACTIVATE_DARWIN_HOST=$(host); \
+	export ACTIVATE_DARWIN_USER=$(user); \
 	sh scripts/activate_darwin_home.sh
 
 .PHONY: build-linux-home
 build-linux-home:
-ifeq ($(DRY_RUN),1)
-	@{ \
-		printf "\n%bDry-run%b %benabled%b: configuration will not be activated.\n" \
-			"$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"; \
-		printf "Building home-manager configuration for Linux...\n"; \
-		script -q -c "nix run nixpkgs#home-manager -- build $(dry_run) \
-			--flake .#$(user)@$(host)" $(LOG_PATH); \
-	}
-else
-	@{ \
-		printf "Building home-manager config for Linux...\n"; \
-		script -q -c "nix run nixpkgs#home-manager -- build --flake .#$(user)@$(host)" $(LOG_PATH); \
-	}
-endif
+	@export BUILD_LINUX_HOST=$(host); \
+	export BUILD_LINUX_USER=$(user); \
+	sh scripts/build_linux_home.sh
 
 .PHONY: activate-linux-home
 activate-linux-home:
-ifeq ($(DRY_RUN),1)
-	@printf "\n%bDry-run%b %benabled%b: skipping home activiation...\n" "$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"
-else
-	@{
-		printf "\nSwitching home-manager configuration...\n"; \
-		printf nix run nixpkgs#home-manager -- switch -b backup --flake .#$(user)@$(host); \
-		script -q -c "nix run nixpkgs#home-manager -- switch -b backup --flake .#$(user)@$(host)" $(LOG_PATH); \
-	}
-endif
+	@export ACTIVATE_LINUX_HOST=$(host); \
+	export ACTIVATE_LINUX_USER=$(user); \
+	sh scripts/activate_linux_home.sh
 
 .PHONY: build-darwin-system
 build-darwin-system:
-ifeq ($(DRY_RUN),1)
-	@{ \
-		printf "\n%bDry-run%b %benabled%b, nothing will be built.\n" "$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"; \
-		printf nix build --dry-run .#darwinConfigurations.$(host).system --extra-experimental-features 'nix-command flakes'; \
-		nix build $(dry_run) .#darwinConfigurations.$(host).system \
-		 --extra-experimental-features 'nix-command flakes'; \
-	}
-else
-	@{ \
-		printf "\nBuilding system config for Darwin...\n"; \
-		printf nix build .#darwinConfigurations.$(host).system --extra-experimental-features 'nix-command flakes'; \
-		nix build .#darwinConfigurations.$(host).system \
-		 --extra-experimental-features 'nix-command flakes'; \
-	}
-endif
+	@export BUILD_DARWIN_HOST=$(host); \
+	sh scripts/build_darwin_system.sh
 
 .PHONY: activate-darwin-system
 activate-darwin-system:
-ifeq ($(DRY_RUN),1)
-	@printf "\n%bDry-run%b %benabled%b: skipping system activiation...\n" "$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"
-else
-	@printf "Activating system config for Darwin..."
-	sudo ./result/sw/bin/darwin-rebuild switch --flake .#$(host)
-endif
+	@export ACTIVATE_DARWIN_HOST=$(host); \
+	sh scripts/activate_darwin_system.sh
 
 .PHONY: build-linux-system
 build-linux-system:
-ifeq ($(DRY_RUN),1)
-	@{ \
-		printf "\n%bDry-run%b %benabled:%b nothing will be built...\n" "$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"; \
-		printf nix build --dry-run .#nixosConfigurations.$(host).config.system.build.toplevel --extra-experimental-features 'nix-command flakes'; \
-		script -q -c "nix build $(dry_run) .#nixosConfigurations.$(host).config.system.build.toplevel \
-		 --extra-experimental-features 'nix-command flakes'" $(LOG_PATH); \
-	}
-else
-	@{ \
-		printf "\nBuilding system config for Linux...\n"; \
-		printf nix build .#nixosConfigurations.$(host).config.system.build.toplevel --extra-experimental-features 'nix-command flakes'; \
-		script -q -c "nix build .#nixosConfigurations.$(host).config.system.build.toplevel \
-		 --extra-experimental-features 'nix-command flakes'" $(LOG_PATH); \
-	}
-endif
+	@export BUILD_LINUX_HOST=$(host); \
+	sh scripts/build_linux_system.sh
 
 .PHONY: activate-linux-system
 activate-linux-system:
-ifeq ($(DRY_RUN),1)
-	@printf "\n%bDry-run%b %benabled%b: skipping system activiation...\n" "$(BLUE)" "$(RESET)" "$(GREEN)" "$(RESET)"
-else
-	@printf "\nActivating system config for Linux...\n"
-	@sudo ./result/sw/bin/nixos-rebuild switch --flake .#$(host)
-endif
+	@export ACTIVATE_LINUX_HOST=$(host); \
+	sh scripts/activate_linux_system.sh
 
 .PHONY: home-platforms
 home-platforms:
@@ -193,18 +125,12 @@ endif
 
 .PHONY: flake-check
 flake-check:
-	@{ \
-		script -q -c "nix flake check --all-systems --extra-experimental-features 'nix-command flakes'" $(LOG_PATH); \
-	}
+	@script -q -c "nix flake check --all-systems --extra-experimental-features \
+		'nix-command flakes'" $(LOG_PATH)
 
 .PHONY: set-specialisation-boot
 set-specialisation-boot:
-ifeq ($(boot_special),true)
-	@{ \
-		spec=$(spec) \
-		sh scripts/set_specialisation_boot.sh; \
-	}
-endif
+		sh scripts/set_specialisation_boot.sh
 
 .PHONY: install-nix
 install-nix: os-check check-nix-integrity launch-installers
