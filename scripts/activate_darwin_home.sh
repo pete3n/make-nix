@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+export | grep DRY_RUN
 set -eu
 # shellcheck disable=SC1091
 . "$(dirname "$0")/ansi.env"

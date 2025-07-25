@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+export | grep DRY_RUN
 set -eu
 
 : "${host:?host is required, but was not passed.}"
