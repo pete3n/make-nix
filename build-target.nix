@@ -1,8 +1,8 @@
 { ... }:
 {
   user = "pete";
-  host = "framework16";
-  system = "crap";
-  isLinux = false;
+  host = "crap";
+  system = "x86_64-linux";
+  isLinux = true;
   specialisations   = [ ];
 }
