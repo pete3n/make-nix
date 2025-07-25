@@ -2,9 +2,8 @@
 # shellcheck disable=SC1091
 . "$(dirname "$0")/installer.env"
 
-if script -q -c true >/dev/null 2>&1; then
-	script -q -c "nix flake check --all-systems --extra-experimental-features \
-		'nix-command flakes'" "$LOG_PATH"
+if script -q -c true /dev/null; then
+	script -q -c "nix flake check --all-systems --extra-experimental-features 'nix-command flakes'" "$LOG_PATH"
 else
 	nix flake check --all-systems --extra-experimental-features 'nix-command flakes' | tee "$LOG_PATH"
 fi

@@ -11,14 +11,14 @@ host=$BUILD_DARWIN_HOST
 if [ -n "${DRY_RUN+x}" ]; then
 	printf "\n%bDry-run%b %benabled%b: configuration will not be activated.\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
 	printf "Building home-manager config for Darwin...\n"
-	if script -q -c true >/dev/null 2>&1; then
+	if script -q -c true /dev/null; then
 		script -q -c "nix run nixpkgs#home-manager -- build -b backup --dry-run --flake .#${user}@${host}" "$LOG_PATH"
 	else
 		nix run nixpkgs#home-manager -- build -b backup --dry-run --flake ".#${user}@${host}" | tee "$LOG_PATH"
 	fi
 else
 	printf "Building home-manager configuration for Darwin...\n"
-	if script -q -c true >/dev/null 2>&1; then
+	if script -q -c true /dev/null; then
 		script -q -c "nix run nixpkgs#home-manager -- build -b backup --flake .#${user}@${host}" "$LOG_PATH"
 	else
 		nix run nixpkgs#home-manager -- build -b backup --flake ".#${user}@${host}" | tee "$LOG_PATH"

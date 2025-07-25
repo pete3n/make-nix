@@ -12,7 +12,7 @@ if [ -n "${DRY_RUN+x}" ]; then
 	printf "\n%bDry-run%b %benabled%b, nothing will be built.\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
 	printf "nix build --dry-run .#darwinConfigurations.%s.system \
 		--extra-experimental-features 'nix-command flakes'" "${host}"
-	if script -q -c true >/dev/null 2>&1; then
+	if script -q -c true /dev/null; then
 		script -q -c "nix build --dry-run .#darwinConfigurations.${host}.system \
 			--extra-experimental-features 'nix-command flakes'" "$LOG_PATH"
 	else
@@ -23,7 +23,7 @@ else
 	printf "\nBuilding system config for Darwin...\n"
 	printf "nix build .#darwinConfigurations.%s.system \
 			--extra-experimental-features 'nix-command flakes'" "${host}"
-	if script -q -c true >/dev/null 2>&1; then
+	if script -q -c true /dev/null; then
 		script -q -c "nix build .#darwinConfigurations.${host}.system \
 			--extra-experimental-features 'nix-command flakes'" "$LOG_PATH"
 	else

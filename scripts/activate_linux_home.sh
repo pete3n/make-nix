@@ -15,7 +15,7 @@ if [ -n "${DRY_RUN+x}" ]; then
 else
 	printf "\nActivating home-manager configuration...\n"
 	printf "nix run nixpkgs#home-manager -- switch -b backup --flake .#%s@%s" "$user" "$host"
-	if script -q -c true >/dev/null 2>&1; then
+	if script -q -c true /dev/null; then
 		script -q -c "nix run nixpkgs#home-manager -- switch -b backup --flake .#${user}@${host}" "$LOG_PATH"
 	else
 		nix run nixpkgs#home-manager -- switch -b backup --flake ".#${user}@${host}" | tee "$LOG_PATH"
