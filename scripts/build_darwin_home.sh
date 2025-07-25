@@ -3,9 +3,10 @@ set -eu
 # shellcheck disable=SC1091
 . "$(dirname "$0")/ansi.env"
 
-: "${LOG_PATH:-"/tmp/make-nix.out"}"
+: "${LOG_PATH:="/tmp/make-nix.out"}"
+: "${DRY_RUN:=0}"
 
-if [ "${DRY_RUN:-0}" -eq 1 ]; then
+if [ "${DRY_RUN}" -eq 1 ]; then
 	printf "\n%bDry-run%b %benabled%b: configuration will not be activated.\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
 	printf "Building home-manager config for Darwin...\n"
 	if script -q -c true >/dev/null 2>&1; then

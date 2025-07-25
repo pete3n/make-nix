@@ -4,7 +4,8 @@ set -eu
 # shellcheck disable=SC1091
 . "$(dirname "$0")/ansi.env"
 
-: "${LOG_PATH:-"/tmp/make-nix.out"}"
+: "${LOG_PATH:="/tmp/make-nix.out"}"
+: "${DRY_RUN:=0}"
 
 printf "\n%bDEBUG%b: user: $USER host: $HOST DRY_RUN: $DRY_RUN\n" "$BLUE" "$RESET"
 if [ "${DRY_RUN:-0}" -eq 1 ]; then

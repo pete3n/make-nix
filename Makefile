@@ -86,7 +86,7 @@ build-darwin-home:
 	@export HOST=$(host); \
 	export USER=$(user); \
 	export LOG_PATH=$(LOG_PATH); \
-	export DRY_RUN=${DRY_RUN:-0}; \
+	export DRY_RUN=$(DRY_RUN); \
 	sh scripts/build_darwin_home.sh
 
 .PHONY: activate-darwin-home
@@ -94,7 +94,7 @@ activate-darwin-home:
 	@export HOST=$(host); \
 	export USER=$(user); \
 	export LOG_PATH=$(LOG_PATH); \
-	export DRY_RUN=${DRY_RUN:-0}; \
+	export DRY_RUN=$(DRY_RUN); \
 	sh scripts/activate_darwin_home.sh
 
 .PHONY: build-linux-home
