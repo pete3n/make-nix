@@ -3,7 +3,6 @@
 # MacOS and Linux systems. It can build and deploy both NixOS system and 
 # Nix Home-manager configurations.
 # Please see https://github.com/pete3n/dotfiles for documentation.
-LOG_PATH = /tmp/make-nix.out
 UNAME_S := $(shell uname -s)
 
 ifeq ($(BOOT_SPEC),1)
@@ -85,16 +84,12 @@ clean: remove_nix_installer remove_build_log
 build-darwin-home:
 	@export HOST=$(host); \
 	export USER=$(user); \
-	export LOG_PATH=$(LOG_PATH); \
-	export DRY_RUN=$(DRY_RUN); \
 	sh scripts/build_darwin_home.sh
 
 .PHONY: activate-darwin-home
 activate-darwin-home:
 	@export HOST=$(host); \
 	export USER=$(user); \
-	export LOG_PATH=$(LOG_PATH); \
-	export DRY_RUN=$(DRY_RUN); \
 	sh scripts/activate_darwin_home.sh
 
 .PHONY: build-linux-home

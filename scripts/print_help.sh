@@ -45,7 +45,7 @@ print_line "Optional arguments:"
 print_line "  ${CYAN}spec${RESET}    - Comma separated list of system specialisation configurations (no spaces)."
 
 print_line ""
-print_line "Install option flags (assinging any value will enable them):"
+print_line "Install option flags (assigning any value will enable them):"
 print_line "  ${BLUE}SINGLE_USER${RESET}${RED}=${RESET}true  - Install Nix for single-user mode."
 print_line "  ${BLUE}DETERMINATE${RESET}${RED}=${RESET}true  - Install Nix using the Determinate Systems installer."
 print_line "  ${BLUE}NIX_DARWIN${RESET}${RED}=${RESET}true   - Install Nix-Darwin for MacOS."

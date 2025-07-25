@@ -2,8 +2,8 @@
 set -eu
 # shellcheck disable=SC1091
 . "$(dirname "$0")/ansi.env"
-
-: "${LOG_PATH:="/tmp/make-nix.out"}"
+# shellcheck disable=SC1091
+. "$(dirname "$0")/installer.env"
 
 if [ -n "${DRY_RUN+x}" ]; then
 	printf "\n%bDry-run%b %benabled%b: configuration will not be activated.\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
