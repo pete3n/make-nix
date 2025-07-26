@@ -1,7 +1,6 @@
 #!/usr/bin/env sh
 # shellcheck disable=SC1091
 . "$(dirname "$0")/common.sh"
-trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
 
 printf "depedencies: env file is: %s\n" "$MAKE_NIX_ENV"
 
