@@ -5,11 +5,9 @@ env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp working an
 # shellcheck disable=SC1090
 . "$env_file"
 
-printf "\n>>> Lauching installer...\n"
+printf "\n%b>>>%b Lauching installer...\n" "$BLUE" "$RESET"
 
 install_flags=""
-nix_found=0
-
 if [ -n "${DETERMINATE+x}" ]; then
 	install_flags="$DETERMINATE_INSTALL_MODE"
 else
@@ -20,11 +18,7 @@ else
 	fi
 fi
 
-if nix --version >/dev/null 2>&1; then
-	nix_found=1
-fi
-
-if [ "$nix_found" -eq 1 ]; then
+if command -v nix >/dev/null 2>&1; then
 	printf "%binfo:%b Nix found in PATH; skipping Nix installation...\n" "$BLUE" "$RESET"
 	printf "If you want to re-install, please follow these instructions to uninstall first: \n"
 	printf "%bhttps://nix.dev/manual/nix/latest/installation/uninstall.html%b\n" "$BLUE" "$RESET"
@@ -39,7 +33,16 @@ fi
 
 if [ -n "${NIX_DARWIN+x}" ]; then
 	if [ "${UNAME_S:-}" = "Darwin" ]; then
-		printf "\n>>> Installing nix-darwin...\n"
+		printf "\n%b>>>%b Installing nix-darwin...\n" "$BLUE" "$RESET"
+		if ! command -v nix >/dev/null 2>&1; then
+			# shellcheck disable=SC1091
+			. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+
+			if ! command -v nix >/dev/null 2>&1; then
+				printf "%berror:%b nix not found in PATH. Ensure it was correctly installed.\n" "$RED" "$RESET" >&2
+				exit 1
+			fi
+		fi
 		sudo nix run nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .
 	else
 		printf "%binfo:%b Skipping nix-darwin install: macOS not detected.\n" "$BLUE" "$RESET"
