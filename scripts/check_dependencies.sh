@@ -3,7 +3,7 @@
 . "$(dirname "$0")/common.sh"
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
 
-printf "depedencies: env file is: %s" "$MAKE_NIX_ENV"
+printf "depedencies: env file is: %s\n" "$MAKE_NIX_ENV"
 
 required_utils="cat chmod command curl cut dirname git grep hostname mkdir logf rm \
 	shasum sudo tee uname whoami xargs"

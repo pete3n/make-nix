@@ -2,7 +2,7 @@
 set -eu
 env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp working and in your path.}"
 
-printf "Clean: env file is: %s" "$MAKE_NIX_ENV"
+printf "Clean: env file is: %s\n" "$MAKE_NIX_ENV"
 
 # shellcheck disable=SC1090
 . "$env_file"
