@@ -35,7 +35,7 @@ fi
 check_for_nix
 
 if [ -z "${TGT_SYSTEM:-}" ]; then
-  system="$(nix eval --impure --raw --expr 'builtins.currentSystem')"
+  system="$(nix --extra-experimental-features nix-command eval --impure --raw --expr 'builtins.currentSystem')"
 	printf "TGT_SYSTEM=%s\n" "$system" >> "$MAKE_NIX_ENV"
 else
 	system=$TGT_SYSTEM
