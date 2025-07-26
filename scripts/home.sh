@@ -23,10 +23,10 @@ if [ -z "$mode" ]; then
 	exit 1
 fi
 
-base_build_cmd="nix --extra-experimental-features nix-command --extra-experimental-features flakes run nixpkgs#home-manager -- build -b backup --flake .#${user}@${host}"
-base_build_print_cmd="nix --extra-experimental-features nix-command --extra-experimental-features flakes run nixpkgs#home-manager -- build -b backup --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
-base_activate_cmd="nix --extra-experimental-features nix-command --extra-experimental-features flakes run nixpkgs#home-manager -- switch -b backup --flake .#${user}@${host}"
-base_activate_print_cmd="nix --extra-experimental-features nix-command --extra-experimental-features flakes run nixpkgs#home-manager -- switch -b backup --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
+base_build_cmd="nix --extra-experimental-features \"nix-command flakes\" run nixpkgs#home-manager -- build -b backup --flake .#${user}@${host}"
+base_build_print_cmd="nix --extra-experimental-features \"nix-command flakes\" run nixpkgs#home-manager -- build -b backup --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
+base_activate_cmd="nix --extra-experimental-features \"nix-command flakes\" run nixpkgs#home-manager -- switch -b backup --flake .#${user}@${host}"
+base_activate_print_cmd="nix --extra-experimental-features \"nix-command flakes\" run nixpkgs#home-manager -- switch -b backup --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
 
 dry_switch=""
 if [ -n "${DRY_RUN+x}" ]; then
