@@ -11,7 +11,9 @@ ifeq ($(origin MAKE_NIX_ENV), undefined)
   MAKE_NIX_ENV := $(shell mktemp -t make-nix.env.XXXXXX)
   export MAKE_NIX_ENV
   MAKE_NIX_LOG := $(shell mktemp -t make-nix.log.XXXXXX)
+  export MAKE_NIX_LOG
   MAKE_NIX_INSTALLER := $(shell mktemp -t make-nix_installer.XXXXXX)
+  export MAKE_NIX_INSTALLER
   $(shell printf "MAKE_NIX_LOG=%s\n" "$(MAKE_NIX_LOG)" >> "$(MAKE_NIX_ENV)")
   $(shell printf "MAKE_NIX_INSTALLER=%s\n" "$(MAKE_NIX_INSTALLER)" >> "$(MAKE_NIX_ENV)")
   $(shell printf "UNAME_S=%s\n" "$(UNAME_S)" >> "$(MAKE_NIX_ENV)")
