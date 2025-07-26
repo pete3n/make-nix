@@ -5,18 +5,13 @@ env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp working an
 # shellcheck disable=SC1090
 . "$env_file"
 
-user="${ACTIVATE_DARWIN_USER:? error: user must be set.}"
-host="${ACTIVATE_DARWIN_HOST:? error: host must be set.}"
+user="${TGT_USER:? error: user must be set.}"
+host="${TGT_HOST:? error: host must be set.}"
 
-if [ -n "${DRY_RUN+x}" ]; then
-	printf "\n%bDry-run%b %benabled%b: skipping home activiation...\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
-	exit 0
+printf "\nActivating home-manager configuration...\n"
+printf "nix run nixpkgs#home-manager -- switch -b backup --flake .#%s@%s" "$user" "$host"
+if script -q -c true /dev/null; then
+	script -q -c "nix run nixpkgs#home-manager -- switch -b backup --flake .#${user}@${host}" "$MAKE_NIX_LOG"
 else
-	printf "\nActivating home-manager configuration...\n"
-	printf "nix run nixpkgs#home-manager -- switch -b backup --flake .#%s@%s" "$user" "$host"
-	if script -q -c true /dev/null; then
-		script -q -c "nix run nixpkgs#home-manager -- switch -b backup --flake .#${user}@${host}" "$MAKE_NIX_LOG"
-	else
-		nix run nixpkgs#home-manager -- switch -b backup --flake ".#${user}@${host}" | tee "$MAKE_NIX_LOG"
-	fi
+	nix run nixpkgs#home-manager -- switch -b backup --flake ".#${user}@${host}" | tee "$MAKE_NIX_LOG"
 fi

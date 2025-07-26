@@ -6,7 +6,7 @@ env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp working an
 . "$env_file"
 
 required_utils="cat chmod command curl cut dirname git grep hostname mkdir printf rm \
-	shasum sudo tee uname whoami"
+	shasum sudo tee uname whoami xargs"
 optional_utils="less read script"
 
 missing_required=0

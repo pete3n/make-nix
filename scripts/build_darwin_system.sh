@@ -5,7 +5,7 @@ env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp working an
 # shellcheck disable=SC1090
 . "$env_file"
 
-host="${BUILD_DARWIN_HOST:? error: host must be set.}"
+host="${TGT_HOST:? error: host must be set.}"
 
 if [ -n "${DRY_RUN+x}" ]; then
 	printf "\n%bDry-run%b %benabled%b, nothing will be built.\n" "$BLUE" "$RESET" "$GREEN" "$RESET"

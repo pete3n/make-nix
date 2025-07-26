@@ -7,7 +7,7 @@ env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp working an
 . "$env_file"
 
 if [ -n "${DRY_RUN+x}" ]; then
-	printf "\n%bDry-run%b %benabled%b: skipping system activiation...\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
+	printf "\n%bDry-run%b %benabled%b: skipping home activiation...\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
 	exit 0
 fi
 
@@ -22,7 +22,7 @@ if [ -z "${IS_LINUX:-}" ]; then
 fi
 
 if [ "$IS_LINUX" = true ]; then
-  exec scripts/activate_linux_system.sh
+  exec scripts/activate_linux_home.sh
 else
-  exec scripts/activate_darwin_system.sh
+  exec scripts/activate_darwin_home.sh
 fi

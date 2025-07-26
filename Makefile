@@ -1,10 +1,11 @@
-# make-Nix v0.13
+# make-Nix v0.1.4
 # This Makefile provides targets to install and configure Nix and NixOS for 
 # MacOS and Linux systems. It can build and deploy both NixOS system and 
 # Nix Home-manager configurations.
 # Please see https://github.com/pete3n/dotfiles for documentation.
 
 MAKEFLAGS += --no-print-directory
+UNAME_S := $(shell uname -s)
 
 ifeq ($(origin MAKE_NIX_ENV), undefined)
   MAKE_NIX_ENV := $(shell mktemp -t make-nix.env.XXXXXX)
@@ -13,24 +14,7 @@ ifeq ($(origin MAKE_NIX_ENV), undefined)
   MAKE_NIX_INSTALLER := $(shell mktemp -t make-nix_installer.XXXXXX)
   $(shell printf "MAKE_NIX_LOG=%s\n" "$(MAKE_NIX_LOG)" >> "$(MAKE_NIX_ENV)")
   $(shell printf "MAKE_NIX_INSTALLER=%s\n" "$(MAKE_NIX_INSTALLER)" >> "$(MAKE_NIX_ENV)")
-endif
-
-ifndef user
-user := $(shell whoami)
-endif
-
-ifndef host
-host := $(shell hostname)
-endif
-
-ifndef system
-system := $(shell nix eval --impure --raw --expr 'builtins.currentSystem')
-endif
-
-ifeq ($(findstring linux,$(system)),linux)
-	isLinux := true
-else
-	isLinux := false
+  $(shell printf "UNAME_S=%s\n" "$(UNAME_S)" >> "$(MAKE_NIX_ENV)")
 endif
 
 .PHONY: help
@@ -60,18 +44,15 @@ installer-os-check:
 
 .PHONY: check-nix-integrity
 check-nix-integrity:
-	@MAKE_NIX_ENV=$(MAKE_NIX_ENV)sh scripts/check_nix_integrity.sh
+	@sh scripts/check_nix_integrity.sh
 
 .PHONY: launch-installers
 launch-installers:
-	@UNAME_S=$(UNAME_S) sh scripts/launch_installers.sh
+	@sh scripts/launch_installers.sh
 
 .PHONY: write-build-target
 write-build-target:
-	@BUILD_TARGET_HOST="$(host)" \
-	BUILD_TARGET_USER="$(user)" BUILD_TARGET_SYSTEM="$(system)" \
-	BUILD_TARGET_IS_LINUX=$(isLinux) BUILD_TARGET_SPECIALISATIONS=$(spec) \
-	sh scripts/write_build_target.sh
+	@sh scripts/write_build_target.sh
 
 .PHONY: check-dirty-warn
 check-dirty-warn:
@@ -81,57 +62,21 @@ check-dirty-warn:
 clean:
 	@sh scripts/clean.sh
 
-.PHONY: build-darwin-home
-build-darwin-home:
-	@BUILD_DARWIN_HOST=$(host) BUILD_DARWIN_USER=$(user) \
-	sh scripts/build_darwin_home.sh
+.PHONY: build-home
+build-home:
+	@sh scripts/build_home.sh
 
-.PHONY: activate-darwin-home
-activate-darwin-home:
-	@ACTIVATE_DARWIN_HOST=$(host) ACTIVATE_DARWIN_USER=$(user) \
-	sh scripts/activate_darwin_home.sh
+.PHONY: activate-home
+activate-home:
+	@sh scripts/activate_home.sh
 
-.PHONY: build-linux-home
-build-linux-home:
-	@BUILD_LINUX_HOST=$(host) BUILD_LINUX_USER=$(user) \
-	sh scripts/build_linux_home.sh
+.PHONY: build-system
+build-system:
+	@sh scripts/build_system.sh
 
-.PHONY: activate-linux-home
-activate-linux-home:
-	@ACTIVATE_LINUX_HOST=$(host) ACTIVATE_LINUX_USER=$(user) \
-	sh scripts/activate_linux_home.sh
-
-.PHONY: build-darwin-system
-build-darwin-system:
-	@BUILD_DARWIN_HOST=$(host) sh scripts/build_darwin_system.sh
-
-.PHONY: activate-darwin-system
-activate-darwin-system:
-	@ACTIVATE_DARWIN_HOST=$(host) sh scripts/activate_darwin_system.sh
-
-.PHONY: build-linux-system
-build-linux-system:
-	@BUILD_LINUX_HOST=$(host) sh scripts/build_linux_system.sh
-
-.PHONY: activate-linux-system
-activate-linux-system:
-	@ACTIVATE_LINUX_HOST=$(host) sh scripts/activate_linux_system.sh
-
-.PHONY: home-platforms
-home-platforms:
-ifeq ($(isLinux),true)
-	$(MAKE) build-linux-home check-dirty-warn activate-linux-home
-else
-	$(MAKE) build-darwin-home check-dirty-warn activate-darwin-home
-endif
-
-.PHONY: system-platforms
-system-platforms:
-ifeq ($(isLinux),true)
-	$(MAKE) build-linux-system check-dirty-warn activate-linux-system
-else
-	$(MAKE) build-darwin-system check-dirty-warn activate-darwin-system
-endif
+.PHONY: activate-system
+activate-system:
+	@sh scripts/activate_system.sh
 
 .PHONY: flake-check
 flake-check:
@@ -141,17 +86,14 @@ flake-check:
 set-specialisation-boot:
 	@sh scripts/set_specialisation_boot.sh
 
-.PHONY: install-nix
-install-nix: installer-os-check check-nix-integrity launch-installers
+.PHONY: install
+install:
+	@sh scripts/install.sh
 
-.PHONY: install-with-clean
-install-with-clean:
-	@$(MAKE) install-nix || true; \
-	$(MAKE) clean
-
-.PHONY: install home system all test
-install: init-env check-dependencies install-with-clean
-home: init-env check-dependencies write-build-target home-platforms check-dirty-warn clean
-system: init-env check-dependencies write-build-target system-platforms check-dirty-warn set-specialisation-boot clean
-all: init-env check-dependencies system-platforms home-platforms clean
+.PHONY: home home-all system system-all all test
+home: init-env check-dependencies write-build-target build-home activate-home check-dirty-warn clean
+home-all: build-home activate-home check-dirty-warn
+system: init-env check-dependencies write-build-target build-system activate-system check-dirty-warn set-specialisation-boot clean
+system-all: build-system activate-system check-dirty-warn set-specialisation-boot
+all: init-env check-dependencies write-build-target system-all home-all clean
 test: init-env check-dependencies write-build-target flake-check check-dirty-warn clean
