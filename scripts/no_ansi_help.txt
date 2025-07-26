@@ -1,34 +1,33 @@
 make-nix help
 
 Usage:
-make <help|install|home|system|all|test> [host=<host>][user=<user>] [system=<system>] [spec=<spc1>,<spc2>,<spc3>,...] [option flags]
+make <help|install|home|system|all|test> [TGT_HOST=<host>][TGT_USER=<user>] [TGT_SYSTEM=<system>] [TGT_SPEC=<spc1>,<spc2>,<spc3>,...] [OPTION FLAGS]
 
 Make targets:
   help    - You are here.
-  install - Install Nix or Nix-Darwin.
+  install - Install Nix and/or Nix-Darwin.
   home    - Build and activate a Home-manager configuration.
   system  - Build and activate a NixOS or Nix-Darwin system configuration.
   all     - Execute both the system and home targets in that order.
   test    - Check all flake configurations.
 
-Required arguments:
-  host    - System configuration host (current hostname will be passed by default).
-  user    - User configuration (current user will be passed by default).
-  system  - System platform to target for builds: x86_64-linux, aarch64-linux, x86_64-darwin, or aarch64-darwin 
-(current platform will be passed by default.)
-
-Optional arguments:
-  spec    - Comma separated list of system specialisation configurations (no spaces).
-
-Install option flags (assigning any value will enable them):
-  SINGLE_USER=true  - Install Nix for single-user mode.
+install target flags (assigning any value will enable them):
   DETERMINATE=true  - Install Nix using the Determinate Systems installer.
   NIX_DARWIN=true   - Install Nix-Darwin for MacOS.
   NIXGL=true        - Install NixGL; OpenGL and Vulkan wrapper for non-NixOS systems.
+  SINGLE_USER=true  - Install Nix for single-user mode.
 
-Home|system|all option flags:
+Configuration parameters:
+  TGT_HOST    - System configuration host (current hostname will be passed by default).
+  TGT_USER    - User configuration (current user will be passed by default).
+  TGT_SYSTEM  - System platform to target for builds: x86_64-linux, aarch64-linux, x86_64-darwin, or aarch64-darwin 
+(current platform will be passed by default.)
+  TGT_SPEC    - Comma separated list of system specialisation configurations (no spaces).
+
+Configuration target flags:
   DRY_RUN=true      - Evaluate the new configuration but don't activate it.
-  BOOT_SPEC=true    - Set the default boot menu option to the first listed specialisation.
+  BOOT_SPEC=true    - Set the default boot menu option to the first \ 
+	listed specialisation. (NOTE: Only supports systemd boot configurations.)
 
 Usage examples:
   - Switch the home-manager configuration for current user; autodetect system type:

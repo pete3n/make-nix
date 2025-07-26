@@ -1,34 +1,33 @@
 make-nix help
 
 Usage:
-[0;31mmake[0m [1m<help|install|home|system|all|test>[0m [[1;36mhost[0m[0;31m=[0m<host>][[1;36muser[0m[0;31m=[0m<user>] [[1;36msystem[0m[0;31m=[0m<system>] [[1;36mspec[0m[0;31m=[0m<spc1>[0;31m,[0m<spc2>[0;31m,[0m<spc3>[0;31m,[0m...] [[1;34moption flags[0m]
+[0;31mmake[0m [1m<help|install|home|system|all|test>[0m [[1;36mTGT_HOST[0m[0;31m=[0m<host>][[1;36mTGT_USER[0m[0;31m=[0m<user>] [[1;36mTGT_SYSTEM[0m[0;31m=[0m<system>] [[1;36mTGT_SPEC[0m[0;31m=[0m<spc1>[0;31m,[0m<spc2>[0;31m,[0m<spc3>[0;31m,[0m...] [[1;34mOPTION FLAGS[0m]
 
-Make targets:
+[1;34mMake targets:[0m
   [1mhelp[0m    - You are here.
-  [1minstall[0m - Install Nix or Nix-Darwin.
+  [1minstall[0m - Install Nix and/or Nix-Darwin.
   [1mhome[0m    - Build and activate a Home-manager configuration.
   [1msystem[0m  - Build and activate a NixOS or Nix-Darwin system configuration.
   [1mall[0m     - Execute both the system and home targets in that order.
   [1mtest[0m    - Check all flake configurations.
 
-Required arguments:
-  [1;36mhost[0m    - System configuration host (current hostname will be passed by default).
-  [1;36muser[0m    - User configuration (current user will be passed by default).
-  [1;36msystem[0m  - System platform to target for builds: x86_64-linux, aarch64-linux, x86_64-darwin, or aarch64-darwin 
-(current platform will be passed by default.)
-
-Optional arguments:
-  [1;36mspec[0m    - Comma separated list of system specialisation configurations (no spaces).
-
-Install option flags (assigning any value will enable them):
-  [1;34mSINGLE_USER[0m[0;31m=[0mtrue  - Install Nix for single-user mode.
+[1;34minstall target flags (assigning any value will enable them):[0m
   [1;34mDETERMINATE[0m[0;31m=[0mtrue  - Install Nix using the Determinate Systems installer.
   [1;34mNIX_DARWIN[0m[0;31m=[0mtrue   - Install Nix-Darwin for MacOS.
   [1;34mNIXGL[0m[0;31m=[0mtrue        - Install NixGL; OpenGL and Vulkan wrapper for non-NixOS systems.
+  [1;34mSINGLE_USER[0m[0;31m=[0mtrue  - Install Nix for single-user mode.
 
-Home|system|all option flags:
+[1;34mConfiguration parameters:[0m
+  [1;36mTGT_HOST[0m    - System configuration host (current hostname will be passed by default).
+  [1;36mTGT_USER[0m    - User configuration (current user will be passed by default).
+  [1;36mTGT_SYSTEM[0m  - System platform to target for builds: x86_64-linux, aarch64-linux, x86_64-darwin, or aarch64-darwin 
+(current platform will be passed by default.)
+  [1;36mTGT_SPEC[0m    - Comma separated list of system specialisation configurations (no spaces).
+
+[1;34mConfiguration target flags:[0m
   [1;34mDRY_RUN[0m[0;31m=[0mtrue      - Evaluate the new configuration but don't activate it.
-  [1;34mBOOT_SPEC[0m[0;31m=[0mtrue    - Set the default boot menu option to the [1mfirst[0m listed specialisation.
+  [1;34mBOOT_SPEC[0m[0;31m=[0mtrue    - Set the default boot menu option to the [1mfirst[0m \ 
+	listed specialisation. (NOTE: Only supports systemd boot configurations.)
 
 Usage examples:
   [1;32m- Switch the home-manager configuration for current user; autodetect system type:[0m
