@@ -43,6 +43,7 @@ if [ -n "${NIX_DARWIN+x}" ]; then
 				exit 1
 			fi
 		fi
+		make write-build-target
 		sudo nix run nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .
 	else
 		printf "%binfo:%b Skipping nix-darwin install: macOS not detected.\n" "$BLUE" "$RESET"
