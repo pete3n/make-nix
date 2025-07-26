@@ -32,14 +32,7 @@ else
 	printf "TGT_SPEC=%s\n" "$TGT_SPEC" >> "$MAKE_NIX_ENV"
 fi
 
-has_nix() {
-  command -v nix >/dev/null 2>&1
-}
-
-if ! has_nix; then
-	logf "\n%berror:%b nix not found in PATH. Ensure it is correctly installed.\n" "$RED" "$RESET"
-	exit 1
-fi
+check_for_nix
 
 if [ -z "${TGT_SYSTEM:-}" ]; then
   system="$(nix eval --impure --raw --expr 'builtins.currentSystem')"

@@ -77,7 +77,6 @@ activate() {
 
 if [ "$IS_LINUX" = true ]; then
 	if [ "$mode" = "--build" ]; then
-		check_for_nix
 		build "$base_linux_build_cmd" "$base_linux_build_print_cmd" \
 			"${dry_switch} ${nix_cmd_switch} ${flake_switch}" \
 			"${dry_print_switch} ${nix_cmd_switch} ${flake_switch}"
@@ -92,7 +91,6 @@ if [ "$IS_LINUX" = true ]; then
 	fi
 else
 	if [ "$mode" = "--build" ]; then
-		check_for_nix
 		build "$base_darwin_build_cmd" "$base_darwin_build_print_cmd" \
 			"${dry_switch} ${nix_cmd_switch} ${flake_switch}" \
 			"${dry_print_switch} ${nix_cmd_switch} ${flake_switch}"

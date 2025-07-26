@@ -71,7 +71,6 @@ activate() {
 }
 
 if [ "$mode" = "--build" ]; then
-	check_for_nix
 	build "$base_build_cmd" "$base_build_print_cmd" "$dry_switch" "$dry_print_switch"
 elif [ "$mode" = "--activate" ]; then
 	if [ "$dry_switch" = "--dry-run" ]; then
