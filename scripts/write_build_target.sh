@@ -5,10 +5,32 @@ env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp working an
 # shellcheck disable=SC1090
 . "$env_file"
 
+has_nix() {
+  command -v nix >/dev/null 2>&1
+}
+
+if ! has_nix; then
+	printf "%berror:%b nix not found in PATH. Ensure it is correctly installed.\n" "$RED" "$RESET"
+	exit 1
+fi
+
+if [ -z "${system:-}" ]; then
+  system="$(nix eval --impure --raw --expr 'builtins.currentSystem')"
+	printf "%s\n" "$system" >> "$MAKE_NIX_ENV"
+fi
+
+case "$system" in
+  *-linux) is_linux=true ;;
+  *-darwin) is_linux=false ;;
+  *)
+    printf "error: unsupported system detected %s" "$system" >&2
+    exit 1
+    ;;
+esac
+printf "%s\n" "$is_linux" >> "$MAKE_NIX_ENV"
+
 user="${BUILD_TARGET_USER:? error: user must be set.}"
 host="${BUILD_TARGET_HOST:? error: host must be set.}"
-system="${BUILD_TARGET_SYSTEM:? error: system must be set.}"
-is_linux="${BUILD_TARGET_IS_LINUX:? error: unabled to determine if target is Linux or Darwin.}"
 specialisations="${BUILD_TARGET_SPECIALISATIONS:-}"
 
 printf "Writing build-target.nix with the attributes:\n"

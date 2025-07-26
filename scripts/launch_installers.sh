@@ -25,7 +25,9 @@ if nix --version >/dev/null 2>&1; then
 fi
 
 if [ "$nix_found" -eq 1 ]; then
-	printf "%binfo:%b Nix found, installation skipped...\n" "$BLUE" "$RESET"
+	printf "%binfo:%b Nix found in PATH; skipping Nix installation...\n" "$BLUE" "$RESET"
+	printf "If you want to re-install, please follow these instructions to uninstall first: \n"
+	printf "%bhttps://nix.dev/manual/nix/latest/installation/uninstall.html%b\n" "$BLUE" "$RESET"
 else
 	if [ -f "$(dirname "$0")/nix_installer.sh" ]; then
 		sh "$(dirname "$0")/nix_installer.sh" "$install_flags"
@@ -40,7 +42,7 @@ if [ -n "${NIX_DARWIN+x}" ]; then
 		printf "\n>>> Installing nix-darwin...\n"
 		sudo nix run nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .
 	else
-		printf "%berror:%b Skipping nix-darwin install: macOS not detected.\n" "$RED" "$RESET"
-		exit 1
+		printf "%binfo:%b Skipping nix-darwin install: macOS not detected.\n" "$BLUE" "$RESET"
+		exit 0
 	fi
 fi
