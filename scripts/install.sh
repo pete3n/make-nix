@@ -9,8 +9,8 @@ env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp working an
 
 # Cleanup handler
 cleanup() {
-    printf "%b→%b Running cleanup..." "${GREEN}" "${RESET}"
-    make clean || printf "%b⚠️%b Cleanup failed!" "${RED}" "${RESET}"
+    printf "%b>>>%b Running cleanup...\n" "${BLUE}" "${RESET}"
+    make clean || printf "%b⚠️%b Cleanup failed!\n" "${RED}" "${RESET}"
 }
 
 trap cleanup EXIT

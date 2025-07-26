@@ -29,8 +29,8 @@ if [ "$nix_found" -eq 1 ]; then
 	printf "If you want to re-install, please follow these instructions to uninstall first: \n"
 	printf "%bhttps://nix.dev/manual/nix/latest/installation/uninstall.html%b\n" "$BLUE" "$RESET"
 else
-	if [ -f "$(dirname "$0")/nix_installer.sh" ]; then
-		sh "$(dirname "$0")/nix_installer.sh" "$install_flags"
+	if [ -f "$MAKE_NIX_INSTALLER" ]; then
+		sh "$MAKE_NIX_INSTALLER" "$install_flags"
 	else
 		printf "%berror:%b Could not execute 'nix_installer.sh'.\n" "$RED" "$RESET"
 		exit 1
