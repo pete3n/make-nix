@@ -31,15 +31,7 @@ fi
 if [ -n "${NIX_DARWIN+x}" ]; then
 	if [ "${UNAME_S:-}" = "Darwin" ]; then
 		logf "\n%b>>> Installing nix-darwin...%b\n" "$BLUE" "$RESET"
-		if ! command -v nix >/dev/null 2>&1; then
-			# shellcheck disable=SC1091
-			. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-
-			if ! command -v nix >/dev/null 2>&1; then
-				logf "\n%berror:%b nix not found in PATH. Ensure it was correctly installed.\n" "$RED" "$RESET" >&2
-				exit 1
-			fi
-		fi
+		check_for_nix
 		make write-build-target
 		sudo nix run nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .
 	else
