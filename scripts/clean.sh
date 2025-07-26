@@ -5,6 +5,10 @@ env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp working an
 # shellcheck disable=SC1090
 . "$env_file"
 
+if [ -n "${KEEP_LOGS+x}" ]; then
+	exit 0
+fi
+
 if [ -f "$MAKE_NIX_LOG" ]; then
 	rm -f "$MAKE_NIX_LOG"
 fi

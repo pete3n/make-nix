@@ -4,7 +4,7 @@ set -eu
 if [ -n "${NO_ANSI+x}" ]; then
 	# shellcheck disable=SC1091
 	. "$(dirname "$0")/no_ansi.env"
-	help_file="$(dirname "$0")/no_ansi_help.txt"
+	help_file="$(dirname "$0")/help_no_ansi.txt"
 else
 	# shellcheck disable=SC1091
 	. "$(dirname "$0")/ansi.env"
@@ -19,9 +19,12 @@ write_line() {
 
 write_line "make-nix help\n"
 write_line "Usage:"
-write_line "${RED}make${RESET} ${BOLD}<help|install|home|system|all|test>${RESET} [${CYAN}TGT_HOST${RESET}${RED}=${RESET}<host>]\
-[${CYAN}TGT_USER${RESET}${RED}=${RESET}<user>] [${CYAN}TGT_SYSTEM${RESET}${RED}=${RESET}<system>] [${CYAN}TGT_SPEC${RESET}${RED}=${RESET}\
-<spc1>${RED},${RESET}<spc2>${RED},${RESET}<spc3>${RED},${RESET}...] [${BLUE}OPTION FLAGS${RESET}]"
+write_line "${RED}make${RESET} ${BOLD}<help|install|home|system|all|test>${RESET}\n\
+[${CYAN}TGT_HOST${RESET}${RED}=${RESET}<host>]\n\
+[${CYAN}TGT_USER${RESET}${RED}=${RESET}<user>]\n\
+[${CYAN}TGT_SYSTEM${RESET}${RED}=${RESET}<system>]\n\
+[${CYAN}TGT_SPEC${RESET}${RED}=${RESET}<spc1>${RED},${RESET}<spc2>${RED},${RESET}<spc3>${RED},${RESET}...]\n\
+[${BLUE}OPTION FLAGS${RESET}]"
 
 write_line ""
 write_line "${BLUE}Make targets:${RESET}"
@@ -33,13 +36,6 @@ write_line "  ${BOLD}all${RESET}     - Execute both the system and home targets 
 write_line "  ${BOLD}test${RESET}    - Check all flake configurations."
 
 write_line ""
-write_line "${BLUE}install target flags (assigning any value will enable them):${RESET}"
-write_line "  ${BLUE}DETERMINATE${RESET}${RED}=${RESET}true  - Install Nix using the Determinate Systems installer."
-write_line "  ${BLUE}NIX_DARWIN${RESET}${RED}=${RESET}true   - Install Nix-Darwin for MacOS."
-write_line "  ${BLUE}NIXGL${RESET}${RED}=${RESET}true        - Install NixGL; OpenGL and Vulkan wrapper for non-NixOS systems."
-write_line "  ${BLUE}SINGLE_USER${RESET}${RED}=${RESET}true  - Install Nix for single-user mode."
-
-write_line ""
 write_line "${BLUE}Configuration parameters:${RESET}"
 write_line "  ${CYAN}TGT_HOST${RESET}    - System configuration host (current hostname will be passed by default)."
 write_line "  ${CYAN}TGT_USER${RESET}    - User configuration (current user will be passed by default)."
@@ -48,10 +44,22 @@ write_line "(current platform will be passed by default.)"
 write_line "  ${CYAN}TGT_SPEC${RESET}    - Comma separated list of system specialisation configurations (no spaces)."
 
 write_line ""
+write_line "${BLUE}Option flags (assigning any value will enable them):${RESET}"
+write_line ""
+write_line "${BLUE}Install target flags:${RESET}"
+write_line "  ${BLUE}DETERMINATE${RESET}${RED}=${RESET}true  - Install Nix using the Determinate Systems installer."
+write_line "  ${BLUE}NIX_DARWIN${RESET}${RED}=${RESET}true   - Install Nix-Darwin for MacOS."
+write_line "  ${BLUE}NIXGL${RESET}${RED}=${RESET}true        - Install NixGL; OpenGL and Vulkan wrapper for non-NixOS systems."
+write_line "  ${BLUE}SINGLE_USER${RESET}${RED}=${RESET}true  - Install Nix for single-user mode."
+
+write_line ""
 write_line "${BLUE}Configuration target flags:${RESET}"
 write_line "  ${BLUE}DRY_RUN${RESET}${RED}=${RESET}true      - Evaluate the new configuration but don't activate it."
-write_line "  ${BLUE}BOOT_SPEC${RESET}${RED}=${RESET}true    - Set the default boot menu option to the ${BOLD}first${RESET} \ 
-	listed specialisation. (NOTE: Only supports systemd boot configurations.)"
+write_line "  ${BLUE}BOOT_SPEC${RESET}${RED}=${RESET}true    - Set the default boot menu option to the ${BOLD}first${RESET} listed specialisation. (NOTE: Only supports systemd boot configurations.)"
+
+write_line ""
+write_line "${BLUE}Additional flags:${RESET}"
+write_line "  ${BLUE}KEEP_LOGS${RESET}${RED}=${RESET}true    - Don't erase logs after operations (for debugging)."
 
 write_line ""
 write_line "Usage examples:"

@@ -64,19 +64,19 @@ clean:
 
 .PHONY: build-home
 build-home:
-	@sh scripts/build_home.sh
+	@sh scripts/home.sh --build
 
 .PHONY: activate-home
 activate-home:
-	@sh scripts/activate_home.sh
+	@sh scripts/home.sh --activate
 
 .PHONY: build-system
 build-system:
-	@sh scripts/build_system.sh
+	@sh scripts/system.sh --build
 
 .PHONY: activate-system
 activate-system:
-	@sh scripts/activate_system.sh
+	@sh scripts/system.sh --activate
 
 .PHONY: flake-check
 flake-check:
@@ -86,14 +86,15 @@ flake-check:
 set-specialisation-boot:
 	@sh scripts/set_specialisation_boot.sh
 
-.PHONY: install
-install:
-	@sh scripts/install.sh
+.PHONY: installs
+installs:
+	@sh scripts/installs.sh
 
-.PHONY: home home-all system system-all all test
+.PHONY: home home-all install system system-all all test
 home: init-env check-dependencies write-build-target build-home activate-home check-dirty-warn clean
 home-all: build-home activate-home check-dirty-warn
+install: installs clean
 system: init-env check-dependencies write-build-target build-system activate-system check-dirty-warn set-specialisation-boot clean
 system-all: build-system activate-system check-dirty-warn set-specialisation-boot
-all: init-env check-dependencies write-build-target system-all home-all clean
+all: init-env check-dependencies write-build-target system home clean
 test: init-env check-dependencies write-build-target flake-check check-dirty-warn clean
