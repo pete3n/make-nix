@@ -93,7 +93,7 @@ installs:
 .PHONY: home home-all install system system-all all test
 home: init-env check-dependencies write-build-target build-home activate-home check-dirty-warn clean
 home-all: build-home activate-home check-dirty-warn
-install: init-env installs clean
+install: init-env installs
 system: init-env check-dependencies write-build-target build-system activate-system check-dirty-warn set-specialisation-boot clean
 system-all: build-system activate-system check-dirty-warn set-specialisation-boot
 all: init-env check-dependencies write-build-target system-all home-all clean
