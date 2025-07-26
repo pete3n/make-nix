@@ -2,8 +2,6 @@
 # shellcheck disable=SC1091
 . "$(dirname "$0")/common.sh"
 
-printf "depedencies: env file is: %s\n" "$MAKE_NIX_ENV"
-
 required_utils="cat chmod command curl cut dirname git grep hostname mkdir logf rm \
 	shasum sudo tee uname whoami xargs"
 optional_utils="less read script"

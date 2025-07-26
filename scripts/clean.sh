@@ -1,8 +1,6 @@
 #!/usr/bin/env sh
 set -eu
 
-printf "Clean: env file is: %s\n" "$MAKE_NIX_ENV"
-
 if [ -n "${KEEP_LOGS+x}" ]; then
 	exit 0
 fi
