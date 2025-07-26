@@ -48,7 +48,8 @@ build() {
 	logf "\n%bBuild command:%b %b\n\n" "$BLUE" "$RESET" "$print_cmd"
 
 	if [ "${USE_SCRIPT:-}" = "true" ]; then
-		script -a -q -c "$build_cmd" "$MAKE_NIX_LOG"
+		eval "$build_cmd" | tee "$MAKE_NIX_LOG"
+		#script -a -q -c "$build_cmd" "$MAKE_NIX_LOG"
 	else
 		eval "$build_cmd" | tee "$MAKE_NIX_LOG"
 	fi
