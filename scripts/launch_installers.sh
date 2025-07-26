@@ -5,7 +5,7 @@ env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp working an
 # shellcheck disable=SC1090
 . "$env_file"
 
-printf "\n%b>>>%b Lauching installer...\n" "$BLUE" "$RESET"
+printf "\n%b>>> Lauching installer...%b\n" "$BLUE" "$RESET"
 
 install_flags=""
 if [ -n "${DETERMINATE+x}" ]; then
@@ -33,7 +33,7 @@ fi
 
 if [ -n "${NIX_DARWIN+x}" ]; then
 	if [ "${UNAME_S:-}" = "Darwin" ]; then
-		printf "\n%b>>>%b Installing nix-darwin...\n" "$BLUE" "$RESET"
+		printf "\n%b>>> Installing nix-darwin...%b\n" "$BLUE" "$RESET"
 		if ! command -v nix >/dev/null 2>&1; then
 			# shellcheck disable=SC1091
 			. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
@@ -49,4 +49,8 @@ if [ -n "${NIX_DARWIN+x}" ]; then
 		printf "%binfo:%b Skipping nix-darwin install: macOS not detected.\n" "$BLUE" "$RESET"
 		exit 0
 	fi
+fi
+
+if [ "${UNAME_S:-}" = "Linux" ]; then
+	printf "\n%b>>> Installing NixGL...%b\n" "$BLUE" "$RESET"
 fi

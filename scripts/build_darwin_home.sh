@@ -10,7 +10,7 @@ host="${TGT_HOST:? error: host must be set.}"
 
 if [ -n "${DRY_RUN+x}" ]; then
 	printf "\n%bDry-run%b %benabled%b: configuration will not be activated.\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
-	printf "Building home-manager config for Darwin...\n"
+	printf "\n%b>>>%b Building home-manager configuration for Darwin...\n" "$BLUE" "$RESET"
 	if script -q -c true /dev/null; then
 		script -q -c "nix run nixpkgs#home-manager -- build -b backup --dry-run --flake .#${user}@${host}" "$MAKE_NIX_LOG"
 	else

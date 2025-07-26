@@ -7,5 +7,5 @@ env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp working an
 
 host="${TGT_HOST:? error: host must be set.}"
 
-printf "Activating system config for Linux...\n"
+printf "%b>>> Activating system config for Linux...%b" "$BLUE" "$RESET"
 sudo ./result/sw/bin/nixos-rebuild switch --flake .#"${host}"

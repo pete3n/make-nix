@@ -17,7 +17,7 @@ if [ -n "${DRY_RUN+x}" ]; then
 		nix run nixpkgs#home-manager -- build -b backup --dry-run --flake ".#${user}@${host}" | tee "$MAKE_NIX_LOG"
 	fi
 else
-	printf "Building home-manager configuration for Linux...\n"
+	printf "\n%b>>>%b Building home-manager configuration for Linux...\n" "$BLUE" "$RESET"
 	if script -q -c true /dev/null; then
 		script -q -c "nix run nixpkgs#home-manager -- build -b backup --flake .#${user}@${host}" "$MAKE_NIX_LOG"
 	else

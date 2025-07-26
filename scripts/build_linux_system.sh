@@ -18,7 +18,7 @@ if [ -n "${DRY_RUN+x}" ]; then
 			--extra-experimental-features 'nix-command flakes' | tee "$MAKE_NIX_LOG"
 	fi
 else
-	printf "\nBuilding system config for Linux...\n"
+	printf "\n%b>>>%b Building system configuration for Linux...\n" "$BLUE" "$RESET"
 	printf "nix build .#nixosConfigurations.%s.config.system.build.toplevel --extra-experimental-features 'nix-command flakes'" "${host}"
 	if script -q -c true /dev/null; then
 		script -q -c "nix build .#nixosConfigurations.${host}.config.system.build.toplevel \

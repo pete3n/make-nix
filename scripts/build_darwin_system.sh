@@ -18,7 +18,7 @@ if [ -n "${DRY_RUN+x}" ]; then
 			--extra-experimental-features 'nix-command flakes' | tee "$MAKE_NIX_LOG"
 	fi
 else
-	printf "\nBuilding system config for Darwin...\n"
+	printf "\n%b>>>%b Building system configuration for Darwin...\n" "$BLUE" "$RESET"
 	printf "nix build .#darwinConfigurations.%s.system \
 			--extra-experimental-features 'nix-command flakes'" "${host}"
 	if script -q -c true /dev/null; then
