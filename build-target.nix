@@ -1,8 +1,8 @@
 { ... }:
 {
   user = "pete";
-  host = "generic_linux";
-  distro = "debian";
+  host = "xps-15";
+  distro = "unkown";
   system = "x86_64-linux";
   isLinux = true;
   specialisations = [ ];
