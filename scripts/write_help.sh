@@ -49,7 +49,6 @@ write_line ""
 write_line "${BLUE}Install target flags:${RESET}"
 write_line "  ${BLUE}DETERMINATE${RESET}${RED}=${RESET}true  - Install Nix using the Determinate Systems installer."
 write_line "  ${BLUE}NIX_DARWIN${RESET}${RED}=${RESET}true   - Install Nix-Darwin for MacOS."
-write_line "  ${BLUE}NIXGL${RESET}${RED}=${RESET}true        - Install NixGL; OpenGL and Vulkan wrapper for non-NixOS systems."
 write_line "  ${BLUE}SINGLE_USER${RESET}${RED}=${RESET}true  - Install Nix for single-user mode."
 
 write_line ""
