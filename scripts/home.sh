@@ -23,10 +23,10 @@ if [ -z "$mode" ]; then
 	exit 1
 fi
 
-base_build_cmd="nix --extra-experimental-features \"nix-command flakes\" run nixpkgs#home-manager -- build -b backup --flake .#${user}@${host}"
-base_build_print_cmd="nix --extra-experimental-features \"nix-command flakes\" run nixpkgs#home-manager -- build -b backup --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
-base_activate_cmd="nix --extra-experimental-features \"nix-command flakes\" run nixpkgs#home-manager -- switch -b backup --flake .#${user}@${host}"
-base_activate_print_cmd="nix --extra-experimental-features \"nix-command flakes\" run nixpkgs#home-manager -- switch -b backup --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
+base_build_cmd="nix run nixpkgs#home-manager -- build -b backup --flake .#${user}@${host}"
+base_build_print_cmd="nix run nixpkgs#home-manager -- build -b backup --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
+base_activate_cmd="nix run nixpkgs#home-manager -- switch -b backup --flake .#${user}@${host}"
+base_activate_print_cmd="nix run nixpkgs#home-manager -- switch -b backup --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
 
 dry_switch=""
 if [ -n "${DRY_RUN+x}" ]; then
@@ -48,8 +48,7 @@ build() {
 	logf "\n%bBuild command:%b %b\n\n" "$BLUE" "$RESET" "$print_cmd"
 
 	if [ "${USE_SCRIPT:-}" = "true" ]; then
-		eval "$build_cmd" | tee "$MAKE_NIX_LOG"
-		#script -a -q -c "$build_cmd" "$MAKE_NIX_LOG"
+		script -a -q -c "$build_cmd" "$MAKE_NIX_LOG"
 	else
 		eval "$build_cmd" | tee "$MAKE_NIX_LOG"
 	fi
@@ -72,6 +71,7 @@ activate() {
 }
 
 if [ "$mode" = "--build" ]; then
+	sh scripts/enable_flakes.sh
 	build "$base_build_cmd" "$base_build_print_cmd" "$dry_switch" "$dry_print_switch"
 elif [ "$mode" = "--activate" ]; then
 	if [ "$dry_switch" = "--dry-run" ]; then
