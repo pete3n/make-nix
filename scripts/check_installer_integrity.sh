@@ -1,6 +1,8 @@
 #!/usr/bin/env sh
+set -eu
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
-. "$(dirname "$0")/common.sh"
+. "$SCRIPT_DIR/common.sh"
 
 if [ "${DETERMINATE:-0}" -eq 1 ]; then
 	logf "\n%b>>> Verifying Determinate Systems installer integrity...%b\n" "$BLUE" "$RESET"

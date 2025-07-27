@@ -1,9 +1,11 @@
 #!/usr/bin/env sh
+set -eu
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
-. "$(dirname "$0")/common.sh"
+. "$SCRIPT_DIR/common.sh"
 
-required_utils="cat chmod command curl cut dirname git grep hostname mkdir logf rm \
-	shasum sudo tee uname whoami xargs"
+required_utils="cat chmod command curl cut dirname git grep mkdir printf pwd \
+	rm shasum shift sudo tee tr uname whoami xargs"
 optional_utils="less read script"
 
 missing_required=0

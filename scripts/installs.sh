@@ -1,9 +1,16 @@
 #!/usr/bin/env sh
+set -eu
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
-. "$(dirname "$0")/common.sh"
+. "$SCRIPT_DIR/common.sh"
+
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
 
-make check-dependencies
-make installer-os-check
-make check-nix-integrity
-make launch-installers
+if [ "${UNAME_S:-}" != "Linux" ] && [ "${UNAME_S:-}" != "Darwin" ]; then
+		echo "Unsupported OS: ${UNAME_S:-}"
+		exit 1
+fi
+
+sh "$SCRIPT_DIR/check_dependencies.sh"
+sh "$SCRIPT_DIR/check_installer_integrity.sh"
+sh "$SCRIPT_DIR/launch_installers.sh"

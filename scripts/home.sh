@@ -2,7 +2,7 @@
 # shellcheck disable=SC1091
 . "$(dirname "$0")/common.sh"
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
-set -x
+
 if [ -z "${TGT_SYSTEM:-}" ]; then
 	logf "\n%berror:%b Could not determine target system platform.\n" "$RED" "$RESET"
 	exit 1

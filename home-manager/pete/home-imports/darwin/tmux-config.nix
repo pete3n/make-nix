@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ pkgs,  ... }:
 let
   floax = pkgs.tmuxPlugins.mkTmuxPlugin {
     pluginName = "floax";

@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
+set -eu
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
-. "$(dirname "$0")/common.sh"
+. "$SCRIPT_DIR/common.sh"
+
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
 
 nix_conf="$HOME/.config/nix/nix.conf"

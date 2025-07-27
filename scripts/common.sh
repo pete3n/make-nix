@@ -2,7 +2,6 @@
 if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 	_COMMON_SH_INCLUDED=1
 
-	set -eu
 	env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp is working and in your PATH.}"
 
 	# shellcheck disable=SC1090
@@ -34,6 +33,13 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 				logf "\n%berror:%b nix not found in PATH. Ensure it was correctly installed.\n" "$RED" "$RESET" >&2
 				exit 1
 			fi
+		fi
+	}
+
+	check_for_nixos() {
+		if ! command -v nixos-rebuild >/dev/null 2>&1; then
+			logf "\n%berror:%b nixos-rebuild not found in PATH.\n" "$RED" "$RESET" >&2
+			exit 1
 		fi
 	}
 

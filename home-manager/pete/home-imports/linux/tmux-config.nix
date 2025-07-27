@@ -64,6 +64,7 @@ in
   };
 
   programs.tmux = {
+		shell = "${pkgs.bash}/bin/bash";
     enable = true;
     sensibleOnTop = false;
     escapeTime = 10;
@@ -99,7 +100,7 @@ in
           '';
         }
       ]);
-    extraConfig = # bash
+    extraConfig = # sh
       ''
         set -g history-limit 50000
         setw -g clock-mode-style 24

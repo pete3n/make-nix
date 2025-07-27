@@ -5,13 +5,25 @@ let
   nixVersions =
     pkgs.writeShellScriptBin "get-nix-versions" # sh
       ''
-        nixosVer=$(nixos-version)
+				os_title=""
+        # Most Linux distros
+        if [ -f "/etc/os-release" ]; then
+        	os=$(grep "^NAME=" </etc/os-release | cut -f2 -d= | tr -d '"')
+        	os_ver=$(grep "^VERSION=" </etc/os-release | cut -f2 -d= | tr -d '"')
+        	os_title="$os: $os_ver"
+        fi
+        # MacOS
+        if [ "$(which sw_vers)" ]; then
+        	os=$(sw_vers | grep "ProductName" | cut -f2 -d: | tr -d '[:space:]')
+        	os_ver=$(sw_vers | grep "ProductVersion" | cut -f2 -d: | tr -d '[:space:]')
+        	os_title="$os}: $os_ver"
+        fi
         kernelVer=$(uname -r)
         nixVer=$(nix --version)
-        ${jq}/bin/jq -c -n --arg nixos "NixOS: $nixosVer" \
-        	--arg kernel "Linux Kernel: $kernelVer" \
+        ${jq}/bin/jq -c -n --arg os "$os_title" \
+        	--arg kernel "Kernel: $kernelVer" \
         	--arg nix "$nixVer" \
-        	'{"tooltip": "\($nixos)\r\($kernel)\r\($nix)"}'
+        	'{"tooltip": "\($os)\r\($kernel)\r\($nix)"}'
       '';
 in
 {

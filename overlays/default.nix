@@ -63,4 +63,14 @@
       config.allowUnfree = true;
     };
   };
+
+  nixgl = if build_target.isLinux then inputs.nixgl.overlay else (_: _: { });
+
+  compatability = final: prev:
+    if build_target.tags == "debian" then {
+      hyprland = final.writeShellScriptBin "Hyprland" ''
+        exec ${final.nixgl.nixGLIntel}/bin/nixGLIntel ${prev.hyprland}/bin/Hyprland "$@"
+      '';
+    } else
+      { };
 }

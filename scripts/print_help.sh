@@ -1,7 +1,8 @@
 #!/usr/bin/env sh
-env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp is working and in your path.}"
-# shellcheck disable=SC1090
-. "$env_file"
+set -eu
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck disable=SC1091
+. "$SCRIPT_DIR/common.sh"
 
 has_less() {
   command -v less >/dev/null 2>&1

@@ -27,9 +27,8 @@ if [ ! -f "$installer_env" ]; then
 fi
 
 if [ -t 1 ] && [ "${TERM:-}" != "dumb" ]; then
-	printf '\033[1;34mANSI colors supported.\033[0m\n'
+	: # ANSI support is assumed
 else
-	printf "ANSI colors not supported.\n"
 	printf "NO_ANSI=true\n" >>"$env_file"
 fi
 

@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
+set -eu
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
-. "$(dirname "$0")/common.sh"
+. "$SCRIPT_DIR/common.sh"
+
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
 
 if [ -z "${TGT_USER:-}" ]; then
@@ -15,8 +18,14 @@ else
 	user=$TGT_USER
 fi
 
+if [ "${TGT_TAGS+x}" ]; then
+	printf "TGT_TAGS=%s\n" "$TGT_TAGS" >> "$MAKE_NIX_ENV"
+else
+	TGT_TAGS=""
+fi
+
 if [ -z "${TGT_HOST:-}" ]; then
-	host="$(hostname)"
+	host="$(uname -n)"
 	if [ -z "$host" ]; then
 		logf "\n%berror:%b could not determine local hostname.\n" "$RED" "$RESET"
 		exit 1 
@@ -26,10 +35,10 @@ else
 	host=$TGT_HOST
 fi
 
-if ! [ "${TGT_SPEC+x}" ]; then
-	TGT_SPEC=""
-else
+if [ "${TGT_SPEC+x}" ]; then
 	printf "TGT_SPEC=%s\n" "$TGT_SPEC" >> "$MAKE_NIX_ENV"
+else
+	TGT_SPEC=""
 fi
 
 check_for_nix
@@ -51,11 +60,30 @@ case "$system" in
 esac
 printf "IS_LINUX=%s\n" "$is_linux" >> "$MAKE_NIX_ENV"
 
+if [ -n "${HOME_ALONE+x}" ]; then
+	is_home_alone=true
+else
+	is_home_alone=false
+fi
+
 logf "Writing build-target.nix with the attributes:\n"
 logf '  user              = "%s"\n' "$user"
 logf '  host              = "%s"\n' "$host"
 logf '  system            = "%s"\n' "$system"
-logf "  isLinux           = %s\n" "$is_linux"
+logf '  isLinux           = %s\n' "$is_linux"
+logf '  isHomeAlone       = %s\n' "$is_home_alone"
+
+logf "  tags              = ["
+if [ -n "$TGT_TAGS" ]; then
+	old_ifs=$IFS
+	IFS=','
+	for tag in $TGT_TAGS; do
+		logf ' "%s"' "$tag"
+	done
+	IFS=$old_ifs
+fi
+logf " ]\n"
+
 logf "  specialisations   = ["
 if [ -n "$TGT_SPEC" ]; then
 	old_ifs=$IFS
@@ -73,6 +101,19 @@ logf " ]\n"
 	printf '  host = "%s";\n' "$host"
 	printf '  system = "%s";\n' "$system"
 	printf '  isLinux = %s;\n' "$is_linux"
+	printf '  isHomeAlone = %s;\n' "$is_home_alone"
+
+	printf "  tags = ["
+	if [ -n "$TGT_TAGS" ]; then
+		old_ifs=$IFS
+		IFS=","
+		for tag in $TGT_TAGS; do
+			printf ' "%s"' "$tag"
+		done
+		IFS=$old_ifs
+	fi
+	printf " ];\n"
+
 	printf "  specialisations = ["
 	if [ -n "$TGT_SPEC" ]; then
 		old_ifs=$IFS
@@ -83,6 +124,7 @@ logf " ]\n"
 		IFS=$old_ifs
 	fi
 	printf " ];\n"
+
 	printf '}\n'
 } >build-target.nix
 

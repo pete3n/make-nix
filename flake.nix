@@ -35,7 +35,8 @@
       url = "github:hyprwm/hyprland-plugins";
       inputs.hyprland.follows = "hyprland";
     };
-
+	
+    nixgl.url = "github:nix-community/nixGL";
     hyprcursor.url = "github:hyprwm/hyprcursor";
     nixvim.url = "github:pete3n/nixvim-flake?ref=nixos-25.05";
     deploy-rs.url = "github:serokell/deploy-rs";

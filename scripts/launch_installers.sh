@@ -1,6 +1,8 @@
 #!/usr/bin/env sh
+set -eu
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
-. "$(dirname "$0")/common.sh"
+. "$SCRIPT_DIR/common.sh"
 
 logf "\n%b>>> Launching installer...%b\n" "$BLUE" "$RESET"
 

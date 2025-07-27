@@ -1,5 +1,50 @@
 # This file contains unique username based configuration options
-{ config, ... }:
+{
+  config,
+  lib,
+  build_target,
+  ...
+}:
+let
+  tmux_preserve_path =
+    lib.optionalString build_target.isHomeAlone # sh
+      ''
+        # For non-NixOS or Nix-Darwin systems preserve PATH for tmux.
+        # Determine path to store saved PATH
+        if [ -n "$XDG_STATE_HOME" ]; then
+        	PATH_STATE_DIR="$XDG_STATE_HOME"
+        else
+        	PATH_STATE_DIR="$HOME/.local/state"
+        fi
+
+        PATH_STATE_FILE="$PATH_STATE_DIR/.nix-path.env"
+
+        # Ensure the directory exists
+        mkdir -p "$PATH_STATE_DIR"
+
+        # If not inside tmux, save the current PATH if it differs from the saved one
+        if [ -z "$TMUX" ]; then
+        	if [ -f "$PATH_STATE_FILE" ]; then
+        		SAVED_PATH=$(grep '^PATH=' "$PATH_STATE_FILE" | cut -d'"' -f2)
+        	else
+        		SAVED_PATH=""
+        	fi
+
+        	if [ "$PATH" != "$SAVED_PATH" ]; then
+        		printf 'PATH="%s"\nexport PATH\n' "$PATH" >"$PATH_STATE_FILE"
+        	fi
+        else
+        	# Inside tmux: restore PATH if it doesn't match the saved one
+        	if [ -f "$PATH_STATE_FILE" ]; then
+        		SAVED_PATH=$(grep '^PATH=' "$PATH_STATE_FILE" | cut -d'"' -f2)
+
+        		if [ "$PATH" != "$SAVED_PATH" ]; then
+        			eval "$(cat "$PATH_STATE_FILE")"
+        		fi
+        	fi
+        fi
+      '';
+in
 {
   programs.bash = {
     enableCompletion = true;
@@ -9,21 +54,13 @@
       screenshot = "grim";
       lsc = "lsd --classic";
     };
-    initExtra =
-      let
-        ssh-private-key = "pete3n";
-      in
-      # bash
+    initExtra = # sh
       ''
-        #if command -v keychain > /dev/null 2>&1; then
-        #	eval $(keychain --eval --nogui ${ssh-private-key} --quiet);
-        #fi
-
         set -o vi
-      '';
+      ''
+      + tmux_preserve_path;
 
-    profileExtra =
-      # bash
+    profileExtra = # sh
       ''
         export EDITOR=nvim
         if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then

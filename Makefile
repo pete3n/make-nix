@@ -1,10 +1,11 @@
-# make-Nix v0.1.4
+# make-Nix v0.1.5
 # This Makefile provides targets to install and configure Nix and NixOS for 
 # MacOS and Linux systems. It can build and deploy both NixOS system and 
 # Nix Home-manager configurations.
 # Please see https://github.com/pete3n/dotfiles for documentation.
-
+.DEFAULT_GOAL := help
 MAKEFLAGS += --no-print-directory
+
 UNAME_S := $(shell uname -s)
 
 ifeq ($(origin MAKE_NIX_ENV), undefined)
@@ -19,15 +20,9 @@ ifeq ($(origin MAKE_NIX_ENV), undefined)
   $(shell printf "UNAME_S=%s\n" "$(UNAME_S)" >> "$(MAKE_NIX_ENV)")
 endif
 
-.PHONY: help
-help: init-env show-help clean
-
-.PHONY: show-help
-show-help:
-	@if [ "$(MAKECMDGOALS)" = "" ]; then \
-		printf "\nYou must provide a make target.\n"; \
-		sh scripts/print_help.sh; \
-	else sh scripts/print_help.sh; fi
+#
+# Utility targets.
+#
 
 .PHONY: init-env
 init-env:
@@ -36,67 +31,108 @@ init-env:
 .PHONY: check-dependencies
 check-dependencies:
 	@sh scripts/check_dependencies.sh
-
-.PHONY: installer-os-check
-installer-os-check:
-	@if [ "$(UNAME_S)" != "Linux" ] && [ "$(UNAME_S)" != "Darwin" ]; then \
-		echo "Unsupported OS: $(UNAME_S)"; \
-		exit 1; \
-	fi
-
-.PHONY: check-nix-integrity
-check-nix-integrity:
-	@sh scripts/check_nix_integrity.sh
-
-.PHONY: launch-installers
-launch-installers:
-	@sh scripts/launch_installers.sh
-
-.PHONY: write-build-target
-write-build-target:
-	@sh scripts/write_build_target.sh
-
-.PHONY: check-dirty-warn
-check-dirty-warn:
-	@sh scripts/check_dirty_warn.sh
-
 .PHONY: clean
 clean:
 	@sh scripts/clean.sh
 
-.PHONY: build-home
-build-home:
-	@sh scripts/home.sh --build
+.PHONY: help
+help: init-env show-help clean
 
-.PHONY: activate-home
-activate-home:
-	@sh scripts/home.sh --activate
+.PHONY: show-help
+show-help:
+	@sh scripts/print_help.sh
 
-.PHONY: build-system
-build-system:
-	@sh scripts/system.sh --build
+#
+# Install targets.
+#
 
-.PHONY: activate-system
-activate-system:
-	@sh scripts/system.sh --activate
+# Initialize environment, launch installers, and cleanup.
+.PHONY: install
+install: init-env installs clean
 
-.PHONY: flake-check
-flake-check:
-	@sh scripts/flake_check.sh
-
-.PHONY: set-specialisation-boot
-set-specialisation-boot:
-	@sh scripts/set_specialisation_boot.sh
-
+# Launch installers, including integrity and depdency checks.
 .PHONY: installs
 installs:
 	@sh scripts/installs.sh
 
-.PHONY: home home-all install system system-all all test
+#
+# Configuration targets.
+#
+
+# Home-manager home configuration and activation.
+.PHONY: home
 home: init-env check-dependencies write-build-target build-home activate-home check-dirty-warn clean
-home-all: build-home activate-home check-dirty-warn
-install: init-env installs clean
+
+# NixOS system configuraiton and activation.
+.PHONY: system
 system: init-env check-dependencies write-build-target build-system activate-system check-dirty-warn set-specialisation-boot clean
-system-all: build-system activate-system check-dirty-warn set-specialisation-boot
-all: init-env check-dependencies write-build-target system-all home-all clean
+
+# Alias all-config.
+.PHONY: all
+all: all-config
+
+# Configure and activate both system and home.
+.PHONY: all-config
+all-config: init-env check-dependencies write-build-target all-system all-home clean
+
+# Home target used by all-config (assumes write target and cleanup handled).
+.PHONY: all-home
+all-home: build-home activate-home check-dirty-warn
+
+# System target used by all-config (assumes write target and cleanup handled).
+.PHONY: all-system
+all-system: build-system activate-system check-dirty-warn set-specialisation-boot
+
+# Check all flake configurations
+.PHONY: test
 test: init-env check-dependencies write-build-target flake-check check-dirty-warn clean
+
+#
+# Configuration utility targets
+#
+
+# Pass imperative configuration from make to Nix via build-target.nix
+.PHONY: write-build-target
+write-build-target:
+	@sh scripts/write_build_target.sh
+
+# Build flake-based Home-manager configurations for Linux or Darwin systems.
+.PHONY: build-home
+build-home:
+	@sh scripts/home.sh --build
+
+# Activate flake-based Home-manager configurations for Linux or Darwin systems.
+.PHONY: activate-home
+activate-home:
+	@sh scripts/home.sh --activate
+
+# Build flake-based system configurations for Linux or Darwin systems.
+.PHONY: build-system
+build-system:
+	@sh scripts/system.sh --build
+
+# Activate flake-based system configurations for Linux or Darwin systems.
+.PHONY: activate-system
+activate-system:
+	@sh scripts/system.sh --activate
+
+# Set the default boot menu option to the first specified specialisation for a system.
+.PHONY: set-specialisation-boot
+set-specialisation-boot:
+	@sh scripts/set_specialisation_boot.sh
+
+# Check for a dirty git tree and warn on a failed build about the confusing
+# missing path error. I should not have to write this...
+.PHONY: check-dirty-warn
+check-dirty-warn:
+	@sh scripts/check_dirty_warn.sh
+
+# Check all flake configurations; called by test.
+.PHONY: flake-check
+flake-check:
+	@sh scripts/flake_check.sh
+
+%:
+	@printf "Unknown target: '$@'\n"
+	@printf "Valid targets: help install home system all test\n"
+	@false

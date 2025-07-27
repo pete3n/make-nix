@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
+set -eu
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
-. "$(dirname "$0")/common.sh"
+. "$SCRIPT_DIR/common.sh"
+
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
 
 if [ -z "${TGT_SYSTEM:-}" ]; then
@@ -48,6 +51,7 @@ build() {
 	build_cmd="${base_cmd} ${switches}"
 	print_cmd="${print_cmd} ${print_switches}"
 
+	check_for_nix
 	logf "\n%b>>> Building system configuration for:%b\n" "$BLUE" "$RESET"
 	logf "%b%s%b host %b%s%b\n" "$CYAN" "$TGT_SYSTEM" "$RESET" \
 		"$CYAN" "$host" "$RESET"
@@ -64,6 +68,7 @@ activate() {
 	activate_cmd=$1
 	print_cmd=$2
 
+	check_for_nixos
 	logf "\n%b>>> Activating%b system configuration for %b%s%b host %b%s%b\n" \
 		"$BLUE" "$RESET" "$CYAN" "$TGT_SYSTEM" "$RESET" "$CYAN" "$host" "$RESET"
 	logf "\n%bActivate command:%b %b\n\n" "$BLUE" "$RESET" "$print_cmd"
