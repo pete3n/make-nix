@@ -39,7 +39,3 @@ if [ -n "${NIX_DARWIN+x}" ]; then
 		exit 0
 	fi
 fi
-
-if [ "${UNAME_S:-}" = "Linux" ] && [ -n "${NIXGL+x}" ]; then
-	logf "\n%b>>> Installing NixGL...%b\n" "$BLUE" "$RESET"
-fi
