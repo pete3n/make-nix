@@ -2,7 +2,7 @@
 {
   user = "pete";
   host = "xps-15";
-  distro = "unkown";
+  tags = "unkown";
   system = "x86_64-linux";
   isLinux = true;
   specialisations = [ ];
