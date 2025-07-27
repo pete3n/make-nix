@@ -1,7 +1,7 @@
 { ... }:
 {
   user = "pete";
-  host = "xps-15";
+  host = "generic_linux";
   distro = "unkown";
   system = "x86_64-linux";
   isLinux = true;
