@@ -1,10 +1,10 @@
 { ... }:
 {
   user = "pete";
-  host = "xps-15";
+  host = "framework16";
   system = "x86_64-linux";
   isLinux = true;
-  isHomeAlone = true;
+  isHomeAlone = false;
   tags = [ ];
   specialisations = [ ];
 }
