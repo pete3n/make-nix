@@ -60,7 +60,7 @@ case "$system" in
 esac
 printf "IS_LINUX=%s\n" "$is_linux" >> "$MAKE_NIX_ENV"
 
-if [ -n "${HOME_ALONE+x}" ]; then
+if is_truthy "${HOME_ALONE:-}"; then
 	is_home_alone=true
 else
 	is_home_alone=false

@@ -25,14 +25,14 @@ Configuration parameters:
 (current platform will be passed by default.)
   TGT_SPEC    - Comma separated list of system specialisation configurations (no spaces).
 
-Option flags (assigning any value will enable them):
-
-Install target flags:
+Target option flags (These are boolean, assigning any truthy value will enable them):
+truthy values are 1 yes Yes YES true True TRUE on On ON y Y
+Install flags:
   DETERMINATE=true  - Install Nix using the Determinate Systems installer.
   NIX_DARWIN=true   - Install Nix-Darwin for MacOS.
-  SINGLE_USER=true  - Install Nix for single-user mode.
+  SINGLE_USER=true  - Install Nix for single-user mode (default installer only).
 
-Configuration target flags:
+Configuration flags:
   DRY_RUN=true      - Evaluate the new configuration but don't activate it.
   HOME_ALONE=true   - Configure options for a system running home-manager without NixOS or Nix-Darwin.
   BOOT_SPEC=true    - Set the default boot menu option to the first listed specialisation. (NOTE: Only supports systemd boot configurations.)
@@ -41,23 +41,30 @@ Additional flags:
   KEEP_LOGS=true    - Don't erase logs after operations (for debugging).
 
 Usage examples:
-  - Switch the home-manager configuration for current user; autodetect system type:
-    make home
-  - Switch the home-manager configuration for user joe; autodetect system type:
-    make home user=joe
-  - Switch the home-manager configuration for user sam; target an aarch64-darwin platform:
-    make home user=sam system=aarch64-darwin
-  - Rebuild and switch the current system's configuration; autodetect hostname and system platform:
+  - Install Nix using the default installer for single-user mode:
+    make install SINGLE_USER=Y
+
+  - Install Nix-Darwin using the Determinate Systems installer:
+    make install DETERMINATE=1 NIX_DARWIN=y
+
+  - Build and activate the home-manager configuration for the current user using a standalone home-manager configuration; autodetect hostname and system type:
+    make home HOME_ALONE=true
+
+  - Build and activate the current system's configuration; autodetect hostname and system platform:
     make system
-  - Rebuild and switch the system configuration for host workstation1; target an aarch64-linux platform:
-    make system host=workstation1 system=aarch64-linux
+
+  - Build and activate the standalone home-manager configuration for user sam on host xps-15, set the tags 'debian' and 'server', and build for an aarch64-linux platform:
+    make home user=sam host=xps-15 system=aarch64-linux HOME_ALONE=1 tags=debian,server
+
   - Rebuild and switch the system configuration for host workstation1; autodetect platform; build specialisation configurations for wayland and x11_egpu; set default boot menu selection to wayland:
     make system host=workstation1 spec=wayland,x11_egpu BOOT_SPEC=1
+
   - Rebuild and switch the current system's configuration and current user's home-manager configuration; autodetect all settings:
     make all
+
   - Evaluate the current system's configuration and current user's home-manager config; autodetect all settings:
     make all DRY_RUN=1
-  - Rebuild and switch system config and home-manager config for user joe on workstation1 (x86_64-linux):
-    make all host=workstation1 system=x86_64-linux user=joe
-  - Run 'nix flake check' for all configurations:
+
+  - Run 'nix flake check' for all configurations (current system and user must have a valid configuration):
     make test
+

@@ -13,76 +13,97 @@ make usage
 ```
 
 <details>
-<summary>📘 <strong>Usage</strong></summary>
+<summary>📘 <strong>make-nix usage</strong></summary>
+
+### **Usage**
+
+```sh
+make <help|install|home|system|all|test>
+     [TGT_USER=<user>]
+     [TGT_HOST=<host>]
+     [TGT_TAGS=<tag1>,<tag2>,<tag3>,...]
+     [TGT_SYSTEM=<system>]
+     [TGT_SPEC=<spc1>,<spc2>,<spc3>,...]
+     [OPTION FLAGS]
+```
 
 ---
 
-**make** `<home|system|all|test>` [`host=<host>`] [`user=<user>`] [`system=<system>`] `[option variables]`
+### **Make Targets**
 
-#### 💡 Option Variables:
-
-- `DRY_RUN=1` – *Evaluate the target but do not build or switch the configuration.*
-- `EGPU=1` – *Build the eGPU host specialisation.*
-- `WAYLAND=1` – *Build the Wayland host specialisation.*
-- `X11=1` – *Build the X11 host specialisation.*
-- `BOOT_SPEC=1` – *Set the default boot menu option to the built specialisation.*
-
-</details>
-
-<details>
-<summary>🧪 <strong>Examples</strong></summary>
+| Target    | Description                                                       |
+|-----------|-------------------------------------------------------------------|
+| `help`    | You are here.                                                     |
+| `install` | Install Nix and/or Nix-Darwin.                                    |
+| `home`    | Build and activate a Home-manager configuration.                  |
+| `system`  | Build and activate a NixOS or Nix-Darwin system configuration.    |
+| `all`     | Execute both the system and home targets in that order.           |
+| `test`    | Check all flake configurations.                                   |
 
 ---
-- Switch the home-manager configuration for current user; autodetect system type:
-  ```sh
-  make home
-  ```
 
-- Switch the home-manager configuration for user joe; autodetect system type:
-  ```sh
-  make home user=joe
-  ```
+### **Configuration Parameters**
 
-- Switch the home-manager configuration for user sam; target an aarch64-darwin platform:
-  ```sh
-  make home user=sam system=aarch64-darwin
-  ```
+| Variable     | Description |
+|--------------|-------------|
+| `TGT_USER`   | User configuration (current user will be passed by default). |
+| `TGT_HOST`   | System configuration host (current hostname will be passed by default). |
+| `TGT_TAGS`   | Customize home-manager user configuration based on tags, similar to specialisations for system configurations. |
+| `TGT_SYSTEM` | System platform to target for builds: `x86_64-linux`, `aarch64-linux`, `x86_64-darwin`, or `aarch64-darwin` (current platform will be passed by default). |
+| `TGT_SPEC`   | Comma-separated list of system specialisation configurations (no spaces). |
 
-- Rebuild and switch the current system's configuration; autodetect hostname and system platform:
-  ```sh
-  make system
-  ```
+---
 
-- Rebuild and switch the system configuration for host workstation1; target an aarch64-linux platform:
-  ```sh
-  make system host=workstation1 system=aarch64-linux
-  ```
+### **Target Option Flags**
 
-- Rebuild and switch the current system's configuration and current user's home-manager configuration;  
-  autodetect all settings:
-  ```sh
-  make all
-  ```
+These are **boolean**; assigning any *truthy* value will enable them.
 
-- Evaluate the current system's configuration and current user's home-manager config;  
-  autodetect all settings:
-  ```sh
-  make all DRY_RUN=1
-  ```
+> **Truthy values:** `1`, `yes`, `Yes`, `YES`, `true`, `True`, `TRUE`, `on`, `On`, `ON`, `y`, `Y`
 
-- Rebuild and switch the current system's configuration and current user's home-manager configuration;  
-  autodetect all settings:
-  ```sh
-  make all WAYLAND=1 BOOT_SPEC=1
-  ```
+#### **Install Flags**
+- `DETERMINATE=true` – Install Nix using the Determinate Systems installer.
+- `NIX_DARWIN=true` – Install Nix-Darwin for macOS.
+- `SINGLE_USER=true` – Install Nix for single-user mode (default installer only).
 
-- Rebuild and switch the system configuration for host workstation1, and home-manager configuration for user joe; target an x86_64-linux platform:
-  ```sh
-  make all host=workstation1 system=x86_64-linux user=joe
-  ```
+#### **Configuration Flags**
+- `DRY_RUN=true` – Evaluate the new configuration but don't activate it.
+- `HOME_ALONE=true` – Configure options for a system running home-manager without NixOS or Nix-Darwin.
+- `BOOT_SPEC=true` – Set the default boot menu option to the **first** listed specialisation.  
+  _**Note:** Only supports systemd-boot configurations._
 
-- Run 'nix flake check' for all system and home-manager configurations:
-  ```sh
-  make test
-  ```
+#### **Additional Flags**
+- `KEEP_LOGS=true` – Don't erase logs after operations (for debugging).
+
+---
+
+### **Usage Examples**
+
+```sh
+# Install Nix using the default installer for single-user mode:
+make install SINGLE_USER=Y
+
+# Install Nix-Darwin using the Determinate Systems installer:
+make install DETERMINATE=1 NIX_DARWIN=y
+
+# Build and activate the home-manager config using a standalone configuration:
+make home HOME_ALONE=true
+
+# Build and activate the current system configuration:
+make system
+
+# Standalone home-manager config for user `sam` on host `xps-15`, with tags and platform:
+make home user=sam host=xps-15 system=aarch64-linux HOME_ALONE=1 tags=debian,server
+
+# Rebuild and switch system with specialisations and boot default:
+make system host=workstation1 spec=wayland,x11_egpu BOOT_SPEC=1
+
+# Rebuild and switch both system and home-manager configs:
+make all
+
+# Evaluate (but do not activate) all configurations:
+make all DRY_RUN=1
+
+# Run `nix flake check` for all configurations:
+make test
+```
 </details>

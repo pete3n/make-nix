@@ -7,6 +7,15 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 	# shellcheck disable=SC1090
 	. "$env_file"
 
+	is_truthy() {
+		var="${1:-}"
+
+		case "$var" in
+			1|true|True|TRUE|yes|Yes|YES|on|On|ON|y|Y) return 0 ;;
+			*) return 1 ;;
+		esac
+	}
+
 	# shellcheck disable=SC2059
 	logf() {
 		printf "$@" | tee -a "$MAKE_NIX_LOG"

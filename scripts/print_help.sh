@@ -23,7 +23,7 @@ help_ansi="${help_dir}/help.txt"
 help_no_ansi="${help_dir}/help_no_ansi.txt"
 
 # Use NO_ANSI if set
-if [ "${NO_ANSI+x}" ]; then
+if is_truthy "${NO_ANSI:-}"; then
   if has_less; then
     help_cmd="less"
   elif has_cat; then

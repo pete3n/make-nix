@@ -4,7 +4,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
-if [ "${DETERMINATE:-0}" -eq 1 ]; then
+if is_truthy "${DETERMINATE:-}"; then
 	logf "\n%b>>> Verifying Determinate Systems installer integrity...%b\n" "$BLUE" "$RESET"
 	URL=$DETERMINATE_INSTALL_URL
 	EXPECTED_HASH=$DETERMINATE_INSTALL_HASH

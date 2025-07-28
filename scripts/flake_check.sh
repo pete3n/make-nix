@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 : "${USE_SCRIPT:=false}"
 
-if [ "${USE_SCRIPT:-}" = "true" ]; then
+if is_truthy "${USE_SCRIPT:-}"; then
 	script -a -q -c "nix flake check --all-systems --extra-experimental-features 'nix-command flakes'" "$MAKE_NIX_LOG"
 else
 	nix flake check --all-systems --extra-experimental-features 'nix-command flakes' | tee "$MAKE_NIX_LOG"

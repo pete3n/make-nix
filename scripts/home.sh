@@ -29,7 +29,7 @@ base_activate_cmd="nix run nixpkgs#home-manager -- switch -b backup --flake .#${
 base_activate_print_cmd="nix run nixpkgs#home-manager -- switch -b backup --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
 
 dry_switch=""
-if [ -n "${DRY_RUN+x}" ]; then
+if is_truthy "${DRY_RUN:-}"; then
 	dry_switch="--dry-run"
 fi
 dry_print_switch="${BLUE}${dry_switch}${RESET}"
@@ -47,7 +47,7 @@ build() {
 		"$CYAN" "$host" "$RESET"
 	logf "\n%bBuild command:%b %b\n\n" "$BLUE" "$RESET" "$print_cmd"
 
-	if [ "${USE_SCRIPT:-}" = "true" ]; then
+	if is_truthy "${USE_SCRIPT:-}"; then
 		script -a -q -c "$build_cmd" "$MAKE_NIX_LOG"
 	else
 		eval "$build_cmd" | tee "$MAKE_NIX_LOG"
@@ -63,7 +63,7 @@ activate() {
 		"$CYAN" "$TGT_SYSTEM" "$RESET" "$CYAN" "$host" "$RESET"
 	logf "\n%bActivation command:%b %b\n\n" "$BLUE" "$RESET" "$print_cmd"
 
-	if [ "${USE_SCRIPT:-}" = "true" ]; then
+	if is_truthy "${USE_SCRIPT:-}"; then
 		script -a -q -c "$activate_cmd" "$MAKE_NIX_LOG"
 	else
 		eval "$activate_cmd" | tee "$MAKE_NIX_LOG"

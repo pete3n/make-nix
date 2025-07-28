@@ -1,5 +1,15 @@
 #!/usr/bin/env sh
 set -eu
+
+is_truthy() {
+	var="${1:-}"
+
+	case "$var" in
+	1 | true | True | TRUE | yes | Yes | YES | on | On | ON | y | Y) return 0 ;;
+	*) return 1 ;;
+	esac
+}
+
 env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp working and in your path.}"
 
 if ! [ -f "$env_file" ]; then
@@ -9,7 +19,7 @@ fi
 # shellcheck disable=SC1090
 . "$env_file"
 
-if [ -n "${KEEP_LOGS+x}" ]; then
+if is_truthy "${KEEP_LOGS:-}"; then
 	printf "Logs will be preserved:\n%s\n%s\n%s\n" \
 		"$MAKE_NIX_LOG" "$MAKE_NIX_ENV" "$MAKE_NIX_INSTALLER"
 fi
@@ -32,7 +42,7 @@ else
 	printf "NO_ANSI=true\n" >>"$env_file"
 fi
 
-if [ ${NO_ANSI+x} ]; then
+if is_truthy "${NO_ANSI:-}"; then
 	ansi_env="$(dirname "$0")/no_ansi.env"
 else
 	ansi_env="$(dirname "$0")/ansi.env"

@@ -7,10 +7,10 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 logf "\n%b>>> Launching installer...%b\n" "$BLUE" "$RESET"
 
 install_flags=""
-if [ -n "${DETERMINATE+x}" ]; then
+if is_truthy "${DETERMINATE:-}"; then
 	install_flags="$DETERMINATE_INSTALL_MODE"
 else
-	if [ "${SINGLE_USER:-0}" -eq 1 ]; then
+	if is_truthy "${SINGLE_USER:-}"; then
 		install_flags="--no-daemon"
 	else
 		install_flags="$NIX_INSTALL_MODE"
@@ -30,7 +30,7 @@ else
 	fi
 fi
 
-if [ -n "${NIX_DARWIN+x}" ]; then
+if is_truthy "${NIX_DARWIN:-}"; then
 	if [ "${UNAME_S:-}" = "Darwin" ]; then
 		logf "\n%b>>> Installing nix-darwin...%b\n" "$BLUE" "$RESET"
 		check_for_nix

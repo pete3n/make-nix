@@ -25,13 +25,14 @@ Usage:
 (current platform will be passed by default.)
   [1;36mTGT_SPEC[0m    - Comma separated list of system specialisation configurations (no spaces).
 
-[1;34mTarget option flags[0m (These are boolean, assigning any value will enable them):
-Install target flags:
+[1;34mTarget option flags[0m (These are boolean, assigning [1many truthy[0m value will enable them):
+truthy values are 1 yes Yes YES true True TRUE on On ON y Y
+Install flags:
   [1;34mDETERMINATE[0m[0;31m=[0mtrue  - Install Nix using the Determinate Systems installer.
   [1;34mNIX_DARWIN[0m[0;31m=[0mtrue   - Install Nix-Darwin for MacOS.
-  [1;34mSINGLE_USER[0m[0;31m=[0mtrue  - Install Nix for single-user mode.
+  [1;34mSINGLE_USER[0m[0;31m=[0mtrue  - Install Nix for single-user mode (default installer only).
 
-Configuration target flags:
+Configuration flags:
   [1;34mDRY_RUN[0m[0;31m=[0mtrue      - Evaluate the new configuration but don't activate it.
   [1;34mHOME_ALONE[0m[0;31m=[0mtrue   - Configure options for a system running home-manager without NixOS or Nix-Darwin.
   [1;34mBOOT_SPEC[0m[0;31m=[0mtrue    - Set the default boot menu option to the [1mfirst[0m listed specialisation. (NOTE: Only supports systemd boot configurations.)
@@ -40,23 +41,30 @@ Additional flags:
   [1;34mKEEP_LOGS[0m[0;31m=[0mtrue    - Don't erase logs after operations (for debugging).
 
 Usage examples:
-  [1;32m- Switch the home-manager configuration for current user; autodetect system type:[0m
-    [0;31mmake[0m [1mhome[0m
-  [1;32m- Switch the home-manager configuration for user joe; autodetect system type:[0m
-    [0;31mmake[0m [1mhome[0m [1;36muser[0m[0;31m=[0mjoe
-  [1;32m- Switch the home-manager configuration for user sam; target an aarch64-darwin platform:[0m
-    [0;31mmake[0m [1mhome[0m [1;36muser[0m[0;31m=[0msam [1;36msystem[0m[0;31m=[0maarch64-darwin
-  [1;32m- Rebuild and switch the current system's configuration; autodetect hostname and system platform:[0m
+  [1;32m- Install Nix using the default installer for single-user mode:
+    [0;31mmake[0m [1minstall[0m [1;34mSINGLE_USER[0m[0;31m=[0mY
+
+  [1;32m- Install Nix-Darwin using the Determinate Systems installer:
+    [0;31mmake[0m [1minstall[0m [1;34mDETERMINATE[0m[0;31m=[0m1 [1;34mNIX_DARWIN[0m[0;31m=[0my
+
+  [1;32m- Build and activate the home-manager configuration for the current user using a standalone home-manager configuration; autodetect hostname and system type:[0m
+    [0;31mmake[0m [1mhome[0m [1;34mHOME_ALONE[0m[0;31m=[0mtrue
+
+  [1;32m- Build and activate the current system's configuration; autodetect hostname and system platform:[0m
     [0;31mmake[0m [1msystem[0m
-  [1;32m- Rebuild and switch the system configuration for host workstation1; target an aarch64-linux platform:[0m
-    [0;31mmake[0m [1msystem[0m [1;36mhost[0m[0;31m=[0mworkstation1 [1;36msystem[0m[0;31m=[0maarch64-linux
+
+  [1;32m- Build and activate the standalone home-manager configuration for user sam on host xps-15, set the tags 'debian' and 'server', and build for an aarch64-linux platform:[0m
+    [0;31mmake[0m [1mhome[0m [1;36muser[0m[0;31m=[0msam [1;36mhost[0m[0;31m=[0mxps-15 [1;36msystem[0m[0;31m=[0maarch64-linux [1;34mHOME_ALONE[0m[0;31m=[0m1 [1;36mtags[0m[0;31m=[0mdebian,server
+
   [1;32m- Rebuild and switch the system configuration for host workstation1; autodetect platform; build specialisation configurations for wayland and x11_egpu; set default boot menu selection to wayland:[0m
-    [0;31mmake[0m [1msystem[0m [1;36mhost[0m[0;31m=[0mworkstation1 [1;36mspec[0m[0;31m=[0mwayland[0;31m,[0mx11_egpu [1;34mBOOT_SPEC[0m[0;31m=1[0m
+    [0;31mmake[0m [1msystem[0m [1;36mhost[0m[0;31m=[0mworkstation1 [1;36mspec[0m[0;31m=[0mwayland[0;31m,[0mx11_egpu [1;34mBOOT_SPEC[0m[0;31m=[0m1
+
   [1;32m- Rebuild and switch the current system's configuration and current user's home-manager configuration; autodetect all settings:[0m
     [0;31mmake[0m [1mall[0m
+
   [1;32m- Evaluate the current system's configuration and current user's home-manager config; autodetect all settings:[0m
-    [0;31mmake[0m [1mall[0m [1;34mDRY_RUN[0m[0;31m=1[0m
-  [1;32m- Rebuild and switch system config and home-manager config for user joe on workstation1 (x86_64-linux):[0m
-    [0;31mmake[0m [1mall[0m [1;36mhost[0m[0;31m=[0mworkstation1 [1;36msystem[0m[0;31m=[0mx86_64-linux [1;36muser[0m[0;31m=[0mjoe
-  [1;32m- Run 'nix flake check' for all configurations:[0m
+    [0;31mmake[0m [1mall[0m [1;34mDRY_RUN[0m[0;31m=[0m1
+
+  [1;32m- Run 'nix flake check' for all configurations (current system and user must have a valid configuration):[0m
     [0;31mmake[0m [1mtest[0m
+

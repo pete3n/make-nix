@@ -6,8 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
 
-# Exit if DRY_RUN is defined OR BOOT_SPEC is undefined
-if [ -n "${DRY_RUN+x}" ] || [ -z "${BOOT_SPEC+x}" ]; then
+if is_truthy "${DRY_RUN:-}" || ! is_truthy "${BOOT_SPEC:-}"; then
 	exit 0
 fi
 
