@@ -6,7 +6,7 @@
       <img src="assets/gnu-invert.png" alt="GNU" width="25" style="vertical-align: middle; margin: 0 6px;">
       make controlled,
       <img src="assets/nixos-invert.png" alt="NixOS" width="80" style="vertical-align: middle; margin: 0 6px;">
-      NixOS,
+      ,
       <img src="assets/nix-darwin.png" alt="Nix Darwin" width="40" style="vertical-align: middle; margin: 0 6px;">
       Nix-Darwin, and
       <img src="assets/home-manager.png" alt="Home Manager" width="90" style="vertical-align: middle; margin: 0 6px;">
