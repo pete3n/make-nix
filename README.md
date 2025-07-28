@@ -10,7 +10,7 @@
       <img src="assets/nix-darwin.png" alt="Nix Darwin" width="40" style="vertical-align: middle; margin: 0 6px;">
       Nix-Darwin, and
       <img src="assets/home-manager.png" alt="Home Manager" width="90" style="vertical-align: middle; margin: 0 6px;">
-      Home Manager configuration management repo.
+      configuration management repo.
     </span>
   </div>
 </div>
