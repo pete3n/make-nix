@@ -1,9 +1,9 @@
 <div style="display: flex; justify-content: space-between; align-items: center;">
   <h1 style="margin: 0;">Make-nix</h1>
   <div style="background-color: #ffffffdd; padding: 8px 12px; border-radius: 8px;">
+    <img src="assets/nix-darwin.png" alt="Nix Darwin" width="50" style="vertical-align: middle; margin-right: 8px;">
     <img src="assets/gnu.png" alt="GNU" width="50" style="vertical-align: middle; margin-right: 8px;">
     <img src="assets/home-manager.png" alt="Home Manager" width="100" style="vertical-align: middle; margin-right: 8px;">
-    <img src="assets/nix-darwin.png" alt="Nix Darwin" width="50" style="vertical-align: middle; margin-right: 8px;">
     <img src="assets/nixos.png" alt="NixOS" width="150" style="vertical-align: middle;">
   </div>
 </div>
