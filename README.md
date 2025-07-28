@@ -1,11 +1,11 @@
 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
   <h1 style="margin: 0;">Make-nix</h1>
-  <div style="display: flex; align-items: center; padding: 8px 12px; border-radius: 8px; font-size: 1.1em;">
+  <div style="display: flex; align-items: center; padding: 8px 12px; border-radius: 8px; font-size: 1.4em;">
     <span>
       A
       <img src="assets/gnu-invert.png" alt="GNU" width="25" style="vertical-align: middle; margin: 0 6px;">
       make controlled,
-      <img src="assets/nixos.png" alt="NixOS" width="80" style="vertical-align: middle; margin: 0 6px;">
+      <img src="assets/nixos-invert.png" alt="NixOS" width="80" style="vertical-align: middle; margin: 0 6px;">
       NixOS,
       <img src="assets/nix-darwin.png" alt="Nix Darwin" width="40" style="vertical-align: middle; margin: 0 6px;">
       Nix-Darwin, and
