@@ -1,10 +1,10 @@
 { ... }:
 {
   user = "pete";
-  host = "generic_linux";
+  host = "xps-15";
   system = "x86_64-linux";
   isLinux = true;
-  isHomeAlone = false;
+  isHomeAlone = true;
   tags = [ ];
   specialisations = [ ];
 }
