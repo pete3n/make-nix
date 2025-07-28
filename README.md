@@ -1,5 +1,6 @@
-# Pete3n's Dotfiles Flake
-- A NixOS, Nix-Darwin, and Home-manager configuration repo.
+# Make-nix
+- A Makefile controlled, NixOS, Nix-Darwin, and Home-manager configuration management system.
+
 
 ## Makefile documentation
 To view the Makefile documentation in your terminal, run:
@@ -33,7 +34,7 @@ make <help|install|home|system|all|test>
 
 | Target    | Description                                                       |
 |-----------|-------------------------------------------------------------------|
-| `help`    | You are here.                                                     |
+| `help`    | View make-nix usage help.                                                     |
 | `install` | Install Nix and/or Nix-Darwin.                                    |
 | `home`    | Build and activate a Home-manager configuration.                  |
 | `system`  | Build and activate a NixOS or Nix-Darwin system configuration.    |
@@ -48,9 +49,9 @@ make <help|install|home|system|all|test>
 |--------------|-------------|
 | `TGT_USER`   | User configuration (current user will be passed by default). |
 | `TGT_HOST`   | System configuration host (current hostname will be passed by default). |
-| `TGT_TAGS`   | Customize home-manager user configuration based on tags, similar to specialisations for system configurations. |
 | `TGT_SYSTEM` | System platform to target for builds: `x86_64-linux`, `aarch64-linux`, `x86_64-darwin`, or `aarch64-darwin` (current platform will be passed by default). |
 | `TGT_SPEC`   | Comma-separated list of system specialisation configurations (no spaces). |
+| `TGT_TAGS`   | Customize home-manager user configuration based on tags, similar to specialisations for system configurations. |
 
 ---
 
