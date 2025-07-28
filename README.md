@@ -1,16 +1,12 @@
-<table>
-  <tr>
-    <td><h1>Make-nix</h1></td>
-    <td align="right">
-      <div style="background-color:#f2f2f2; padding:10px; border-radius:6px;">
-        <img src="assets/gnu.png" alt="GNU" width="80" style="vertical-align:middle; margin-right:10px;">
-        <img src="assets/home-manager.png" alt="Home Manager" width="100" style="vertical-align:middle; margin-right:10px;">
-        <img src="assets/nix-darwin.png" alt="Nix Darwin" width="80" style="vertical-align:middle; margin-right:10px;">
-        <img src="assets/nixos.png" alt="NixOS" width="100" style="vertical-align:middle;">
-      </div>
-    </td>
-  </tr>
-</table>
+<div style="display: flex; justify-content: space-between; align-items: center;">
+  <h1 style="margin: 0;">Make-nix</h1>
+  <div style="background-color: #ffffffdd; padding: 8px 12px; border-radius: 8px;">
+    <img src="assets/gnu.png" alt="GNU" width="50" style="vertical-align: middle; margin-right: 8px;">
+    <img src="assets/home-manager.png" alt="Home Manager" width="100" style="vertical-align: middle; margin-right: 8px;">
+    <img src="assets/nix-darwin.png" alt="Nix Darwin" width="50" style="vertical-align: middle; margin-right: 8px;">
+    <img src="assets/nixos.png" alt="NixOS" width="100" style="vertical-align: middle;">
+  </div>
+</div>
 A make controlled, NixOS, Nix-Darwin, and Home-manager configuration management system.
 
 ## About
