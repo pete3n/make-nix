@@ -2,16 +2,25 @@
   <h1 style="margin: 0;">Make-nix</h1>
   <div style="display: flex; align-items: center; padding: 8px 12px; border-radius: 8px; font-size: 1.6em;">
     <span>
-      <img src="assets/gnu-invert.png" alt="GNU" width="25" style="vertical-align: middle; margin: 0 6px;">
+      <a href="https://www.gnu.org/software/make/" target="_blank">
+        <img src="assets/gnu-invert.png" alt="GNU" width="25" style="vertical-align: middle; margin: 0 6px;">
+      </a>
       make controlled
-      <img src="assets/nixos-invert_bottom.png" alt="NixOS" width="80" style="vertical-align: middle; margin: 0 6px;">
-      <img src="assets/nix-darwin.png" alt="Nix Darwin" width="30" style="vertical-align: middle; margin: 0 6px;">
+      <a href="https://nixos.org/" target="_blank">
+        <img src="assets/nixos-invert_bottom.png" alt="NixOS" width="80" style="vertical-align: middle; margin: 0 6px;">
+      </a>
+      <a href="https://github.com/nix-darwin/nix-darwin" target="_blank">
+        <img src="assets/nix-darwin.png" alt="Nix Darwin" width="30" style="vertical-align: middle; margin: 0 6px;">
+      </a>
       Nix-Darwin and
-      <img src="assets/home-manager_bottom.png" alt="Home Manager" width="90" style="vertical-align: middle; margin: 0 6px;">
+      <a href="https://github.com/nix-community/home-manager" target="_blank">
+        <img src="assets/home-manager_bottom.png" alt="Home Manager" width="90" style="vertical-align: middle; margin: 0 6px;">
+      </a>
       configuration management repo.
     </span>
   </div>
 </div>
+
 
 ## About
 I wanted an easy way to manage and deploy flake-based Nix configurations for NixOS, 
