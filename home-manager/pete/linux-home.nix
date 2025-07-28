@@ -121,6 +121,7 @@
           kdePackages.kdenlive # Video editing
           vlc # Media player
           unstable.yt-dlp # Youtube download Python version
+          wf-recorder # Wayland screen recorder
           ytfzf # Youtbue fuzzy finder and console viewer
 
           ## Pen testing, network recon, binary analysis tools
