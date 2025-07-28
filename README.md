@@ -4,7 +4,7 @@
     <img src="assets/gnu.png" alt="GNU" width="50" style="vertical-align: middle; margin-right: 8px;">
     <img src="assets/home-manager.png" alt="Home Manager" width="100" style="vertical-align: middle; margin-right: 8px;">
     <img src="assets/nix-darwin.png" alt="Nix Darwin" width="50" style="vertical-align: middle; margin-right: 8px;">
-    <img src="assets/nixos.png" alt="NixOS" width="100" style="vertical-align: middle;">
+    <img src="assets/nixos.png" alt="NixOS" width="150" style="vertical-align: middle;">
   </div>
 </div>
 A make controlled, NixOS, Nix-Darwin, and Home-manager configuration management system.
