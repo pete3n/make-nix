@@ -2,11 +2,11 @@
   <h1 style="margin: 0;">Make-nix</h1>
   <div style="padding: 8px 12px; border-radius: 8px; font-size: 1.1em;">
     A
-    <img src="assets/gnu-invert.png" alt="GNU" width="50" style="vertical-align: middle; margin: 0 6px;">
-    make-controlled,
-    <img src="assets/nixos.png" alt="NixOS" width="120" style="vertical-align: middle; margin: 0 6px;">
+    <img src="assets/gnu-invert.png" alt="GNU" width="25" style="vertical-align: middle; margin: 0 6px;">
+    make controlled,
+    <img src="assets/nixos.png" alt="NixOS" width="80" style="vertical-align: middle; margin: 0 6px;">
     NixOS,
-    <img src="assets/nix-darwin.png" alt="Nix Darwin" width="50" style="vertical-align: middle; margin: 0 6px;">
+    <img src="assets/nix-darwin.png" alt="Nix Darwin" width="40" style="vertical-align: middle; margin: 0 6px;">
     Nix-Darwin, and
     <img src="assets/home-manager.png" alt="Home Manager" width="90" style="vertical-align: middle; margin: 0 6px;">
     Home Manager configuration management repo.
