@@ -11,6 +11,6 @@ if [ "${UNAME_S:-}" != "Linux" ] && [ "${UNAME_S:-}" != "Darwin" ]; then
 		exit 1
 fi
 
-sh "$SCRIPT_DIR/check_dependencies.sh"
+sh "$SCRIPT_DIR/check_deps.sh"
 sh "$SCRIPT_DIR/check_installer_integrity.sh"
 sh "$SCRIPT_DIR/launch_installers.sh"

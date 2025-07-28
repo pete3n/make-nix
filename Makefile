@@ -24,19 +24,19 @@ endif
 # Utility targets.
 #
 
-.PHONY: init-env
-init-env:
-	@sh scripts/set_environment.sh
+.PHONY: set-env
+set-env:
+	@sh scripts/set_env.sh
 
-.PHONY: check-dependencies
-check-dependencies:
-	@sh scripts/check_dependencies.sh
+.PHONY: check-deps
+check-deps:
+	@sh scripts/check_deps.sh
 .PHONY: clean
 clean:
 	@sh scripts/clean.sh
 
 .PHONY: help
-help: init-env show-help clean
+help: set-env show-help clean
 
 .PHONY: show-help
 show-help:
@@ -48,7 +48,7 @@ show-help:
 
 # Initialize environment, launch installers, and cleanup.
 .PHONY: install
-install: init-env installs clean
+install: set-env installs clean
 
 # Launch installers, including integrity and depdency checks.
 .PHONY: installs
@@ -61,11 +61,11 @@ installs:
 
 # Home-manager home configuration and activation.
 .PHONY: home
-home: init-env check-dependencies write-build-target build-home activate-home check-dirty-warn clean
+home: set-env check-deps write-build-target build-home activate-home check-dirty-warn clean
 
 # NixOS system configuraiton and activation.
 .PHONY: system
-system: init-env check-dependencies write-build-target build-system activate-system check-dirty-warn set-specialisation-boot clean
+system: set-env check-deps write-build-target build-system activate-system check-dirty-warn set-spec-boot clean
 
 # Alias all-config.
 .PHONY: all
@@ -73,7 +73,7 @@ all: all-config
 
 # Configure and activate both system and home.
 .PHONY: all-config
-all-config: init-env check-dependencies write-build-target all-system all-home clean
+all-config: set-env check-deps write-build-target all-system all-home clean
 
 # Home target used by all-config (assumes write target and cleanup handled).
 .PHONY: all-home
@@ -81,11 +81,11 @@ all-home: build-home activate-home check-dirty-warn
 
 # System target used by all-config (assumes write target and cleanup handled).
 .PHONY: all-system
-all-system: build-system activate-system check-dirty-warn set-specialisation-boot
+all-system: build-system activate-system check-dirty-warn set-spec-boot
 
 # Check all flake configurations
 .PHONY: test
-test: init-env check-dependencies write-build-target flake-check check-dirty-warn clean
+test: set-env check-deps write-build-target flake-check check-dirty-warn clean
 
 #
 # Configuration utility targets
@@ -117,9 +117,9 @@ activate-system:
 	@sh scripts/system.sh --activate
 
 # Set the default boot menu option to the first specified specialisation for a system.
-.PHONY: set-specialisation-boot
-set-specialisation-boot:
-	@sh scripts/set_specialisation_boot.sh
+.PHONY: set-spec-boot
+set-spec-boot:
+	@sh scripts/set_spec_boot.sh
 
 # Check for a dirty git tree and warn on a failed build about the confusing
 # missing path error. I should not have to write this...
