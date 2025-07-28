@@ -1,10 +1,10 @@
 { ... }:
 {
   user = "pete";
-  host = "xps-15";
+  host = "framework16";
   system = "x86_64-linux";
   isLinux = true;
-  isHomeAlone = true;
+  isHomeAlone = false;
   tags = [ ];
-  specialisations = [ ];
+  specialisations = [ "wayland" "wayland_egpu" "x11" "x11_egpu" ];
 }
