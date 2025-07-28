@@ -1,8 +1,11 @@
-{ ... }:
+{ config, ... }:
 {
   programs.alacritty = {
     enable = true;
     settings = {
+      general = {
+        working_directory = config.home.homeDirectory;
+      };
       window = {
         decorations = "None";
         opacity = 0.7;

@@ -56,7 +56,7 @@ in
     };
     initExtra = # sh
       ''
-        set -o vi
+				set -o vi
       ''
       + tmux_preserve_path;
 
