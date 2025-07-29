@@ -44,6 +44,20 @@ let
         	fi
         fi
       '';
+  sudo_wrapper =
+    lib.optionalString build_target.isHomeAlone # sh
+      ''
+        # sudo wrapper do workaround missing path for commands when run as sudo
+        sudo() {
+        	if [ $# -eq 0 ]; then
+        		command sudo
+        	else
+        		cmd=$(realpath "$(command -v "$1")")
+        		shift
+        		command sudo "$cmd" "$@"
+        	fi
+        }
+      '';
 in
 {
   programs.bash = {
@@ -56,9 +70,10 @@ in
     };
     initExtra = # sh
       ''
-				set -o vi
+        set -o vi
       ''
-      + tmux_preserve_path;
+      + tmux_preserve_path
+      + sudo_wrapper;
 
     profileExtra = # sh
       ''

@@ -32,6 +32,8 @@ Install flags:
   [1;34mNIX_DARWIN[0m[0;31m=[0mtrue   - Install Nix-Darwin for MacOS.
   [1;34mSINGLE_USER[0m[0;31m=[0mtrue  - Install Nix for single-user mode (default installer only).
 
+  [1;34mUSE_CACHE[0m[0;31m=[0mtrue    - Set a cache server URLs as substituters for cache.nixos.org (defined in make.env). Accepts a comma separated list of URLs (no spaces) in order of precedence.
+
 Configuration flags:
   [1;34mDRY_RUN[0m[0;31m=[0mtrue      - Evaluate the new configuration but don't activate it.
   [1;34mHOME_ALONE[0m[0;31m=[0mtrue   - Configure options for a system running home-manager without NixOS or Nix-Darwin.

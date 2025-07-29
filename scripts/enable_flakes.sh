@@ -15,7 +15,7 @@ if [ -f "$nix_conf" ]; then
 		printf "%s\n" "$features" >> "$nix_conf"
 	fi
 else
-	logf "\n%bCreating nix.conf with experimental features enabled...%b\n" "$BLUE" "$RESET"
+	logf "\n%b>>> Creating nix.conf with experimental features enabled...%b\n" "$BLUE" "$RESET"
 	mkdir -p "$(dirname "$nix_conf")"
 	printf "%s\n" "$features" > "$nix_conf"
 fi

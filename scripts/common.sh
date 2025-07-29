@@ -11,8 +11,8 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		var="${1:-}"
 
 		case "$var" in
-			1|true|True|TRUE|yes|Yes|YES|on|On|ON|y|Y) return 0 ;;
-			*) return 1 ;;
+		1 | true | True | TRUE | yes | Yes | YES | on | On | ON | y | Y) return 0 ;;
+		*) return 1 ;;
 		esac
 	}
 
@@ -39,16 +39,22 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 			. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
 
 			if ! command -v nix >/dev/null 2>&1; then
-				logf "\n%berror:%b nix not found in PATH. Ensure it was correctly installed.\n" "$RED" "$RESET" >&2
-				exit 1
+				if [ "${1:-exit}" != "no-exit" ]; then
+					logf "\n%berror:%b nix not found in PATH. Ensure it was correctly installed.\n" "$RED" "$RESET" >&2
+					exit 1
+				fi
+				return 1
 			fi
 		fi
 	}
 
 	check_for_nixos() {
 		if ! command -v nixos-rebuild >/dev/null 2>&1; then
-			logf "\n%berror:%b nixos-rebuild not found in PATH.\n" "$RED" "$RESET" >&2
-			exit 1
+			if [ "${1:-exit}" != "no-exit" ]; then
+				logf "\n%berror:%b nixos-rebuild not found in PATH.\n" "$RED" "$RESET" >&2
+				exit 1
+			fi
+			return 1
 		fi
 	}
 

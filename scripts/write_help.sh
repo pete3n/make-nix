@@ -50,6 +50,8 @@ write_line "Install flags:"
 write_line "  ${BLUE}DETERMINATE${RESET}${RED}=${RESET}true  - Install Nix using the Determinate Systems installer."
 write_line "  ${BLUE}NIX_DARWIN${RESET}${RED}=${RESET}true   - Install Nix-Darwin for MacOS."
 write_line "  ${BLUE}SINGLE_USER${RESET}${RED}=${RESET}true  - Install Nix for single-user mode (default installer only).\n"
+write_line "  ${BLUE}USE_CACHE${RESET}${RED}=${RESET}true    - Set a cache server URLs as substituters for cache.nixos.org \
+(defined in make.env). Accepts a comma separated list of URLs (no spaces) in order of precedence.\n"
 
 write_line "Configuration flags:"
 write_line "  ${BLUE}DRY_RUN${RESET}${RED}=${RESET}true      - Evaluate the new configuration but don't activate it."

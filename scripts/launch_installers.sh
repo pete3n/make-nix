@@ -6,6 +6,10 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 logf "\n%b>>> Launching installer...%b\n" "$BLUE" "$RESET"
 
+if is_truthy "${USE_CACHE:-}"; then
+	"$SCRIPT_DIR"/set_cache_config.sh
+fi
+
 install_flags=""
 if is_truthy "${DETERMINATE:-}"; then
 	install_flags="$DETERMINATE_INSTALL_MODE"
@@ -29,6 +33,7 @@ else
 		exit 1
 	fi
 fi
+
 
 if is_truthy "${NIX_DARWIN:-}"; then
 	if [ "${UNAME_S:-}" = "Darwin" ]; then

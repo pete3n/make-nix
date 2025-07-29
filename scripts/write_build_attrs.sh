@@ -66,7 +66,7 @@ else
 	is_home_alone=false
 fi
 
-logf "Writing build-target.nix with the attributes:\n"
+logf "Writing build-attrs.nix with the attributes:\n"
 logf '  user              = "%s"\n' "$user"
 logf '  host              = "%s"\n' "$host"
 logf '  system            = "%s"\n' "$system"
@@ -126,13 +126,13 @@ logf " ]\n"
 	printf " ];\n"
 
 	printf '}\n'
-} >build-target.nix
+} >build-attrs.nix
 
 # Kludge to prevent Git tree from being marked as dirty
-if [ -f build-target.nix ]; then
-	git add -f build-target.nix
+if [ -f build-attrs.nix ]; then
+	git add -f build-attrs.nix
 	git commit -m "build: Make-nix automated commit to keep git tree clean" || true
 else
-	logf "\n%berror:%b build-target.nix not found!\n" "$RED" "$RESET"
+	logf "\n%berror:%b build-attrs.nix not found!\n" "$RED" "$RESET"
 	exit 1
 fi
