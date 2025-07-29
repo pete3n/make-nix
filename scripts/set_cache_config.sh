@@ -33,7 +33,7 @@ if check_for_nixos no-exit; then
 
 	logf "\n  Example:\n"
 	logf "    %bnix.settings.trusted-substituters = [ %s ];%b\n" \
-		"$GREEN" "$(quote_csv_list "${NIX_CACHE_URLS}")" "$RESET"
+		"$GREEN" "$(quote_csv_list "${NIX_CACHE_URLS}/")" "$RESET"
 
 	if [ -n "${TRUSTED_PUBLIC_KEYS:-}" ]; then
 		logf "    %bnix.settings.trusted-public-keys = [ %s ];%b\n" \
