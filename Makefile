@@ -1,8 +1,8 @@
-# make-Nix v0.1.5
+# make-Nix v0.1.6
 # This Makefile provides targets to install and configure Nix and NixOS for 
 # MacOS and Linux systems. It can build and deploy both NixOS system and 
 # Nix Home-manager configurations.
-# Please see https://github.com/pete3n/dotfiles for documentation.
+# Please see https://github.com/pete3n/make-nix for documentation.
 .DEFAULT_GOAL := help
 MAKEFLAGS += --no-print-directory
 
@@ -61,11 +61,11 @@ installs:
 
 # Home-manager home configuration and activation.
 .PHONY: home
-home: set-env check-deps write-build-target build-home activate-home check-dirty-warn clean
+home: set-env check-deps write-build-attrs build-home activate-home check-dirty-warn clean
 
 # NixOS system configuraiton and activation.
 .PHONY: system
-system: set-env check-deps write-build-target build-system activate-system check-dirty-warn set-spec-boot clean
+system: set-env check-deps write-build-attrs build-system activate-system check-dirty-warn set-spec-boot clean
 
 # Alias all-config.
 .PHONY: all
@@ -73,7 +73,7 @@ all: all-config
 
 # Configure and activate both system and home.
 .PHONY: all-config
-all-config: set-env check-deps write-build-target all-system all-home clean
+all-config: set-env check-deps write-build-attrs all-system all-home clean
 
 # Home target used by all-config (assumes write target and cleanup handled).
 .PHONY: all-home
@@ -85,16 +85,16 @@ all-system: build-system activate-system check-dirty-warn set-spec-boot
 
 # Check all flake configurations
 .PHONY: test
-test: set-env check-deps write-build-target flake-check check-dirty-warn clean
+test: set-env check-deps write-build-attrs flake-check check-dirty-warn clean
 
 #
 # Configuration utility targets
 #
 
-# Pass imperative configuration from make to Nix via build-target.nix
-.PHONY: write-build-target
-write-build-target:
-	@sh scripts/write_build_target.sh
+# Pass imperative configuration from make to Nix via build-attrs.nix
+.PHONY: write-build-attrs
+write-build-attrs:
+	@sh scripts/write_build_attrs.sh
 
 # Build flake-based Home-manager configurations for Linux or Darwin systems.
 .PHONY: build-home

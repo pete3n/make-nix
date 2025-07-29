@@ -30,9 +30,9 @@ if grep -q '^ENV_INITIALIZED=true$' "$env_file" 2>/dev/null; then
 fi
 
 # shellcheck disable=SC1091
-installer_env="installer.env"
-if [ ! -f "$installer_env" ]; then
-	printf "error: installer.env not found at %s\n" "$installer_env" >&2
+make_env="make.env"
+if [ ! -f "$make_env" ]; then
+	printf "error: make.env not found at %s\n" "$make_env" >&2
 	exit 1
 fi
 
@@ -60,7 +60,7 @@ else
 fi
 
 {
-	cat "$installer_env"
+	cat "$make_env"
 	cat "$ansi_env"
 	printf "USE_SCRIPT=%s\n" "$USE_SCRIPT"
 	printf "ENV_INITIALIZED=true\n"

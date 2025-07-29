@@ -42,6 +42,20 @@
     deploy-rs.url = "github:serokell/deploy-rs";
   };
 
+	# Use this to use your own proxy cache for your NixOS systems.
+	#nixConfig = {
+	#	extra-substituters = [
+	#		"http://backupsvr.p22"
+	#	];
+
+	# TODO implement with trusted build server and nix binary cache.
+	# Not necessary for simple Nginx proxy cache, binaries are still signed by 
+	# cache.nixos.org public key.
+	#	extra-trusted-public-keys = [
+	#		"backupsvr.p22-1:Ed25519_sig"
+	#	];
+	#};
+
   outputs =
     {
       home-manager,
@@ -61,7 +75,7 @@
       # This is a workaround to allow passing a specified user, host, and
       # target system to the flake, which will pass this to the output
       # configurations to build them appropriately
-      build_target = import ./build-target.nix { };
+      build_target = import ./build-attrs.nix { };
 
       # Supported systems for flake packages, shells, etc.
       supportedSystems = [
