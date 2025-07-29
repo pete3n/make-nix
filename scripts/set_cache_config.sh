@@ -105,7 +105,7 @@ if [ -n "${NIX_CACHE_URLS:-}" ]; then
 	# Set download-buffer-size = 1G if not already set
 	# https://github.com/NixOS/nix/issues/11728
 	if ! grep -q '^download-buffer-size[[:space:]]*=' "$nix_conf"; then
-		echo "download-buffer-size = 1G" >>"$nix_conf"
+		printf "download-buffer-size = 1G" | sudo tee -a "$nix_conf"
 		logf "\n%binfo:%b setting %bdownload-buffer-size%b = 1G \nin %b%s%b\n" \
 			"$BLUE" "$RESET" "$CYAN" "$RESET" "$MAGENTA" "$nix_conf" "$RESET"
 	else

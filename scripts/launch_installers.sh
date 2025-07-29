@@ -39,7 +39,7 @@ if is_truthy "${NIX_DARWIN:-}"; then
 	if [ "${UNAME_S:-}" = "Darwin" ]; then
 		logf "\n%b>>> Installing nix-darwin...%b\n" "$BLUE" "$RESET"
 		check_for_nix exit
-		make write-build-target
+		"$SCRIPT_DIR"/write_build_attrs.sh
 		sudo nix run nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .
 	else
 		logf "\n%binfo:%b Skipping nix-darwin install: macOS not detected.\n" "$BLUE" "$RESET"
