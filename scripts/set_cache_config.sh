@@ -28,13 +28,18 @@ quote_csv_list() {
 }
 
 if check_for_nixos no-exit; then
-	logf "\n%bbinfo:%b NixOS was detected. Cache settings must be defined in your system's configuration.nix:\n" "$BLUE" "$RESET"
+	logf "\n%binfo:%b NixOS was detected. Cache settings must be defined in your system's configuration.nix:\n" \
+		"$BLUE" "$RESET"
+
 	logf "\n  Example:\n"
-	logf "    %bnix.settings.trusted-substituters = [ %s ];\n" "$(quote_csv_list "$NIX_CACHE_URLS")" "$GREEN" "$RESET"
+	logf "    %bnix.settings.trusted-substituters = [ %s ];%b\n" \
+		"$GREEN" "$(quote_csv_list "${NIX_CACHE_URLS}")" "$RESET"
+
 	if [ -n "${TRUSTED_PUBLIC_KEYS:-}" ]; then
-		logf "    nix.settings.trusted-public-keys = [ %s ];\n" "$(quote_csv_list "$TRUSTED_PUBLIC_KEYS")" "$GREEN" "$RESET"
+		logf "    %bnix.settings.trusted-public-keys = [ %s ];%b\n" \
+			"$GREEN" "$(quote_csv_list "${TRUSTED_PUBLIC_KEYS}")" "$RESET"
 	fi
-	printf "\nContinue without configuring caching in this script? [y/N]: "
+	logf "\nContinue without configuring caching? [y/N]: "
 	read -r ack
 	case "$ack" in
 	[Yy]*) exit 0 ;;
