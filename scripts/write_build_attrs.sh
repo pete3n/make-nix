@@ -41,7 +41,7 @@ else
 	TGT_SPEC=""
 fi
 
-check_for_nix
+check_for_nix exit
 
 if [ -z "${TGT_SYSTEM:-}" ]; then
   system="$(nix --extra-experimental-features nix-command eval --impure --raw --expr 'builtins.currentSystem')"

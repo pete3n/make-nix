@@ -6,10 +6,6 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 logf "\n%b>>> Launching installer...%b\n" "$BLUE" "$RESET"
 
-if is_truthy "${USE_CACHE:-}"; then
-	"$SCRIPT_DIR"/set_cache_config.sh
-fi
-
 install_flags=""
 if is_truthy "${DETERMINATE:-}"; then
 	install_flags="$DETERMINATE_INSTALL_MODE"
@@ -35,10 +31,14 @@ else
 fi
 
 
+if is_truthy "${USE_CACHE:-}"; then
+	"$SCRIPT_DIR"/set_cache_config.sh
+fi
+
 if is_truthy "${NIX_DARWIN:-}"; then
 	if [ "${UNAME_S:-}" = "Darwin" ]; then
 		logf "\n%b>>> Installing nix-darwin...%b\n" "$BLUE" "$RESET"
-		check_for_nix
+		check_for_nix exit
 		make write-build-target
 		sudo nix run nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .
 	else
