@@ -168,6 +168,8 @@
       enable = true;
     };
 
+    clip58.enable = true;
+
     lazydocker = {
       enable = true;
       customCommands = {

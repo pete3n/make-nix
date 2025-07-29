@@ -50,6 +50,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ clip58Script ];
+    home.packages = [ clip58Script ];
   };
 }
