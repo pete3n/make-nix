@@ -42,10 +42,16 @@
   };
 
   nix = {
-    settings.experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
+    settings = {
+      experimental-features = [
+        "nix-command"
+        "flakes"
+      ];
+      trusted-substituters = [
+        "http://backupsvr.p22:8000/"
+      ];
+
+    };
 
     # Extra options to keep build dependencies and derivatives for offline builds.
     # This is less aggressive than the system.includeBuildDependencies = true option
@@ -72,11 +78,7 @@
   networking = {
     hostName = "framework16";
     useDHCP = false; # Disable automatic DHCP; manually call: dhcpcd -B interface
-    nameservers = [
-      "192.168.1.1"
-      "1.1.1.1"
-      "8.8.8.8"
-    ];
+    nameservers = []; # Use resolved
 
     # Disable all wireless by default (use wpa_supplicant manually)
     wireless.enable = false;
@@ -91,8 +93,13 @@
   services.resolved = {
     enable = true;
     dnssec = "allow-downgrade";
-    dnsovertls = "true";
-    domains = [ "p22" ];
+    dnsovertls = "opportunistic";
+
+    extraConfig = ''
+      DNS=192.168.1.1
+      Domains=~p22
+    '';
+
     fallbackDns = [
       "1.1.1.1"
       "8.8.8.8"

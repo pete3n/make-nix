@@ -15,9 +15,9 @@
       home-manager
       iw
       killall
+      knot-dns
       libnotify
       nixos-rebuild-ng
-
       openvpn
       parted
       pavucontrol
