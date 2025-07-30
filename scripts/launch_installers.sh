@@ -46,7 +46,7 @@ if is_truthy "${NIX_DARWIN:-}"; then
 		logf "\n%binfo:%b backing up files before Nix-Darwin install...\n" "$BLUE" "$RESET"
 		for file in $clobber_list; do
 			if [ -e "/etc/$file" ]; then
-				logf "\n%info:%b renaming %b%s%b to %b%s%b.before_darwin\n" "$BLUE" "$RESET" \
+				logf "\n%binfo:%b renaming %b%s%b to %b%s%b.before_darwin\n" "$BLUE" "$RESET" \
 					"$MAGENTA" "$file" "$RESET" "$MAGENTA" "$file" "$RESET"
 				sudo mv "/etc/$file" "/etc/${file}.before_darwin"
 			fi
