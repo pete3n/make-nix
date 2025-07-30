@@ -131,7 +131,13 @@ if [ -n "${NIX_CACHE_URLS:-}" ]; then
 
 	if [ -n "$merged_user_subs" ]; then
 		if grep -q '^substituters =' "$user_nix_conf"; then
-			sed -i "s|^substituters =.*|substituters = $merged_user_subs|" "$user_nix_conf"
+			if sed --version >/dev/null 2>&1; then
+				# GNU sed
+				sed -i "s|^substituters =.*|substituters = $merged_user_subs|" "$user_nix_conf"
+			else
+				# BSD sed (macOS)
+				sed -i "" "s|^substituters =.*|substituters = $merged_user_subs|" "$user_nix_conf"
+			fi
 		else
 			printf "substituters = %s\n" "$merged_user_subs" >>"$user_nix_conf"
 		fi
