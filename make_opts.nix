@@ -5,8 +5,8 @@
   system = "x86_64-linux";
   isLinux = true;
   isHomeAlone = false;
-  useCache = false;
-  useKeys = false;
+  useCache = true;
+  useKeys = true;
   tags = [ ];
-  specialisations = [ ];
+  specialisations = [ "wayland" ];
 }
