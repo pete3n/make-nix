@@ -6,7 +6,7 @@
   isLinux = true;
   isHomeAlone = false;
   useCache = false;
-  useKeys = false
+  useKeys = false;
   tags = [ ];
   specialisations = [ ];
 }
