@@ -11,7 +11,9 @@ features="experimental-features = nix-command flakes"
 
 if [ -f "$nix_conf" ]; then
 	if ! grep -qF "nix-command flakes" "$nix_conf"; then
-		logf "\n%b>>> Appending '%s' to %s %b\n" "$BLUE" "$features" "$nix_conf" "$RESET"
+		logf "\n%b>>> Enabling flakes...%b\n" "$BLUE" "$RESET"
+		logf "\n%binfo:%b appending %s to %b%s%b\n" "$BLUE" "$RESET" "$features" \
+			"$MAGENTA" "$nix_conf" "$RESET"
 		printf "%s\n" "$features" >> "$nix_conf"
 	fi
 else
