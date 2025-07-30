@@ -60,8 +60,7 @@ case "$system" in
 esac
 printf "IS_LINUX=%s\n" "$is_linux" >> "$MAKE_NIX_ENV"
 
-# TODO: Add nix-darwin check
-if ! check_for_nixos no_exit; then
+if has_nixos -eq 0 || has_nix_darwin -eq 0; then
 	is_home_alone=true
 fi
 

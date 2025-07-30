@@ -48,22 +48,18 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		fi
 	}
 
-	check_for_nixos() {
-		if ! command -v nixos-rebuild >/dev/null 2>&1; then
-			if [ "${1:-exit}" != "no-exit" ]; then
-				logf "\n%berror:%b nixos-rebuild not found in PATH.\n" "$RED" "$RESET" >&2
-				exit 1
-			fi
+	has_nixos() {
+		if command -v nixos-rebuild >/dev/null 2>&1; then
+			return 0
+		else
 			return 1
 		fi
 	}
 
-	check_for_darwin() {
-		if ! command -v darwin-rebuild >/dev/null 2>&1; then
-			if [ "${1:-exit}" != "no-exit" ]; then
-				logf "\n%berror:%b darwin-rebuild not found in PATH.\n" "$RED" "$RESET" >&2
-				exit 1
-			fi
+	has_nix_darwin() {
+		if command -v darwin-rebuild >/dev/null 2>&1; then
+			return 0
+		else
 			return 1
 		fi
 	}

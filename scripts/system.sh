@@ -68,7 +68,16 @@ activate() {
 	activate_cmd=$1
 	print_cmd=$2
 
-	check_for_nixos exit
+	if is_truthy "$IS_LINUX" && ! has_nixos; then 
+		logf "\n%berror:%b cannot activate a NixOS system configuration on Linux without %bnixos-rebuild%b.\n" \
+			"$RED" "$RESET" "$RED" "$RESET"
+	fi 
+
+ 	if ! is_truthy "$IS_LINUX" && ! has_nix_darwin; then
+		logf "\n%berror:%b cannot activate a Nix-Darwin system configuration on Darwin without darwin-rebuild.\n" \
+			"$RED" "$RESET" "$RED" "$RESET"
+	fi
+
 	logf "\n%b>>> Activating%b system configuration for %b%s%b host %b%s%b\n" \
 		"$BLUE" "$RESET" "$CYAN" "$TGT_SYSTEM" "$RESET" "$CYAN" "$host" "$RESET"
 	logf "\n%bActivate command:%b %b\n\n" "$BLUE" "$RESET" "$print_cmd"

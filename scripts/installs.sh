@@ -6,12 +6,12 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
 
-if check_for_nixos no_exit; then
+if has_nixos; then
 	printf "%binfo:%b NixOS is installed. Installation aborted...\n" "$BLUE" "$RESET"
 	exit 0
 fi
 
-if check_for_darwin no_exit; then
+if has_darwin; then
 	printf "%binfo:%b Nix-Darwin is installed. Installation aborted...\n" "$BLUE" "$RESET"
 	exit 0
 fi

@@ -27,29 +27,6 @@ quote_csv_list() {
 	printf "%s\n" "$result"
 }
 
-if check_for_nixos no-exit; then
-	logf "\n%binfo:%b NixOS was detected. Cache settings must be defined in your system's configuration.nix:\n" \
-		"$BLUE" "$RESET"
-
-	logf "\n  Example:\n"
-	logf "    %bnix.settings.trusted-substituters = [ %s ];%b\n" \
-		"$GREEN" "$(quote_csv_list "${NIX_CACHE_URLS}/")" "$RESET"
-
-	if [ -n "${TRUSTED_PUBLIC_KEYS:-}" ]; then
-		logf "    %bnix.settings.trusted-public-keys = [ %s ];%b\n" \
-			"$GREEN" "$(quote_csv_list "${TRUSTED_PUBLIC_KEYS}")" "$RESET"
-	fi
-	logf "\nContinue without configuring caching? [y/N]: "
-	read -r ack
-	case "$ack" in
-	[Yy]*) exit 0 ;;
-	*)
-		logf "\n%binfo:%b Exiting without changes...\n" "$BLUE" "$RESET"
-		exit 1
-		;;
-	esac
-fi
-
 nix_conf="/etc/nix/nix.conf"
 sudo mkdir -p "$(dirname "$nix_conf")"
 [ -f "$nix_conf" ] || sudo touch "$nix_conf"
