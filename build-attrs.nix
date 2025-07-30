@@ -6,5 +6,5 @@
   isLinux = true;
   isHomeAlone = false;
   tags = [ ];
-  specialisations = [ ];
+  specialisations = [ "wayland" ];
 }
