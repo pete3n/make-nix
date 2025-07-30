@@ -5,7 +5,7 @@
   system = "x86_64-linux";
   isLinux = true;
   isHomeAlone = false;
-  useCache = false;
+  useCache = true;
   tags = [ ];
   specialisations = [ "wayland" ];
 }
