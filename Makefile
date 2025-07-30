@@ -61,11 +61,11 @@ installs:
 
 # Home-manager home configuration and activation.
 .PHONY: home
-home: set-env check-deps write-build-attrs build-home activate-home check-dirty-warn clean
+home: set-env check-deps write-make-opts build-home activate-home check-dirty-warn clean
 
 # NixOS system configuraiton and activation.
 .PHONY: system
-system: set-env check-deps write-build-attrs build-system activate-system check-dirty-warn set-spec-boot clean
+system: set-env check-deps write-make-opts build-system activate-system check-dirty-warn set-spec-boot clean
 
 # Alias all-config.
 .PHONY: all
@@ -73,7 +73,7 @@ all: all-config
 
 # Configure and activate both system and home.
 .PHONY: all-config
-all-config: set-env check-deps write-build-attrs all-system all-home clean
+all-config: set-env check-deps write-make-opts all-system all-home clean
 
 # Home target used by all-config (assumes write target and cleanup handled).
 .PHONY: all-home
@@ -85,16 +85,16 @@ all-system: build-system activate-system check-dirty-warn set-spec-boot
 
 # Check all flake configurations
 .PHONY: test
-test: set-env check-deps write-build-attrs flake-check check-dirty-warn clean
+test: set-env check-deps write-make-opts flake-check check-dirty-warn clean
 
 #
 # Configuration utility targets
 #
 
-# Pass imperative configuration from make to Nix via build-attrs.nix
-.PHONY: write-build-attrs
-write-build-attrs:
-	@sh scripts/write_build_attrs.sh
+# Pass imperative configuration from make to Nix via make_opts.nix
+.PHONY: write-make-opts
+write-make-opts:
+	@sh scripts/write_make_opts.sh
 
 # Build flake-based Home-manager configurations for Linux or Darwin systems.
 .PHONY: build-home

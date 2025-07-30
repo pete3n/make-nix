@@ -58,4 +58,14 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		fi
 	}
 
+	check_for_darwin() {
+		if ! command -v darwin-rebuild >/dev/null 2>&1; then
+			if [ "${1:-exit}" != "no-exit" ]; then
+				logf "\n%berror:%b darwin-rebuild not found in PATH.\n" "$RED" "$RESET" >&2
+				exit 1
+			fi
+			return 1
+		fi
+	}
+
 fi # _COMMON_SH_INCLUDED

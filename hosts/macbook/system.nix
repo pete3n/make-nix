@@ -1,4 +1,4 @@
-{ pkgs, config, build_target, ... }:
+{ pkgs, config, make_opts, ... }:
 ###################################################################################
 #
 #  macOS's System configuration
@@ -39,9 +39,9 @@
     };
   };
 
-  networking.hostName = "${build_target.host}";
-  networking.computerName = "${build_target.host}";
-  system.defaults.smb.NetBIOSName = "${build_target.host}";
+  networking.hostName = "${make_opts.host}";
+  networking.computerName = "${make_opts.host}";
+  system.defaults.smb.NetBIOSName = "${make_opts.host}";
 
   # Add ability to used TouchID for sudo authentication
   security.pam.services.sudo_local.touchIdAuth = false;

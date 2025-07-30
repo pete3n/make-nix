@@ -2,7 +2,7 @@
   inputs,
   outputs,
   pkgs,
-  build_target,
+  make_opts,
   ...
 }:
 {
@@ -41,7 +41,7 @@
     username = "pete";
     homeDirectory = "/home/pete";
     packages =
-      [ inputs.nixvim.packages.${build_target.system}.default ]
+      [ inputs.nixvim.packages.${make_opts.system}.default ]
       ++ (
         with pkgs;
         [
@@ -150,7 +150,7 @@
         ]
         # Here is an example of a conditional package based on the host machine.
         ++ (
-          if build_target.host == "xps-15" then
+          if make_opts.host == "xps-15" then
             [
               pkgs.nixgl.nixGLIntel
             ]

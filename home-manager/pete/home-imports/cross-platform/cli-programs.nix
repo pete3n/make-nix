@@ -1,9 +1,9 @@
-{ pkgs, build_target, ... }:
+{ pkgs, make_opts, ... }:
 let
   # Use Zsh integration for Darwin and Bash integration for Linux
   shellIntegration = {
-    enableBashIntegration = build_target.isLinux;
-    enableZshIntegration = !build_target.isLinux;
+    enableBashIntegration = make_opts.isLinux;
+    enableZshIntegration = !make_opts.isLinux;
   };
 in
 {
@@ -11,7 +11,7 @@ in
     # Local wallpaper-scripts module for changing wallpapers
     wallpaper-scripts = {
       enable = true;
-      os = if build_target.isLinux then "linux" else "darwin";
+      os = if make_opts.isLinux then "linux" else "darwin";
     };
     # Better cat
     bat = {

@@ -15,6 +15,9 @@
     # but implemented prior to booting Linux, such as an external GPU
     ./specialisations.nix
 
+		# Infrastructure configuration for caching build systems.
+		../infrax.nix
+
     ../shared-imports/iptables-services.nix # Override NixOS firewall rules
     # and use custom iptables based ruleset
 
@@ -47,10 +50,6 @@
         "nix-command"
         "flakes"
       ];
-      trusted-substituters = [
-        "http://backupsvr.p22:8000/"
-      ];
-
     };
 
     # Extra options to keep build dependencies and derivatives for offline builds.

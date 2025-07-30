@@ -6,8 +6,18 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
 
+if check_for_nixos no_exit; then
+	printf "%binfo:%b NixOS is installed. Installation aborted...\n" "$BLUE" "$RESET"
+	exit 0
+fi
+
+if check_for_darwin no_exit; then
+	printf "%binfo:%b Nix-Darwin is installed. Installation aborted...\n" "$BLUE" "$RESET"
+	exit 0
+fi
+
 if [ "${UNAME_S:-}" != "Linux" ] && [ "${UNAME_S:-}" != "Darwin" ]; then
-		echo "Unsupported OS: ${UNAME_S:-}"
+		printf "%binfo%b: unsupported OS: %s\n" "$BLUE" "$RESET" "${UNAME_S:-}"
 		exit 1
 fi
 

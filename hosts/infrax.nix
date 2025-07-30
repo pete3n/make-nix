@@ -1,19 +1,22 @@
-{ build_target, ... }:
+{ lib, make_opts, ... }:
 {
-  nix.settings =
-    if build_target.useCache then
-      {
-        substituters = [
-          "http://backupsvr.p22:8000"
-          "https://cache.nixos.org"
-        ];
-        trusted-substituters = [
-          "http://backupsvr.p22:8000"
-        ];
-        extra-trusted-public-keys = [
-          "backupsvr.p22-1:Ed25519_sig"
-        ];
-      }
-    else
-      { };
+  nix.settings = lib.mkMerge [
+    (lib.mkIf make_opts.useCache {
+      substituters = [
+        # This is a local Nginx cache for cache.nixos and
+        # nix-community.cachix.org, see https://github.com/pete3n/nix-cache.git
+        # for more information.
+        "http://backupsvr.p22:8000"
+        "https://nix-community.cachix.org"
+      ];
+      trusted-substituters = [
+        "http://backupsvr.p22:8000"
+        "https://nix-community.cachix.org"
+      ];
+    })
+    (lib.mkIf make_opts.useKeys {
+      # Verify at: https://app.cachix.org/cache/nix-community#pull
+      trusted-public-keys = [ "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=" ];
+    })
+  ];
 }

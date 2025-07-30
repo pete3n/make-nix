@@ -1,6 +1,6 @@
-{ pkgs, build_target, ... }:
+{ pkgs, make_opts, ... }:
 {
-  system.primaryUser = build_target.user;
+  system.primaryUser = make_opts.user;
   nix.settings = {
     # enable flakes globally
     experimental-features = [

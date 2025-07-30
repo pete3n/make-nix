@@ -50,19 +50,20 @@ if [ -f "/boot/loader/entries/$special_conf" ]; then
 	new_default=$(grep '^default ' /boot/loader/loader.conf | cut -d' ' -f2 || true)
 
 	if [ "$new_default" = "$special_conf" ]; then
-		logf "%b✔%b Successfully set default boot to: %s\n" "$GREEN" "$RESET" "$special_conf"
+		logf "%b✔ success:%b default boot set to: %b%s%b\n" "$GREEN" "$RESET" \
+		"$MAGENTA" "$special_conf" "$RESET"
 		exit 0
 	else
-		logf "%b✖%b Failed to update default boot entry. Current setting: %s\n" "$RED" "$RESET" "$new_default"
+		logf "%b✖ error:%b failed to update default boot entry. Current setting: %s\n" "$RED" "$RESET" "$new_default"
 		logf "Reverting changes to backup...\n" 
 		if sudo cp /boot/loader/loader.backup /boot/loader/loader.conf; then
-			logf "%b✔%b Backup restored.\n" "$GREEN" "$RESET"
+			logf "%b✔ success:%b backup restored.\n" "$GREEN" "$RESET"
 		else
-			logf "%b✖%b Failed to restore backup. Please perform manual restore of /boot/loader/loader.conf\n" "$RED" "$RESET"
+			logf "%b✖ error:%b failed to restore backup. Please perform manual restore of /boot/loader/loader.conf\n" "$RED" "$RESET"
 		fi
 		exit 1
 	fi
 else
-	logf "%b⚠️%b Specialisation config not found: /boot/loader/entries/%s\n" "$YELLOW" "$RESET" "$special_conf"
+	logf "%b⚠️warning:%b specialisation config not found: /boot/loader/entries/%s\n" "$YELLOW" "$RESET" "$special_conf"
 	exit 1
 fi

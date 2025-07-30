@@ -2,7 +2,7 @@
   config,
   pkgs,
   lib,
-  build_target,
+  make_opts,
   ...
 }:
 let
@@ -135,9 +135,9 @@ in
   config = lib.mkIf cfg.enable {
     programs.wallpaper-scripts.wallpaperPath = lib.mkDefault (
       if config.programs.wallpaper-scripts.os == "darwin" then
-        "/Users/${build_target.user}/wallpapers/default_background.png"
+        "/Users/${make_opts.user}/wallpapers/default_background.png"
       else
-        "/home/${build_target.user}/wallpapers/default_background.png"
+        "/home/${make_opts.user}/wallpapers/default_background.png"
     );
     home.packages = [
       wallpaperSetScript

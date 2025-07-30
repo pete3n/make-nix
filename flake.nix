@@ -6,7 +6,7 @@
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
     nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.05";
-		nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
+    nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     home-manager = {
       url = "github:nix-community/home-manager/release-25.05";
@@ -35,26 +35,12 @@
       url = "github:hyprwm/hyprland-plugins";
       inputs.hyprland.follows = "hyprland";
     };
-	
+
     nixgl.url = "github:nix-community/nixGL";
     hyprcursor.url = "github:hyprwm/hyprcursor";
     nixvim.url = "github:pete3n/nixvim-flake?ref=nixos-25.05";
     deploy-rs.url = "github:serokell/deploy-rs";
   };
-
-	# Use this to use your own proxy cache for your NixOS systems.
-	#nixConfig = {
-	#	extra-substituters = [
-	#		"http://backupsvr.p22"
-	#	];
-
-	# TODO implement with trusted build server and nix binary cache.
-	# Not necessary for simple Nginx proxy cache, binaries are still signed by 
-	# cache.nixos.org public key.
-	#	extra-trusted-public-keys = [
-	#		"backupsvr.p22-1:Ed25519_sig"
-	#	];
-	#};
 
   outputs =
     {
@@ -73,9 +59,9 @@
       # own outputs in our outputs
 
       # This is a workaround to allow passing a specified user, host, and
-      # target system to the flake, which will pass this to the output
-      # configurations to build them appropriately
-      build_target = import ./build-attrs.nix { };
+      # target system options to the flake, which will be accessible to
+      # system and home configurations through outputs.
+      make_opts = import ./make_opts.nix { };
 
       # Supported systems for flake packages, shells, etc.
       supportedSystems = [
@@ -108,7 +94,7 @@
           # for non-Linux build targets, this prevents errors when evaluating
           # the flake
           localLinuxPackages =
-            if build_target.isLinux then
+            if make_opts.isLinux then
               import ./packages/linux {
                 inherit system pkgs;
                 config = {
@@ -121,7 +107,7 @@
           # These packages only support Darwin so they are excluded
           # for non-Darwin build targets
           localDarwinPackages =
-            if !build_target.isLinux then
+            if !make_opts.isLinux then
               import ./packages/darwin {
                 inherit system pkgs;
                 config = {
@@ -134,7 +120,7 @@
         # Combine our local cross-platform packages with the appropriate
         # Linux-only or Darwin-only local packages depending on the build target
         pkgs.lib.recursiveUpdate localPackages (
-          if build_target.isLinux then localLinuxPackages else localDarwinPackages
+          if make_opts.isLinux then localLinuxPackages else localDarwinPackages
         )
       );
 
@@ -142,7 +128,7 @@
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
 
       # Flake wide overlays accessible though ouputs.overlays
-      overlays = import ./overlays { inherit inputs build_target; };
+      overlays = import ./overlays { inherit inputs make_opts; };
 
       # Provide an easy import for all home-manager modules to each configuration
       homeModules = import ./modules/home-manager;
@@ -152,15 +138,15 @@
 
       # System configuration for Linux based systems
       nixosConfigurations =
-        if build_target.isLinux then
+        if make_opts.isLinux then
           {
-            "${build_target.host}" = nixpkgs.lib.nixosSystem {
+            "${make_opts.host}" = nixpkgs.lib.nixosSystem {
               specialArgs = {
-                inherit inputs outputs build_target;
+                inherit inputs outputs make_opts;
               };
               modules = [
-                ./hosts/${build_target.host}/configuration.nix
-                ./users/linux/linux-${build_target.user}.nix
+                ./hosts/${make_opts.host}/configuration.nix
+                ./users/linux/linux-${make_opts.user}.nix
               ];
             };
           }
@@ -169,17 +155,17 @@
 
       # System configuration for Darwin based systems
       darwinConfigurations =
-        if !build_target.isLinux then
+        if !make_opts.isLinux then
           {
-            "${build_target.host}" = nix-darwin.lib.darwinSystem {
+            "${make_opts.host}" = nix-darwin.lib.darwinSystem {
               specialArgs = {
-                inherit inputs outputs build_target;
+                inherit inputs outputs make_opts;
               };
               modules = [
-                ./hosts/${build_target.host}/nix-core.nix
-                ./hosts/${build_target.host}/system.nix
-                ./hosts/${build_target.host}/apps.nix
-                ./users/darwin/darwin-${build_target.user}.nix
+                ./hosts/${make_opts.host}/nix-core.nix
+                ./hosts/${make_opts.host}/system.nix
+                ./hosts/${make_opts.host}/apps.nix
+                ./users/darwin/darwin-${make_opts.user}.nix
               ];
             };
           }
@@ -187,30 +173,28 @@
           { };
 
       homeConfigurations =
-        if build_target.isLinux then
+        if make_opts.isLinux then
           {
             # Home-manager configuration for Linux based systems
-            "${build_target.user}@${build_target.host}" = home-manager.lib.homeManagerConfiguration {
+            "${make_opts.user}@${make_opts.host}" = home-manager.lib.homeManagerConfiguration {
               # Home-manager requires 'pkgs' instance to be manually specified
-              pkgs = nixpkgs.legacyPackages.${build_target.system};
+              pkgs = nixpkgs.legacyPackages.${make_opts.system};
               extraSpecialArgs = {
-                inherit inputs outputs build_target;
+                inherit inputs outputs make_opts;
               };
-              modules = [ ./home-manager/${build_target.user}/linux-home.nix ];
+              modules = [ ./home-manager/${make_opts.user}/linux-home.nix ];
             };
           }
         else
           {
             # Home-manager configuration for Darwin based systems
-            "${build_target.user}@${build_target.host}" = home-manager-darwin.lib.homeManagerConfiguration {
-              pkgs = nixpkgs.legacyPackages.${build_target.system};
+            "${make_opts.user}@${make_opts.host}" = home-manager-darwin.lib.homeManagerConfiguration {
+              pkgs = nixpkgs.legacyPackages.${make_opts.system};
               extraSpecialArgs = {
-                inherit inputs outputs build_target;
+                inherit inputs outputs make_opts;
               };
-              modules = [ ./home-manager/${build_target.user}/darwin-home.nix ];
+              modules = [ ./home-manager/${make_opts.user}/darwin-home.nix ];
             };
           };
-
     };
-
 }
