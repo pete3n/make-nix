@@ -13,7 +13,7 @@ if has_nixos; then
 	exit 0
 fi
 
-if has_darwin; then
+if has_nix_darwin; then
 	printf "%binfo:%b Nix-Darwin is installed. Installation aborted...\n" "$BLUE" "$RESET"
 	exit 0
 fi
