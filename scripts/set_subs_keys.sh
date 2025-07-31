@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 . "$SCRIPT_DIR/common.sh"
 
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
-trap '[ -n "${tmp:-}" ] && rm -f "$tmp"' EXIT INT TERM QUIT
+trap '[ -n "${tmp_config:-}" ] && rm -f "$tmp_config"' EXIT INT TERM QUIT
 
 check_for_nix exit
 logf "\n%b>>> Cache configuration started...%b\n" "$BLUE" "$RESET"
@@ -17,7 +17,7 @@ if [ -z "${NIX_CACHE_URLS:-}" ]; then
 	exit 1
 fi
 
-quote_csv_list() {
+output_csv_list() {
 	list_csv="$1"
 	result=""
 	IFS=','
@@ -63,13 +63,22 @@ set_key_value() {
 	key="$1"
 	value="$2"
 	if grep -q "^$key =" "$nix_conf"; then
-		tmp="$(mktemp)"
-		sed "s|^$key =.*|$key = $value|" "$nix_conf" >"$tmp"
-		sudo mv "$tmp" "$nix_conf"
+		tmp_config="$(mktemp)"
+		sed "s|^$key =.*|$key = $value|" "$nix_conf" >"$tmp_config"
+		sudo mv "$tmp_config" "$nix_conf"
 	else
 		printf "%s = %s\n" "$key" "$value" | sudo tee -a "$nix_conf" >/dev/null
 	fi
 }
+
+# Handle trusted-public-keys
+if [ -n "${TRUSTED_PUBLIC_KEYS:-}" ]; then
+	merged_keys=$(merge_values "trusted-public-keys" "$TRUSTED_PUBLIC_KEYS")
+	logf "\n%binfo:%b setting %btrusted-public-keys%b = %s \nin %b%s%b\n" \
+		"$BLUE" "$RESET" "$CYAN" "$RESET" "$merged_keys" "$MAGENTA" "$nix_conf" "$RESET"
+
+	set_key_value "trusted-public-keys" "$merged_keys"
+fi
 
 # Handle trusted-substituters (prepend new)
 if [ -n "${NIX_CACHE_URLS:-}" ]; then
@@ -82,7 +91,7 @@ if [ -n "${NIX_CACHE_URLS:-}" ]; then
 	# Set download-buffer-size = 1G if not already set
 	# https://github.com/NixOS/nix/issues/11728
 	if ! grep -q '^download-buffer-size[[:space:]]*=' "$nix_conf"; then
-		printf "download-buffer-size = 1G" | sudo tee -a "$nix_conf"
+		printf "download-buffer-size = 1G\n" | sudo tee -a "$nix_conf"
 		logf "\n%binfo:%b setting %bdownload-buffer-size%b = 1G \nin %b%s%b\n" \
 			"$BLUE" "$RESET" "$CYAN" "$RESET" "$MAGENTA" "$nix_conf" "$RESET"
 	else
@@ -104,7 +113,7 @@ if [ -n "${NIX_CACHE_URLS:-}" ]; then
 		*) merged_user_subs="$merged_user_subs $val" ;;
 		esac
 	done
-	merged_user_subs="$(echo "$merged_user_subs" | sed 's/^ *//')"
+	merged_user_subs="$(printf "%s\n" "$merged_user_subs" | sed 's/^ *//')"
 
 	if [ -n "$merged_user_subs" ]; then
 		if grep -q '^substituters =' "$user_nix_conf"; then
@@ -121,14 +130,6 @@ if [ -n "${NIX_CACHE_URLS:-}" ]; then
 		logf "\n%binfo:%b setting %bsubstituters%b = %s \nin %b%s%b\n" \
 			"$BLUE" "$RESET" "$CYAN" "$RESET" "$merged_user_subs" "$MAGENTA" "$user_nix_conf" "$RESET"
 	fi
-
-fi
-
-if [ -n "${TRUSTED_PUBLIC_KEYS:-}" ]; then
-	merged_keys=$(merge_values "trusted-public-keys" "$TRUSTED_PUBLIC_KEYS")
-	logf "\n%binfo:%b setting %btrusted-public-keys%b = %s \nin %b%s%b\n" \
-		"$BLUE" "$RESET" "$CYAN" "$RESET" "$merged_keys" "$MAGENTA" "$nix_conf" "$RESET"
-	set_key_value "trusted-public-keys" "$merged_keys"
 fi
 
 logf "%b>>> Restarting Nix daemon to apply changes...%b\n" "$BLUE" "$RESET"
