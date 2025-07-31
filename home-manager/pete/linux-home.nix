@@ -1,25 +1,41 @@
 {
   inputs,
   outputs,
+  lib,
   pkgs,
   make_opts,
   ...
 }:
+let
+  linuxTags = [ "hyprland" ];
+
+  availableTags = builtins.filter (tag: builtins.elem tag linuxTags) make_opts.tags;
+
+  tagMap = {
+    hyprland = [
+      ./home-imports/linux/hyprland-config.nix
+      ./home-imports/linux/hypr-session-restore.nix
+    ];
+  };
+
+  tagImports = lib.flatten (builtins.map (tag: tagMap.${tag}) availableTags);
+in
 {
-  imports = builtins.attrValues outputs.homeModules ++ [
-    ./home-imports/cross-platform/alacritty-config.nix
-    ./home-imports/cross-platform/git-config.nix
-    ./home-imports/cross-platform/cli-programs.nix
-    ./home-imports/linux/awesome-config.nix
-    ./home-imports/linux/bash-config.nix
-    ./home-imports/linux/firefox-config.nix
-    ./home-imports/linux/hyprland-config.nix
-    ./home-imports/linux/hypr-session-restore.nix
-    ./home-imports/linux/media-tools.nix
-    ./home-imports/linux/theme-style.nix
-    ./home-imports/linux/tmux-config.nix
-    ./home-imports/linux/yubikey-u2f.nix
-  ];
+  imports =
+    builtins.attrValues outputs.homeModules
+    ++ [
+      ./home-imports/cross-platform/alacritty-config.nix
+      ./home-imports/cross-platform/git-config.nix
+      ./home-imports/cross-platform/cli-programs.nix
+      ./home-imports/linux/awesome-config.nix
+      ./home-imports/linux/bash-config.nix
+      ./home-imports/linux/firefox-config.nix
+      ./home-imports/linux/media-tools.nix
+      ./home-imports/linux/theme-style.nix
+      ./home-imports/linux/tmux-config.nix
+      ./home-imports/linux/yubikey-u2f.nix
+    ]
+    ++ tagImports;
 
   nixpkgs = {
     overlays = [
