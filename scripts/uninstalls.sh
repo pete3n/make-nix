@@ -22,6 +22,7 @@ if has_nix_darwin; then
 	if ! sudo darwin-uninstaller; then
 		if ! sudo nix --extra-experimental-features "nix-command flakes" run nix-darwin#darwin-uninstaller; then
 			logf "%berror:%b failed to uninstall Nix-Darwin.\n"
+			exit 1
 		else
 			logf "%b✅ success:%b uninstall complete.\n" "$GREEN" "$RESET"
 		fi
@@ -34,8 +35,10 @@ if [ -f /nix/nix-installer ]; then
 	logf "%binfo:%b Nix detected.\n" "$BLUE" "$RESET"
 	if /nix/nix-installer uninstall; then
 		logf "%b✅ success:%b uninstall complete.\n" "$GREEN" "$RESET"
+		exit 0
 	else
 		logf "%berror:%b failed to uninstall Nix.\n" "$RED" "$RESET"
+		exit 1
 	fi
 else
 	logf "%binfo:%b could not find Nix uninstaller.\n"
