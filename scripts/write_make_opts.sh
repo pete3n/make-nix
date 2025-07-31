@@ -62,6 +62,7 @@ printf "IS_LINUX=%s\n" "$is_linux" >> "$MAKE_NIX_ENV"
 
 # If we don't have NixOS and we don't have Nix-Darwin and we have Nix, then we
 # are using Home-manager standalone.
+is_home_alone=false
 if ! has_nixos && ! has_nix_darwin && check_for_nix no_exit; then
 	is_home_alone=true
 fi
