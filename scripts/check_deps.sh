@@ -8,6 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Dependency groups
 common_deps="cat dirname grep printf pwd rm tee"
 install_deps="chmod curl cut mkdir shasum"
+uninstall_deps="read"
 config_common_deps="git nix uname whoami"
 config_system_deps="sudo"
 
@@ -27,6 +28,9 @@ for target in $TARGETS; do
     install)
       required_utils="$required_utils $install_deps"
       ;;
+		uninstall)
+			required_utils="$required_utils $uninstall_deps"
+			;;
     home|system|all)
       required_utils="$required_utils $config_common_deps"
       [ "$target" = "system" ] && required_utils="$required_utils $config_system_deps"
