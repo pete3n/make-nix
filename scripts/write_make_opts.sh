@@ -85,7 +85,7 @@ else
 	use_keys=false
 fi
 
-logf "%b>>> Writing make_opts.nix with:%b\n"
+logf "%b>>> Writing make_opts.nix with:%b\n" "$BLUE" "$RESET"
 logf '  user              = "%s"\n' "$user"
 logf '  host              = "%s"\n' "$host"
 logf '  system            = "%s"\n' "$system"
@@ -153,7 +153,7 @@ logf " ]\n"
 
 # Kludge to prevent Git tree from being marked as dirty
 if [ -f make_opts.nix ]; then
-	logf "%binfo:%b committing make_opts.nix to git tree.\n"
+	logf "%binfo:%b committing make_opts.nix to git tree.\n" "$BLUE" "$RESET"
 	git add -f make_opts.nix
 	git commit -m "build: Make-nix automated commit to keep git tree clean" || true
 else
