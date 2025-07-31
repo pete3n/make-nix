@@ -5,6 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 . "$SCRIPT_DIR/common.sh"
 
 TARGETS="${1:-uninstall}"
+sh "$SCRIPT_DIR/check_deps.sh" "$TARGETS"
 
 for target in $TARGETS; do
 	case "$target" in
