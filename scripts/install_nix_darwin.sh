@@ -36,17 +36,14 @@ done
 "$SCRIPT_DIR/write_make_opts.sh"
 
 nix_conf_backup="/etc/nix/nix.conf.before_darwin"
+substituters=""
+
 if [ -f "$nix_conf_backup" ]; then
-  # Extract line and strip leading/trailing whitespace
   subs_line=$(grep '^trusted-substituters[[:space:]]*=' "$nix_conf_backup" || true)
   if [ -n "$subs_line" ]; then
     subs_values=$(printf "%s\n" "$subs_line" | cut -d'=' -f2- | sed 's/^ *//' | tr -s ' ')
-    substituters="$subs_values"
+    substituters="$subs_values $substituters"
   fi
-fi
-
-if [ "${substituters:-x}" ]; then
-	substituters=""
 fi
 
 logf "%binfo:%b installing with command\n"
