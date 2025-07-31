@@ -7,6 +7,6 @@
   isHomeAlone = true;
   useCache = false;
   useKeys = false;
-  tags = [ "hyprland" ];
+  tags = [ "superuser" ];
   specialisations = [ ];
 }
