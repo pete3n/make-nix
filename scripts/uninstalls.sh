@@ -19,27 +19,8 @@ done
 logf "%b>>> Starting uninstaller...%b\n" "$BLUE" "$RESET"
 if has_nix_darwin; then
 	logf "%binfo:%b Nix-darwin detected.\n" "$BLUE" "$RESET"
-	logf "Are you sure you want to continue with uninstalling Nix-Darwin Y/n?\n"
-	read -r continue
-	if ! [ "${continue}" = "Y" ]; then
-		logf "Exiting..."
-		exit 0
-	fi
 	if ! sudo nix --extra-experimental-features "nix-command flakes" run nix-darwin#darwin-uninstaller; then
 		if ! sudo darwin-uninstaller; then
-			logf "%berror:%b failed to uninstall Nix-Darwin.\n"
-		else
-			logf "%b✅ success:%b uninstall complete.\n" "$GREEN" "$RESET"
-		fi
-	else
-		logf "%b✅ success:%b uninstall complete.\n" "$GREEN" "$RESET"
-	fi
-fi
-
-if has_nix_darwin; then
-	logf "%binfo:%b Nix-darwin detected.\n" "$BLUE" "$RESET"
-	if ! sudo darwin-uninstaller; then
-		if ! sudo nix --extra-experimental-features "nix-command flakes" run nix-darwin#darwin-uninstaller; then
 			logf "%berror:%b failed to uninstall Nix-Darwin.\n"
 		else
 			logf "%b✅ success:%b uninstall complete.\n" "$GREEN" "$RESET"
