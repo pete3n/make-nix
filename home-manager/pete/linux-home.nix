@@ -6,6 +6,11 @@
   make_opts,
   ...
 }:
+
+# "Tags" allow customizable user-based configuration at evaluation time similar
+# to specialisations for the system.
+# Simply add a tag string to the list of linuxTags, and then define and import
+# list for it in tagMap.
 let
   linuxTags = [ "hyprland" ];
 
@@ -19,6 +24,17 @@ let
   };
 
   tagImports = lib.flatten (builtins.map (tag: tagMap.${tag}) availableTags);
+
+  # Even though we are building for users, we can still customize some
+  # system based configuration and demonstrate the power of Nix to provide
+  # a declarative outcome: get a working Hyprland WM, regardless of
+  # if we are using NixOS or a different Linux distribution.
+
+  hyprlandEnabled = make_opts.isHomeAlone && builtins.elem "hyprland" make_opts.tags;
+
+  hyprland-nixglIntel-wrapper = pkgs.writeShellScriptBin "Hyprland" ''
+    exec ${pkgs.nixgl.nixGLIntel}/bin/nixGLIntel ${pkgs.hyprland}/bin/Hyprland "$@"
+  '';
 in
 {
   imports =
@@ -54,126 +70,115 @@ in
   home = {
     # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
     stateVersion = "24.05";
-    username = "pete";
-    homeDirectory = "/home/pete";
+    username = make_opts.user;
+    homeDirectory = "/home/${make_opts.user}";
     packages =
-      [ inputs.nixvim.packages.${make_opts.system}.default ]
-      ++ (
-        with pkgs;
-        [
+      lib.optional hyprlandEnabled hyprland-nixglIntel-wrapper
+      ++ [ inputs.nixvim.packages.${make_opts.system}.default ]
+      ++ (with pkgs; [
 
-          # Misc
-          bottles # Wine container manager
-          browsh # Terminal browser
-          unstable.cryptomator
-          fdupes # Duplicate file finder
-          heroic # Heroic game launcher
-          litemdview # Simple markdown viewer
-          mod._86Box
-          mosh # Mobile-shell SSH replacement
-          nextcloud-client
-          onlyoffice-bin
-          pika-backup
-          protonmail-bridge
-          remmina
-          unstable.standardnotes
-          thunderbird
-          unstable.monero-cli
-          unstable.bisq2
-          unstable.monero-gui
-          unzip
-          xdg-user-dirs
-          xfce.thunar # Lightweight graphical file browser
-          zip
+        # Misc
+        bottles # Wine container manager
+        browsh # Terminal browser
+        unstable.cryptomator
+        fdupes # Duplicate file finder
+        heroic # Heroic game launcher
+        litemdview # Simple markdown viewer
+        mod._86Box
+        mosh # Mobile-shell SSH replacement
+        nextcloud-client
+        onlyoffice-bin
+        pika-backup
+        protonmail-bridge
+        remmina
+        unstable.standardnotes
+        thunderbird
+        unstable.monero-cli
+        unstable.bisq2
+        unstable.monero-gui
+        unzip
+        xdg-user-dirs
+        xfce.thunar # Lightweight graphical file browser
+        zip
 
-          ## Messaging apps
-          mod.no-gpu-signal-desktop
-          rustdesk-flutter
-          unstable.element-desktop
-          unstable.teams-for-linux
+        ## Messaging apps
+        mod.no-gpu-signal-desktop
+        rustdesk-flutter
+        unstable.element-desktop
+        unstable.teams-for-linux
 
-          ## CLI utilities
-          asciinema # Terminal recorder
-          bandwhich # Network utilization monitor
-          cdrkit # CD writing tools
-          ctop # Container resource monitor
-          diff-so-fancy # Better looking diffs
-          duf # Better du/df
-          entr # File watch event trigger
-          exiftool # Read/write photo metadata
-          fd # Find replacement
-          gdu # Graphical disk usage TUI
-          gron # Grep JSON
-          hyperfine # CLI benchmark tool
-          jc # JSON converter
-          jq # JSON processor
-          lynx # Text-mode browser
-          magic-wormhole # Easy remote file transfer - python
-          magic-wormhole-rs # Easy remote file transfer - rust
-          most # Better more/less pager
-          mutt # Terminal email
-          navi # Cheat-sheets
-          nb # CLI note-taking
-          nix-tree # Interactively browse Nix store dependencies
-          procs # Better process viewer
-          python311Packages.base58
-          repgrep # ripgrep replace
-          ripgrep-all # rg with PDF, office doc, compress file support
-          rsync
-          sd # Better sed
-          speedtest-cli # Internet speed test CLI
-          sshs # SSH config manager TUI
-          tldr # Better man pages
-          vim
-          xxgdb # gdb TUI
+        ## CLI utilities
+        asciinema # Terminal recorder
+        bandwhich # Network utilization monitor
+        cdrkit # CD writing tools
+        ctop # Container resource monitor
+        diff-so-fancy # Better looking diffs
+        duf # Better du/df
+        entr # File watch event trigger
+        exiftool # Read/write photo metadata
+        fd # Find replacement
+        gdu # Graphical disk usage TUI
+        gron # Grep JSON
+        hyperfine # CLI benchmark tool
+        jc # JSON converter
+        jq # JSON processor
+        lynx # Text-mode browser
+        magic-wormhole # Easy remote file transfer - python
+        magic-wormhole-rs # Easy remote file transfer - rust
+        most # Better more/less pager
+        mutt # Terminal email
+        navi # Cheat-sheets
+        nb # CLI note-taking
+        nix-tree # Interactively browse Nix store dependencies
+        procs # Better process viewer
+        python311Packages.base58
+        repgrep # ripgrep replace
+        ripgrep-all # rg with PDF, office doc, compress file support
+        rsync
+        sd # Better sed
+        speedtest-cli # Internet speed test CLI
+        sshs # SSH config manager TUI
+        tldr # Better man pages
+        vim
+        xxgdb # gdb TUI
 
-          ### Media tools
-          drawio # Open Visio replacement
-          gimp # Image editing
+        ### Media tools
+        drawio # Open Visio replacement
+        gimp # Image editing
 
-          handbrake # DVD wripping
-          inkscape-with-extensions # Vector graphics
-          rhythmbox # Music player
-          kdePackages.kdenlive # Video editing
-          vlc # Media player
-          unstable.yt-dlp # Youtube download Python version
-          wf-recorder # Wayland screen recorder
-          ytfzf # Youtbue fuzzy finder and console viewer
+        handbrake # DVD wripping
+        inkscape-with-extensions # Vector graphics
+        rhythmbox # Music player
+        kdePackages.kdenlive # Video editing
+        vlc # Media player
+        unstable.yt-dlp # Youtube download Python version
+        wf-recorder # Wayland screen recorder
+        ytfzf # Youtbue fuzzy finder and console viewer
 
-          ## Pen testing, network recon, binary analysis tools
-          angryoxide
-          aircrack-ng
-          bettercap
-          bingrep # Binary analysis search
-          binwalk # Binary file analysis
-          chisel
-          ffmpeg # Video encoding/transcoding
-          file # Magic bit reader
-          gnuradio
-          gpsd
-          hashcat
-          hcxdumptool
-          hcxtools
-          masscan
-          ngrep # Network packet analyzer
-          nmap # Network mapping
-          proxychains
-          reaverwps-t6x
-          rustscan
-          socat
-          termshark
-          wireshark
-        ]
-        # Here is an example of a conditional package based on the host machine.
-        ++ (
-          if make_opts.host == "xps-15" then
-            [
-              pkgs.nixgl.nixGLIntel
-            ]
-          else
-            [ ]
-        )
-      );
+        ## Pen testing, network recon, binary analysis tools
+        angryoxide
+        aircrack-ng
+        bettercap
+        bingrep # Binary analysis search
+        binwalk # Binary file analysis
+        chisel
+        ffmpeg # Video encoding/transcoding
+        file # Magic bit reader
+        gnuradio
+        gpsd
+        hashcat
+        hcxdumptool
+        hcxtools
+        masscan
+        ngrep # Network packet analyzer
+        nmap # Network mapping
+        proxychains
+        reaverwps-t6x
+        rustscan
+        socat
+        termshark
+        wireshark
+      ]);
   };
 
   # Modules with additional program configuration
