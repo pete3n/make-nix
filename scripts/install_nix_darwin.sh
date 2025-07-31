@@ -4,7 +4,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
-clobber_list="nix/nix.conf zshenv bashrc"
+clobber_list="nix/nix.conf zshenv zshrc bashrc"
 restored=false
 restoration_list=""
 
@@ -26,7 +26,7 @@ trap 'restore_clobbered_files' EXIT INT TERM QUIT
 logf "\n%binfo:%b backing up files before Nix-Darwin install...\n" "$BLUE" "$RESET"
 for file in $clobber_list; do
   if [ -e "/etc/$file" ]; then
-    logf "%b🗂 moving%b %b/etc/%s%b → %b/etc/%s.before_darwin%b\n" "$BLUE" "$RESET" \
+    logf "%b🗂  moving%b %b/etc/%s%b → %b/etc/%s.before_darwin%b\n" "$BLUE" "$RESET" \
 			"$MAGENTA" "$file" "$RESET" "$MAGENTA" "$file" "$RESET"
     sudo mv "/etc/$file" "/etc/${file}.before_darwin"
     restoration_list="$restoration_list $file"
