@@ -18,23 +18,21 @@ nix_darwin_opt_deps="sudo"
 
 optional_utils="less script"
 
-if [ -z "${TARGET:-}" ]; then
-  # Use set to safely split MAKECMDGOALS into positional parameters
-  set -- "${MAKECMDGOALS:-}"
-  TARGET="${1:-}"
-fi
+TARGETS="$1"
 
 required_utils="$common_deps"
 
-case "$TARGET" in
-  install)
-    required_utils="$required_utils $install_deps"
-    ;;
-  home|system|all)
-    required_utils="$required_utils $config_common_deps"
-    [ "$TARGET" = "system" ] && required_utils="$required_utils $config_system_deps"
-    ;;
-esac
+for target in $TARGETS; do
+  case "$target" in
+    install)
+      required_utils="$required_utils $install_deps"
+      ;;
+    home|system|all)
+      required_utils="$required_utils $config_common_deps"
+      [ "$target" = "system" ] && required_utils="$required_utils $config_system_deps"
+      ;;
+  esac
+done
 
 # Add option-based dependencies
 [ -n "${TGT_SPEC:-}" ]       && required_utils="$required_utils $spec_boot_opt_deps"

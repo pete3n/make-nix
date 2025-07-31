@@ -30,7 +30,7 @@ set-env:
 
 .PHONY: check-deps
 check-deps:
-	@sh scripts/check_deps.sh
+	@sh scripts/check_deps.sh "$(MAKECMDGOALS)"
 .PHONY: clean
 clean:
 	@sh scripts/clean.sh
@@ -43,17 +43,26 @@ show-help:
 	@sh scripts/print_help.sh
 
 #
-# Install targets.
+# Install/uninstall targets.
 #
 
 # Initialize environment, launch installers, and cleanup.
 .PHONY: install
-install: set-env installs clean
+install: set-env installs
 
 # Launch installers, including integrity and depdency checks.
 .PHONY: installs
 installs:
-	@sh scripts/installs.sh
+	@sh scripts/installs.sh "$(MAKECMDGOALS)"
+
+# Initialize environment, launch installers, and cleanup.
+.PHONY: uninstall
+uninstall: set-env uninstalls
+
+# Initialize environment, launch installers, and cleanup.
+.PHONY: uninstalls
+uninstalls:
+	@sh scripts/uninstalls.sh "$(MAKECMDGOALS)"
 
 #
 # Configuration targets.

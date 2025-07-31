@@ -49,11 +49,10 @@ if [ "${substituters:-x}" ]; then
 	substituters=""
 fi
 
+logf "%binfo:%b installing with command\n"
+logf "sudo nix run --option experimental-features \"nix-command flakes\" --option trusted-substituters \"$substituters\" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake ."
 if sudo nix run --option experimental-features "nix-command flakes" --option trusted-substituters \""$substituters"\" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .; then
-  logf "\n%b✓%b Nix-Darwin install succeeded. Cleaning up backups...\n" "$GREEN" "$RESET"
-  for file in $restoration_list; do
-    sudo rm -f "/etc/${file}.before_darwin"
-  done
+  logf "\n%b✓ Nix-Darwin install succeeded.%b\n" "$GREEN" "$RESET"
   # Prevent restoration on trap
   restoration_list=""
 else

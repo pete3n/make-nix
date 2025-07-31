@@ -6,6 +6,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
 
+MAKE_GOALS="${1:-install}"  # default to "install" if nothing is passed
+
 if has_nixos; then
 	printf "%binfo:%b NixOS is installed. Installation aborted...\n" "$BLUE" "$RESET"
 	exit 0
@@ -17,10 +19,15 @@ if has_darwin; then
 fi
 
 if [ "${UNAME_S:-}" != "Linux" ] && [ "${UNAME_S:-}" != "Darwin" ]; then
-		printf "%binfo%b: unsupported OS: %s\n" "$BLUE" "$RESET" "${UNAME_S:-}"
-		exit 1
+	printf "%binfo%b: unsupported OS: %s\n" "$BLUE" "$RESET" "${UNAME_S:-}"
+	exit 1
 fi
 
 sh "$SCRIPT_DIR/check_deps.sh"
 sh "$SCRIPT_DIR/check_installer_integrity.sh"
 sh "$SCRIPT_DIR/launch_installers.sh"
+
+other_targets=$(printf "%s\n" "$MAKE_GOALS" | tr ' ' '\n' | grep -v '^install$')
+if [ -z "$other_targets" ]; then
+  sh "$SCRIPT_DIR/clean.sh"
+fi
