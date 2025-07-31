@@ -31,6 +31,7 @@ if has_nix_darwin; then
 fi
 
 if [ -f /nix/nix-installer ]; then
+	logf "%binfo:%b Nix detected.\n" "$BLUE" "$RESET"
 	if /nix/nix-installer uninstall; then
 		logf "%b✅ success:%b uninstall complete.\n" "$GREEN" "$RESET"
 	else

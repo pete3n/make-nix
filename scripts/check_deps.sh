@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 common_deps="cat dirname grep printf pwd rm tee"
 install_deps="chmod curl cut mkdir shasum"
 uninstall_deps="read"
-config_common_deps="git nix uname whoami"
+config_common_deps="git uname whoami"
 config_system_deps="sudo"
 
 spec_boot_opt_deps="cut xargs"
