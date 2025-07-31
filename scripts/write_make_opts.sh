@@ -62,8 +62,7 @@ printf "IS_LINUX=%s\n" "$is_linux" >> "$MAKE_NIX_ENV"
 
 # If we don't have NixOS and we don't have Nix-Darwin and we have Nix, then we
 # are using Home-manager standalone.
-is_home_alone=false
-if has_nixos -eq 0 || has_nix_darwin -eq 0 && ! check_for_nix no_exit; then
+if ! has_nixos && ! has_nix_darwin && check_for_nix no_exit; then
 	is_home_alone=true
 fi
 
@@ -155,6 +154,10 @@ logf " ]\n"
 if [ -f make_opts.nix ]; then
 	logf "%binfo:%b committing make_opts.nix to git tree.\n" "$BLUE" "$RESET"
 	git add -f make_opts.nix
+	GIT_AUTHOR_NAME="make-nix" \
+	GIT_AUTHOR_EMAIL="make-nix@bot" \
+	GIT_COMMITTER_NAME="make-nix" \
+	GIT_COMMITTER_EMAIL="make-nix@bot" \
 	git commit -m "build: Make-nix automated commit to keep git tree clean" || true
 else
 	logf "\n%berror:%b make_opts.nix not found!\n" "$RED" "$RESET"
