@@ -50,7 +50,7 @@ if has_nix_darwin; then
 fi
 
 if [ -f /nix/nix-installer ]; then
-	if sh /nix/nix-installer uninstall; then
+	if /nix/nix-installer uninstall; then
 		logf "%b✅ success:%b uninstall complete.\n" "$GREEN" "$RESET"
 	else
 		logf "%berror:%b failed to uninstall Nix.\n" "$RED" "$RESET"
