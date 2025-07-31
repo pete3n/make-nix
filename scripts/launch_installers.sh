@@ -40,7 +40,7 @@ if is_truthy "${NIX_DARWIN:-}"; then
 	if [ "${UNAME_S:-}" = "Darwin" ]; then
 		logf "\n%b>>> Installing nix-darwin...%b\n" "$BLUE" "$RESET"
 		check_for_nix exit
-		sh "$SCRIPT_DIR/nix_darwin_install.sh"
+		sh "$SCRIPT_DIR/install_nix_darwin.sh"
 	else
 		logf "\n%binfo:%b Skipping nix-darwin install: macOS not detected.\n" "$BLUE" "$RESET"
 		exit 0
