@@ -94,7 +94,7 @@ if [ -n "${NIX_CACHE_URLS:-}" ]; then
 	mkdir -p "$(dirname "$user_nix_conf")"
 	[ -f "$user_nix_conf" ] || touch "$user_nix_conf"
 
-	# Sync substituters = to user's config
+	# Sync substituters to user's config
 	user_sub_line=$(grep '^substituters =' "$user_nix_conf" 2>/dev/null || true)
 	user_subs=$(printf "%s\n" "$user_sub_line" | cut -d'=' -f2- | sed 's/^ *//')
 	merged_user_subs=""

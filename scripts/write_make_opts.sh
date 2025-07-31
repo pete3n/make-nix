@@ -60,14 +60,17 @@ case "$system" in
 esac
 printf "IS_LINUX=%s\n" "$is_linux" >> "$MAKE_NIX_ENV"
 
-if has_nixos -eq 0 || has_nix_darwin -eq 0; then
+# If we don't have NixOS and we don't have Nix-Darwin and we have Nix, then we
+# are using Home-manager standalone.
+is_home_alone=false
+if has_nixos -eq 0 || has_nix_darwin -eq 0 && ! check_for_nix no_exit; then
 	is_home_alone=true
 fi
 
+# If the user specifies HOME_ALONE (for a different system build), then it overrides
+# any auto-detection.
 if is_truthy "${HOME_ALONE:-}"; then
 	is_home_alone=true
-else
-	is_home_alone=false
 fi
 
 if is_truthy "${USE_CACHE:-}"; then

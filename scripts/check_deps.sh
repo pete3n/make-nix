@@ -20,7 +20,7 @@ optional_utils="less script"
 
 if [ -z "${TARGET:-}" ]; then
   # Use set to safely split MAKECMDGOALS into positional parameters
-  set -- ${MAKECMDGOALS:-}
+  set -- "${MAKECMDGOALS:-}"
   TARGET="${1:-}"
 fi
 
