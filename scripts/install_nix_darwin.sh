@@ -45,6 +45,10 @@ if [ -f "$nix_conf_backup" ]; then
   fi
 fi
 
+if [ "${substituters:-x}" ]; then
+	substituters=""
+fi
+
 if sudo nix run --option experimental-features "nix-command flakes" --option trusted-substituters \""$substituters"\" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .; then
   logf "\n%b✓%b Nix-Darwin install succeeded. Cleaning up backups...\n" "$GREEN" "$RESET"
   for file in $restoration_list; do
