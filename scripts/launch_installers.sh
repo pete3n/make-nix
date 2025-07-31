@@ -31,10 +31,7 @@ else
 fi
 
 sh "$SCRIPT_DIR/enable_flakes.sh"
-
-if is_truthy "${USE_CACHE:-}" && ! is_truthy "${NIX_DARWIN:-}"; then
-	sh "$SCRIPT_DIR/set_cache_config.sh"
-fi
+sh "$SCRIPT_DIR/set_subs_keys.sh"
 
 if is_truthy "${NIX_DARWIN:-}"; then
 	if [ "${UNAME_S:-}" = "Darwin" ]; then

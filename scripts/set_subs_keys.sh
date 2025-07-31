@@ -124,14 +124,12 @@ if [ -n "${NIX_CACHE_URLS:-}" ]; then
 
 fi
 
-# TODO: Implement with trusted-user configuration for binary cache and builders
-# Handle trusted-public-keys (merge, keep original order)
-#if [ -n "${TRUSTED_PUBLIC_KEYS:-}" ]; then
-#	merged_keys=$(merge_values "trusted-public-keys" "$TRUSTED_PUBLIC_KEYS")
-#	logf "\n%binfo:%b setting %btrusted-public-keys%b = %s \nin %b%s%b\n" \
-#		"$BLUE" "$RESET" "$CYAN" "$RESET" "$merged_keys" "$MAGENTA" "$nix_conf" "$RESET"
-#	set_key_value "trusted-public-keys" "$merged_keys"
-#fi
+if [ -n "${TRUSTED_PUBLIC_KEYS:-}" ]; then
+	merged_keys=$(merge_values "trusted-public-keys" "$TRUSTED_PUBLIC_KEYS")
+	logf "\n%binfo:%b setting %btrusted-public-keys%b = %s \nin %b%s%b\n" \
+		"$BLUE" "$RESET" "$CYAN" "$RESET" "$merged_keys" "$MAGENTA" "$nix_conf" "$RESET"
+	set_key_value "trusted-public-keys" "$merged_keys"
+fi
 
 logf "%b>>> Restarting Nix daemon to apply changes...%b\n" "$BLUE" "$RESET"
 case "$(uname)" in
