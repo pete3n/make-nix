@@ -5,13 +5,6 @@
   make_opts,
   ...
 }:
-let
-  hyprlandWrapped =
-    pkgs.writeShellScriptBin "Hyprland" # sh
-      ''
-        exec ${pkgs.nixgl.nixGLIntel}/bin/nixGLIntel ${pkgs.hyprland}/bin/Hyprland "$@"
-      '';
-in
 {
   imports = [
     ./waybar-config.nix
@@ -70,41 +63,9 @@ in
     swww # Wallpaper switcher
   ];
 
-  xdg = {
-    enable = true;
-    portal = {
-      enable = true;
-      extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-      xdgOpenUsePortal = true;
-      config = {
-        common = {
-          default = [ "gtk" ];
-        };
-      };
-    };
-
-    userDirs =
-      let
-        appendToHomeDir = path: "${config.home.homeDirectory}/${path}";
-      in
-      {
-        enable = true;
-        documents = appendToHomeDir "documents";
-        download = appendToHomeDir "downloads";
-        music = appendToHomeDir "music";
-        pictures = appendToHomeDir "pictures";
-        publicShare = appendToHomeDir "public";
-        templates = appendToHomeDir "templates";
-        videos = appendToHomeDir "videos";
-        extraConfig = {
-          XDG_PROJECT_DIR = appendToHomeDir "projects";
-        };
-      };
-  };
-
   wayland.windowManager.hyprland = {
     enable = true;
-    package = if make_opts.isHomeAlone then hyprlandWrapped else pkgs.hyprland;
+    package = if make_opts.isHomeAlone then pkgs.mod.hyprland-nixgli-wrapped else pkgs.hyprland;
     xwayland.enable = true;
     settings = {
       debug = {

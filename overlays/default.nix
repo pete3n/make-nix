@@ -27,6 +27,18 @@
     mod =
       if prev ? unstable && prev ? local then
         {
+					# Wrapper to transparently launch Hyprland with nixGLIntel on non-NixOS
+					# systems which require it to function correctly.
+          hyprland-nixgli-wrapped = prev.hyprland.overrideAttrs (oldAttrs: {
+            postInstall =
+              (oldAttrs.postInstall or "")
+              + ''
+                wrapProgram $out/bin/Hyprland \
+                  --prefix PATH : ${final.nixgl.nixGLIntel}/bin \
+                  --run ${final.nixgl.nixGLIntel}/bin/nixGLIntel
+              '';
+          });
+
           # Workaround for: https://github.com/signalapp/Signal-Desktop/issues/6855
           # Cannot find target for triple amdgcn--
           no-gpu-signal-desktop = prev.unstable.signal-desktop.overrideAttrs (oldAttrs: {
@@ -65,12 +77,4 @@
   };
 
   nixgl = if make_opts.isLinux then inputs.nixgl.overlay else (_: _: { });
-
-  compatability = final: prev:
-    if make_opts.tags == "debian" then {
-      hyprland = final.writeShellScriptBin "Hyprland" ''
-        exec ${final.nixgl.nixGLIntel}/bin/nixGLIntel ${prev.hyprland}/bin/Hyprland "$@"
-      '';
-    } else
-      { };
 }

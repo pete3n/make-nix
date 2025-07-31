@@ -134,7 +134,7 @@
       homeModules = import ./modules/home-manager;
 
       # Provide an import for all nixos system modules to each configuration
-      nixosModules = import ./modules;
+      nixosModules = import ./modules/nixos;
 
       # System configuration for Linux based systems
       nixosConfigurations =
@@ -146,7 +146,7 @@
               };
               modules = [
                 ./hosts/${make_opts.host}/configuration.nix
-                ./users/linux/linux-${make_opts.user}.nix
+                ./users/linux_user.nix
               ];
             };
           }
@@ -165,7 +165,7 @@
                 ./hosts/${make_opts.host}/nix-core.nix
                 ./hosts/${make_opts.host}/system.nix
                 ./hosts/${make_opts.host}/apps.nix
-                ./users/darwin/darwin-${make_opts.user}.nix
+                ./users/darwin_user.nix
               ];
             };
           }
@@ -182,7 +182,7 @@
               extraSpecialArgs = {
                 inherit inputs outputs make_opts;
               };
-              modules = [ ./home-manager/${make_opts.user}/linux-home.nix ];
+              modules = [ ./users/homes/${make_opts.user}/linux/home.nix ];
             };
           }
         else
@@ -193,7 +193,7 @@
               extraSpecialArgs = {
                 inherit inputs outputs make_opts;
               };
-              modules = [ ./home-manager/${make_opts.user}/darwin-home.nix ];
+              modules = [ ./users/homes/${make_opts.user}/darwin/home.nix ];
             };
           };
     };

@@ -60,13 +60,48 @@ in
     };
   };
 
+  xdg = {
+    enable = true;
+    portal = {
+      enable = true;
+      extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+      xdgOpenUsePortal = true;
+      config = {
+        common = {
+          default = [ "gtk" ];
+        };
+      };
+    };
+
+    userDirs = {
+      enable = true;
+      documents = homeDirectory/documents;
+      download = homeDirectory/downloads;
+      music = homeDirectory/music;
+      pictures = homeDirectory/pictures;
+      publicShare = homeDirectory/public;
+      templates = homeDirectory/template;
+      videos = homeDirectory/videos;
+      extraConfig = {
+        XDG_PROJECT_DIR = homeDirectory/projects;
+      };
+    };
+  };
+
   home = {
     # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
     stateVersion = "24.05";
     username = "pete";
     homeDirectory = "/home/pete";
+
     packages =
+			# Build the default Nixvim package for the system architecture
       [ inputs.nixvim.packages.${make_opts.system}.default ]
+			# non-NixOS systems get 
+      ++ lib.optionals make_opts.isHomeAlone [
+        pkgs.nixgl.nixGLIntel
+        pkgs.nixgl.nixVulkanIntel
+      ]
       ++ (with pkgs; [
 
         # Misc
