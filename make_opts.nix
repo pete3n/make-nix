@@ -7,6 +7,6 @@
   isHomeAlone = false;
   useCache = false;
   useKeys = false;
-  tags = [ ];
-  specialisations = [ ];
+  tags = [ "superuser" "hyprland" ];
+  specialisations = [ "wayland" "wayland_egpu" "x11" "x11_egpu" ];
 }
