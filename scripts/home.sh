@@ -34,6 +34,8 @@ if is_truthy "${DRY_RUN:-}"; then
 fi
 dry_print_switch="${BLUE}${dry_switch}${RESET}"
 
+check_for_nix exit
+
 build() {
 	base_cmd=$1
 	print_cmd=$2
