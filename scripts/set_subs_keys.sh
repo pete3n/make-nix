@@ -9,6 +9,16 @@ trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
 trap '[ -n "${tmp_config:-}" ] && rm -f "$tmp_config"' EXIT INT TERM QUIT
 
 check_for_nix exit
+
+# Ensure config files exist
+user_nix_conf="$HOME/.config/nix/nix.conf"
+mkdir -p "$(dirname "$user_nix_conf")"
+[ -f "$user_nix_conf" ] || touch "$user_nix_conf"
+
+nix_conf="/etc/nix/nix.conf"
+sudo mkdir -p "$(dirname "$nix_conf")"
+[ -f "$nix_conf" ] || sudo touch "$nix_conf"
+
 logf "\n%b>>> Cache configuration started...%b\n" "$BLUE" "$RESET"
 
 if [ -z "${NIX_CACHE_URLS:-}" ]; then
@@ -26,10 +36,6 @@ output_csv_list() {
 	done
 	printf "%s\n" "$result"
 }
-
-nix_conf="/etc/nix/nix.conf"
-sudo mkdir -p "$(dirname "$nix_conf")"
-[ -f "$nix_conf" ] || sudo touch "$nix_conf"
 
 # Deduplicates and prepends new values
 merge_values() {
@@ -73,6 +79,8 @@ set_key_value() {
 
 # Handle trusted-public-keys
 if [ -n "${TRUSTED_PUBLIC_KEYS:-}" ]; then
+	printf "DEBUG: /etc/nix/nix.conf current is:\n"
+	cat /etc/nix/nix.conf
 	merged_keys=$(merge_values "trusted-public-keys" "$TRUSTED_PUBLIC_KEYS")
 	logf "\n%binfo:%b setting %btrusted-public-keys%b = %s \nin %b%s%b\n" \
 		"$BLUE" "$RESET" "$CYAN" "$RESET" "$merged_keys" "$MAGENTA" "$nix_conf" "$RESET"
@@ -98,18 +106,13 @@ if [ -n "${NIX_CACHE_URLS:-}" ]; then
 		logf "\n%bbinfo:%b download-buffer-size already set in %s, not modifying.\n" "$BLUE" "$RESET" "$user_nix_conf"
 	fi
 
-	# Ensure user's nix.conf exists
-	user_nix_conf="$HOME/.config/nix/nix.conf"
-	mkdir -p "$(dirname "$user_nix_conf")"
-	[ -f "$user_nix_conf" ] || touch "$user_nix_conf"
-
 	# Sync substituters to user's config
 	user_sub_line=$(grep '^substituters =' "$user_nix_conf" 2>/dev/null || true)
 	user_subs=$(printf "%s\n" "$user_sub_line" | cut -d'=' -f2- | sed 's/^ *//')
 	merged_user_subs=""
 	for val in $(printf "%s" "$NIX_CACHE_URLS" | tr ',' ' ') $user_subs; do
 		case " $merged_user_subs " in
-		*" $val "*) : ;; # skip duplicate
+		*" $val "* : ;; # skip duplicate
 		*) merged_user_subs="$merged_user_subs $val" ;;
 		esac
 	done

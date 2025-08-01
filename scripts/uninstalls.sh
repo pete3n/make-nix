@@ -67,12 +67,12 @@ nix_multi_user_uninstall() {
 	for file in $nix_files; do
 		if [ -f "$file" ] && grep -iq 'Nix' "$file"; then
 			tmp_file="$(mktemp)"
-			sed '/^# Nix$/,/^# End Nix$/d' "$file" >"$tmp_file"
+			sed '/^# Nix$/,/^# End Nix$/d' "$file" sudo tee "$tmp_file"
 			if ! cmp -s "$file" "$tmp_file"; then
 				logf "%binfo:%b removing Nix entries from %b%s%b\n" "$BLUE" "$RESET" \
 					"$MAGENTA" "$file" "$RESET"
-				cp "$file" "$file.bak"
-				cp "$tmp_file" "$file"
+				sudo cp "$file" "$file.bak"
+				sudo cp "$tmp_file" "$file"
 				logf "%binfo:%b removed:\n"
 				diff -u "$file.bak" "$file"
 			fi
