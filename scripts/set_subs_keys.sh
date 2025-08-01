@@ -6,135 +6,80 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 . "$SCRIPT_DIR/common.sh"
 
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
-trap '[ -n "${tmp_config:-}" ] && rm -f "$tmp_config"' EXIT INT TERM QUIT
 
 check_for_nix exit
 
-# Ensure config files exist
-user_nix_conf="$HOME/.config/nix/nix.conf"
-mkdir -p "$(dirname "$user_nix_conf")"
-[ -f "$user_nix_conf" ] || touch "$user_nix_conf"
-
-nix_conf="/etc/nix/nix.conf"
-sudo mkdir -p "$(dirname "$nix_conf")"
-[ -f "$nix_conf" ] || sudo touch "$nix_conf"
-
 logf "\n%b>>> Cache configuration started...%b\n" "$BLUE" "$RESET"
 
+# Sanity check
 if [ -z "${NIX_CACHE_URLS:-}" ]; then
-	logf "\n%b⚠️warning:%b %bUSE_CACHE%b was enabled but no CACHE_URLS were set.\n 
-	Check your make.env file.\n" "$YELLOW" "$RESET" "$BLUE" "$RESET"
+	logf "\n%b⚠️warning:%b %bUSE_CACHE%b was enabled but no NIX_CACHE_URLS were set.\nCheck your make.env file.\n" "$YELLOW" "$RESET" "$BLUE" "$RESET"
 	exit 1
 fi
 
-output_csv_list() {
-	list_csv="$1"
-	result=""
-	IFS=','
-	for val in $list_csv; do
-		result="$result \"$val\""
-	done
-	printf "%s\n" "$result"
+# Format CSV to space-separated
+csv_to_space() {
+	IFS=','; set -- "$1"; printf "%s\n" "$*"
 }
 
-# Deduplicates and prepends new values
-merge_values() {
-	key="$1"
-	new_csv="$2"
+# Paths
+user_nix_conf="$HOME/.config/nix/nix.conf"
+nix_conf="/etc/nix/nix.conf"
 
-	# Parse existing space-separated values
-	existing_line=$(grep "^$key =" "$nix_conf" 2>/dev/null || true)
-	if [ -n "$existing_line" ]; then
-		existing_values=$(printf "%s\n" "$existing_line" | cut -d'=' -f2- | sed 's/^ *//')
-	else
-		existing_values=""
-	fi
+# Ensure files exist
+mkdir -p "$(dirname "$user_nix_conf")"
+[ -f "$user_nix_conf" ] || touch "$user_nix_conf"
 
-	# Parse new comma-separated values
-	new_values=$(printf "%s" "$new_csv" | tr ',' ' ')
+sudo mkdir -p "$(dirname "$nix_conf")"
+[ -f "$nix_conf" ] || sudo touch "$nix_conf"
 
-	# Prepend new values, preserve order, deduplicate
-	combined=""
-	for val in $new_values $existing_values; do
-		case " $combined " in
-		*" $val "*) : ;; # skip duplicate
-		*) combined="$combined $val" ;;
-		esac
-	done
-
-	printf "%s\n" "$combined" | sed 's/^ *//'
-}
-
-set_key_value() {
-	key="$1"
-	value="$2"
-	if grep -q "^$key =" "$nix_conf"; then
-		tmp_config="$(mktemp)"
-		sed "s|^$key =.*|$key = $value|" "$nix_conf" >"$tmp_config"
-		sudo mv "$tmp_config" "$nix_conf"
-	else
-		printf "%s = %s\n" "$key" "$value" | sudo tee -a "$nix_conf" >/dev/null
-	fi
-}
-
-# Handle trusted-public-keys
-if [ -n "${TRUSTED_PUBLIC_KEYS:-}" ]; then
-	printf "DEBUG: /etc/nix/nix.conf current is:\n"
-	cat /etc/nix/nix.conf
-	merged_keys=$(merge_values "trusted-public-keys" "$TRUSTED_PUBLIC_KEYS")
-	logf "\n%binfo:%b setting %btrusted-public-keys%b = %s \nin %b%s%b\n" \
-		"$BLUE" "$RESET" "$CYAN" "$RESET" "$merged_keys" "$MAGENTA" "$nix_conf" "$RESET"
-
-	set_key_value "trusted-public-keys" "$merged_keys"
-fi
-
-# Handle trusted-substituters (prepend new)
-if [ -n "${NIX_CACHE_URLS:-}" ]; then
-	merged_subs=$(merge_values "trusted-substituters" "$NIX_CACHE_URLS")
-	logf "\n%binfo:%b setting %btrusted-substituters%b = %s \nin %b%s%b\n" \
-		"$BLUE" "$RESET" "$CYAN" "$RESET" "$merged_subs" "$MAGENTA" "$nix_conf" "$RESET"
-
-	set_key_value "trusted-substituters" "$merged_subs"
-
-	# Set download-buffer-size = 1G if not already set
-	# https://github.com/NixOS/nix/issues/11728
-	if ! grep -q '^download-buffer-size[[:space:]]*=' "$nix_conf"; then
-		printf "download-buffer-size = 1G\n" | sudo tee -a "$nix_conf"
-		logf "\n%binfo:%b setting %bdownload-buffer-size%b = 1G \nin %b%s%b\n" \
-			"$BLUE" "$RESET" "$CYAN" "$RESET" "$MAGENTA" "$nix_conf" "$RESET"
-	else
-		logf "\n%bbinfo:%b download-buffer-size already set in %s, not modifying.\n" "$BLUE" "$RESET" "$user_nix_conf"
-	fi
-
-	# Sync substituters to user's config
-	user_sub_line=$(grep '^substituters =' "$user_nix_conf" 2>/dev/null || true)
-	user_subs=$(printf "%s\n" "$user_sub_line" | cut -d'=' -f2- | sed 's/^ *//')
-	merged_user_subs=""
-	for val in $(printf "%s" "$NIX_CACHE_URLS" | tr ',' ' ') $user_subs; do
-		case " $merged_user_subs " in
-		*" $val "* : ;; # skip duplicate
-		*) merged_user_subs="$merged_user_subs $val" ;;
-		esac
-	done
-	merged_user_subs="$(printf "%s\n" "$merged_user_subs" | sed 's/^ *//')"
-
-	if [ -n "$merged_user_subs" ]; then
-		if grep -q '^substituters =' "$user_nix_conf"; then
-			if sed --version >/dev/null 2>&1; then
-				# GNU sed
-				sed -i "s|^substituters =.*|substituters = $merged_user_subs|" "$user_nix_conf"
-			else
-				# BSD sed (macOS)
-				sed -i "" "s|^substituters =.*|substituters = $merged_user_subs|" "$user_nix_conf"
-			fi
+# Replace or add a key/value in a config file
+set_conf_value() {
+	file="$1"
+	key="$2"
+	value="$3"
+	if grep -q "^${key}[[:space:]]*=" "$file"; then
+		if sed --version >/dev/null 2>&1; then
+			# GNU sed
+			sed -i "s|^${key}[[:space:]]*=.*|$key = $value|" "$file"
 		else
-			printf "substituters = %s\n" "$merged_user_subs" >>"$user_nix_conf"
+			# BSD sed (macOS)
+			sed -i "" "s|^${key}[[:space:]]*=.*|$key = $value|" "$file"
 		fi
-		logf "\n%binfo:%b setting %bsubstituters%b = %s \nin %b%s%b\n" \
-			"$BLUE" "$RESET" "$CYAN" "$RESET" "$merged_user_subs" "$MAGENTA" "$user_nix_conf" "$RESET"
+	else
+		printf "%s = %s\n" "${key}" "$value" >> "$file"
 	fi
+}
+
+# trusted-public-keys in /etc/nix/nix.conf
+if [ -n "${TRUSTED_PUBLIC_KEYS:-}" ]; then
+	trusted_keys=$(csv_to_space "$TRUSTED_PUBLIC_KEYS")
+	logf "\n%binfo:%b setting %btrusted-public-keys%b = %s \nin %b%s%b\n" \
+		"$BLUE" "$RESET" "$CYAN" "$RESET" "$trusted_keys" "$MAGENTA" "$nix_conf" "$RESET"
+	set_conf_value "$nix_conf" "trusted-public-keys" "$trusted_keys"
 fi
 
+# trusted-substituters in /etc/nix/nix.conf
+cache_urls=$(csv_to_space "$NIX_CACHE_URLS")
+logf "\n%binfo:%b setting %btrusted-substituters%b = %s \nin %b%s%b\n" \
+	"$BLUE" "$RESET" "$CYAN" "$RESET" "$cache_urls" "$MAGENTA" "$nix_conf" "$RESET"
+set_conf_value "$nix_conf" "trusted-substituters" "$cache_urls"
+
+# Set download-buffer-size if not already set
+if ! grep -q '^download-buffer-size[[:space:]]*=' "$nix_conf"; then
+	printf "download-buffer-size = 1G\n" | sudo tee -a "$nix_conf" >/dev/null
+	logf "\n%binfo:%b setting %bdownload-buffer-size%b = 1G \nin %b%s%b\n" \
+		"$BLUE" "$RESET" "$CYAN" "$RESET" "$MAGENTA" "$nix_conf" "$RESET"
+else
+	logf "\n%binfo:%b download-buffer-size already set in %s, not modifying.\n" "$BLUE" "$RESET" "$nix_conf"
+fi
+
+# substituters in user config
+logf "\n%binfo:%b setting %bsubstituters%b = %s \nin %b%s%b\n" \
+	"$BLUE" "$RESET" "$CYAN" "$RESET" "$cache_urls" "$MAGENTA" "$user_nix_conf" "$RESET"
+set_conf_value "$user_nix_conf" "substituters" "$cache_urls"
+
+# Restart daemon
 logf "%b>>> Restarting Nix daemon to apply changes...%b\n" "$BLUE" "$RESET"
 case "$(uname)" in
 Darwin)
