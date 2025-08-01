@@ -18,9 +18,9 @@ let
   };
 
   # Add user to trusted-users if they have the sudoer or poweruser tag
-  trustedUsers =
-    lib.optional (builtins.elem "sudoer" make_opts.tags)
-    || (builtins.elem "poweruser" make_opts.tags) make_opts.user;
+  trustedUsers = lib.optionals (
+    builtins.elem "sudoer" make_opts.tags || builtins.elem "poweruser" make_opts.tags
+  ) [ make_opts.user ];
 
   tagRoleDescription = lib.concatStringsSep "; " (
     builtins.map (tag: tagDescriptionMap.${tag}) availableTags
