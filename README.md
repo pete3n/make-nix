@@ -3,7 +3,6 @@
     <h3> or <i>How my dotfiles escalated into a multi-platform configuration system for declaratively-configured world domination</i> (working title).</h3>
 </div>
 
-## About
 <div style="display: flex; align-items: center; padding: 8px 12px; border-radius: 8px; font-size: 1.6em;">
     <span>
        Make-nix is a 
@@ -16,7 +15,7 @@
       configuration management script.
     </span>
 </div>
-<br>
+## About
 In 2023 I started experimenting with Nix. I had heard of it before, but had yet decided to try it.
 It started small; I thought I could keep it contained to just some of my side-projects, but I soon lost control.
 A little Nix on the side quickly became NixOS on my personal computer. In no time, I found myself up
