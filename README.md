@@ -17,8 +17,9 @@ I get my fix? How could I continue to experience the un-paralleled high that onl
 
 That pursuit may never end, but for now it has take the form of Make-nix. 
 
-Make-nix is a <div style="display: flex; align-items: center; padding: 8px 12px; border-radius: 8px; font-size: 1.6em;">
+<div style="display: flex; align-items: center; padding: 8px 12px; border-radius: 8px; font-size: 1.6em;">
     <span>
+       Make-nix is a 
         <img src="assets/gnu-invert.png" alt="GNU" width="25" style="vertical-align: middle; margin: 0 0px;">
       make controlled
         <img src="assets/nixos-invert_bottom.png" alt="NixOS" width="80" style="vertical-align: middle; margin: 0 0px;">
