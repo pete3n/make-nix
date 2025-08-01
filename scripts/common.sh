@@ -34,20 +34,20 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 	}
 
 	check_for_nix() {
-		if ! command -v nix >/dev/null 2>&1; then
+		if command -v nix >/dev/null 2>&1; then
+			return 0
+		else
 			# shellcheck disable=SC1091
 			. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-
-			if ! command -v nix >/dev/null 2>&1; then
+			if command -v nix >/dev/null 2>&1; then
+				return 0
+			else
 				if [ "${1:-exit}" != "no-exit" ]; then
 					logf "\n%berror:%b nix not found in PATH. Ensure it was correctly installed.\n" "$RED" "$RESET" >&2
 					exit 1
 				fi
 				return 1
 			fi
-
-		else
-			return 0
 		fi
 	}
 
