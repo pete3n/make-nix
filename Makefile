@@ -1,4 +1,4 @@
-# make-Nix v0.1.6
+# make-Nix v0.1.7
 # This Makefile provides targets to install and configure Nix and NixOS for 
 # MacOS and Linux systems. It can build and deploy both NixOS system and 
 # Nix Home-manager configurations.
