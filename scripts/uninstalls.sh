@@ -40,7 +40,7 @@ nix_multi_user_uninstall() {
 %b/nix%b %b~root/.nix-channels%b %b~root/.nix-profile%b %b~root/.cache/nix%b \n" \
 "$BLUE" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" \
 "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET"
-	sudo -rf /etc/nix /etc/profile.d/nix.sh /etc/tmpfiles.d/nix-daemon.conf /nix ~root/.nix-channels ~root/.nix-profile ~root/.cach/nix
+	sudo rm -rf /etc/nix /etc/profile.d/nix.sh /etc/tmpfiles.d/nix-daemon.conf /nix ~root/.nix-channels ~root/.nix-profile ~root/.cach/nix
 
 	logf "%binfo:%b removing nixbld users...%b\n" "$BLUE" "$RESET"
 	if
