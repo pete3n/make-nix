@@ -17,9 +17,8 @@ if [ -z "${NIX_CACHE_URLS:-}" ]; then
 	exit 1
 fi
 
-# Format CSV to space-separated
 csv_to_space() {
-	IFS=','; set -- "$1"; printf "%s\n" "$*"
+	printf "%s" "$1" | tr ',' ' '
 }
 
 # Paths
