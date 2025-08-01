@@ -36,10 +36,8 @@ nix_multi_user_uninstall() {
 	sudo systemctl disable nix-daemon.socket nix-daemon.service
 	sudo systemctl daemon-reload
 
-	logf "%binfo:%b removing %b/etc/nix%b %b/etc/profile.d/nix.sh%b %b/etc/tmpfiles.d/nix-daemon.conf%b \
-%b/nix%b %b~root/.nix-channels%b %b~root/.nix-profile%b %b~root/.cache/nix%b \n" \
-"$BLUE" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" \
-"$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET"
+	logf "%binfo:%b removing %b/etc/nix%b %b/etc/profile.d/nix.sh%b %b/etc/tmpfiles.d/nix-daemon.conf%b %b/nix%b %b~root/.nix-channels%b %b~root/.nix-profile%b %b~root/.cache/nix%b \n" \
+		"$BLUE" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET"
 	sudo rm -rf /etc/nix /etc/profile.d/nix.sh /etc/tmpfiles.d/nix-daemon.conf /nix ~root/.nix-channels ~root/.nix-profile ~root/.cach/nix
 
 	logf "%binfo:%b removing nixbld users...%b\n" "$BLUE" "$RESET"
