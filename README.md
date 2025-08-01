@@ -4,7 +4,18 @@
 </div>
 
 ## About
-  <div style="display: flex; align-items: center; padding: 8px 12px; border-radius: 8px; font-size: 1.6em;">
+In 2023 I started experimenting with Nix. I had heard of it before, but had yet decided to try it.
+It started small; I thought I could keep it contained to just some of my side-projects, but I soon lost control.
+A little Nix on the side quickly became NixOS on my personal computer. In no time, I found myself up 
+late at nights re-writing my dotfiles, trying to make them more declarative, refactoring my system configuration 
+in a language I still can barely comprehend. But it wasn't enough. I needed more.
+
+At work, the hours would drag on as I suffered on Nixless machines. Just the thought of going eight hours without 
+re-writing a configuration file into a declarative module with type-checking made me break into a cold sweat.
+I needed to find a way to feed my addiction. But there are so many systems out there without Nix installed, how could 
+I get my fix? How could I experience that un-paralleled high that only comes from gloriously reproducible software?
+
+That pursuit may never end, but for now it has take the form of Make-nix, a <div style="display: flex; align-items: center; padding: 8px 12px; border-radius: 8px; font-size: 1.6em;">
     <span>
         <img src="assets/gnu-invert.png" alt="GNU" width="25" style="vertical-align: middle; margin: 0 0px;">
       make controlled
@@ -15,9 +26,6 @@
       configuration management repo.
     </span>
   </div>
-I wanted an easy way to manage and deploy flake-based Nix configurations for NixOS, 
-Nix-Darwin, and non-NixOS Linux distributions, so I created a central Makefile to manage
-all aspects of installing, building and deploying Nix!
 
 ## Getting Started
 
