@@ -1,12 +1,12 @@
 { ... }:
 {
   user = "pete";
-  host = "generic_linux";
+  host = "framework16";
   system = "x86_64-linux";
   isLinux = true;
-  isHomeAlone = true;
-  useCache = false;
-  useKeys = false;
-  tags = [ "hyprland" ];
+  isHomeAlone = false;
+  useCache = true;
+  useKeys = true;
+  tags = [ ];
   specialisations = [ ];
 }
