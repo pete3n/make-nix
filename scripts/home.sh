@@ -73,13 +73,17 @@ activate() {
 }
 
 if [ "$mode" = "--build" ]; then
-	build "$base_build_cmd" "$base_build_print_cmd" "$dry_switch" "$dry_print_switch"
+	if build "$base_build_cmd" "$base_build_print_cmd" "$dry_switch" "$dry_print_switch"; then
+		logf "%b✅ success:%b home build complete.\n" "$GREEN" "$RESET"
+	fi
 elif [ "$mode" = "--activate" ]; then
 	if [ "$dry_switch" = "--dry-run" ]; then
-		logf "\n%bDRY_RUN%b %btrue%b: skipping system activation...\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
+		logf "\n%bDRY_RUN%b %btrue%b: skipping home activation...\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
 		exit 0
 	fi
-	activate "$base_activate_cmd" "$base_activate_print_cmd"
+	if activate "$base_activate_cmd" "$base_activate_print_cmd"; then
+		logf "%b✅ success:%b home activation complete.\n" "$GREEN" "$RESET"
+	fi
 else
 	logf "\n%berror:%b Neither --build nor --activate was called for.\n" "$RED" "$RESET"
 fi
