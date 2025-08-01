@@ -5,14 +5,15 @@
 
 <div style="display: flex; align-items: center; padding: 8px 12px; border-radius: 8px; font-size: 1.6em;">
     <span>
-       Make-nix is a 
+        Make-nix is a 
         <img src="assets/gnu-invert.png" alt="GNU" width="25" style="vertical-align: middle; margin: 0 0px;">
-      make controlled
-        <img src="assets/nixos-invert_bottom.png" alt="NixOS" width="80" style="vertical-align: middle; margin: 0 0px;">
+        make controlled
+        <img src="assets/nix.png" alt="NixOS" width="80" style="vertical-align: middle; margin: 0 0px;">
+        NixOS
         <img src="assets/nix-darwin.png" alt="Nix Darwin" width="30" style="vertical-align: middle; margin: 0 0px;">
-      Nix-Darwin and
+        Nix-Darwin and
         <img src="assets/home-manager_bottom.png" alt="Home Manager" width="90" style="vertical-align: middle; margin: 0 0px;">
-      configuration management script.
+        configuration management script.
     </span>
 </div>
 
