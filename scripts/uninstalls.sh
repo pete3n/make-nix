@@ -66,7 +66,7 @@ nix_multi_user_uninstall() {
 	logf "%binfo:%b removing nixbld users...%b\n" "$BLUE" "$RESET"
 	if
 		for user in $(seq 1 32); do
-			sudo userdel nixbld$user
+			sudo userdel nixbld"$user"
 		done
 	then
 		logf "%b✅ success.%b\n" "$GREEN" "$RESET"
@@ -106,9 +106,6 @@ nix_multi_user_uninstall() {
 	exit 0
 }
 
-check_for_nix no_exit
-logf "Nix detection returned: %s\n" "$?"
-
 if check_for_nix no_exit; then
 	logf "%binfo:%b Nix detected.\n" "$BLUE" "$RESET"
 
@@ -129,18 +126,23 @@ if check_for_nix no_exit; then
 		exit 0
 	fi
 
-elif command -v systemctl && systemctl status nix-daemon.service >/dev/null 2>&1; then
-	nix_multi_user_uninstall
-else
-	logf "%binfo:%b removing %b/nix%b %b$HOME/.nix-channels%b %b$HOME/.nix-defexpr%b %b$HOME/.nix-profile%b\n" \
-		"$BLUE" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET"
-	if sudo -rf /nix ~/.nix-channels ~/.nix-defexpr ~/.nix-profile; then
-		logf "%b✅ success:%b uninstall complete.\n" "$GREEN" "$RESET"
-		if [ -f "$HOME/.profile" ] && grep -iq "nix" "$HOME/.profile"; then
-			logf "%binfo: %b you may want remove references to Nix in %b%s%b" \
-				"$BLUE" "$RESET" "$MAGENTA" "$HOME/.profile" "$RESET"
+	if command -v systemctl && systemctl status nix-daemon.service >/dev/null 2>&1; then
+		nix_multi_user_uninstall
+	else
+		logf "%binfo:%b removing %b/nix%b %b$HOME/.nix-channels%b %b$HOME/.nix-defexpr%b %b$HOME/.nix-profile%b\n" \
+			"$BLUE" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET"
+		if sudo -rf /nix ~/.nix-channels ~/.nix-defexpr ~/.nix-profile; then
+			logf "%b✅ success:%b uninstall complete.\n" "$GREEN" "$RESET"
+			if [ -f "$HOME/.profile" ] && grep -iq "nix" "$HOME/.profile"; then
+				logf "%binfo: %b you may want remove references to Nix in %b%s%b" \
+					"$BLUE" "$RESET" "$MAGENTA" "$HOME/.profile" "$RESET"
+			fi
+			exit 0
+		else
+			logf "%berror:%b failed to uninstall Nix.\n" "$RED" "$RESET"
+			exit 1
 		fi
 	fi
+else
+	logf "%binfo:%b Nix not detected. Exiting...\n"
 fi
-
-logf "%binfo:%b Nix not detected. Exiting...\n"
