@@ -46,6 +46,7 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 				return 1
 			fi
 		fi
+		return 0
 	}
 
 	has_nixos() {

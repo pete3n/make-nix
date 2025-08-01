@@ -119,7 +119,7 @@ if check_for_nix no_exit; then
 		fi
 	fi
 
-	logf "Do you wish to continue with uninstalling Nix? Y/n\n"
+	logf "Do you wish to continue uninstalling Nix? Y/n\n"
 	read -r continue
 	if ! [ "$continue" = "Y" ]; then
 		logf "Exiting...\n"
