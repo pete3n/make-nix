@@ -106,6 +106,9 @@ nix_multi_user_uninstall() {
 	exit 0
 }
 
+check_for_nix no_exit
+logf "Nix detection returned: %s\n" "$?"
+
 if check_for_nix no_exit; then
 	logf "%binfo:%b Nix detected.\n" "$BLUE" "$RESET"
 
