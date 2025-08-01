@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Dependency groups
 common_deps="cat dirname grep printf pwd rm tee"
 install_deps="chmod curl cut mkdir shasum"
-uninstall_deps="read"
+uninstall_deps="cmp grep groupdel read seq userdel"
 config_common_deps="git uname whoami"
 config_system_deps="sudo"
 
