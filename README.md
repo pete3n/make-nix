@@ -15,6 +15,7 @@
       configuration management script.
     </span>
 </div>
+
 ## About
 In 2023 I started experimenting with Nix. I had heard of it before, but had yet decided to try it.
 It started small; I thought I could keep it contained to just some of my side-projects, but I soon lost control.
