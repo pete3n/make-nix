@@ -1,7 +1,8 @@
 # make-Nix v0.1.7
-# This Makefile provides targets to install and configure Nix and NixOS for 
-# MacOS and Linux systems. It can build and deploy both NixOS system and 
-# Nix Home-manager configurations.
+# This Makefile provides targets to install and configure Nix, Nix-Darwin,
+# and Nix Home-manager for MacOS and Linux systems. It can build and deploy on
+# NixOS and Nix-Darwin managed systems, as well as on other Linux distributions
+# using Nix Home-manager configurations.
 # Please see https://github.com/pete3n/make-nix for documentation.
 .DEFAULT_GOAL := help
 MAKEFLAGS += --no-print-directory
@@ -46,20 +47,16 @@ show-help:
 # Install/uninstall targets.
 #
 
-# Initialize environment, launch installers, and cleanup.
 .PHONY: install
 install: set-env installs
 
-# Launch installers, including integrity and depdency checks.
 .PHONY: installs
 installs:
 	@sh scripts/installs.sh "$(MAKECMDGOALS)"
 
-# Initialize environment, launch installers, and cleanup.
 .PHONY: uninstall
 uninstall: set-env uninstalls
 
-# Initialize environment, launch installers, and cleanup.
 .PHONY: uninstalls
 uninstalls:
 	@sh scripts/uninstalls.sh "$(MAKECMDGOALS)"
@@ -68,11 +65,11 @@ uninstalls:
 # Configuration targets.
 #
 
-# Home-manager home configuration and activation.
+# Single-target home configuration.
 .PHONY: home
 home: set-env check-deps write-make-opts build-home activate-home check-dirty-warn clean
 
-# NixOS system configuraiton and activation.
+# Single-target NixOS or Nix-Darwin system configuration.
 .PHONY: system
 system: set-env check-deps write-make-opts build-system activate-system check-dirty-warn set-spec-boot clean
 
@@ -80,19 +77,19 @@ system: set-env check-deps write-make-opts build-system activate-system check-di
 .PHONY: all
 all: all-config
 
-# Configure and activate both system and home.
+# Execute both system and home targets.
 .PHONY: all-config
 all-config: set-env check-deps write-make-opts all-system all-home clean
 
-# Home target used by all-config (assumes write target and cleanup handled).
+# Home target used by all-config (environment setup and cleanup called by all-config.)
 .PHONY: all-home
 all-home: build-home activate-home check-dirty-warn
 
-# System target used by all-config (assumes write target and cleanup handled).
+# System target used by all-config (environment setup and cleanup called by all-config.)
 .PHONY: all-system
 all-system: build-system activate-system check-dirty-warn set-spec-boot
 
-# Check all flake configurations
+# Check all flake configurations.
 .PHONY: test
 test: set-env check-deps write-make-opts flake-check check-dirty-warn clean
 
