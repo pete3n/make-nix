@@ -33,9 +33,9 @@
             postInstall =
               (oldAttrs.postInstall or "")
               + ''
-                wrapProgram $out/bin/Hyprland \
-                  --prefix PATH : ${final.nixgl.nixGLIntel}/bin \
-                  --run ${final.nixgl.nixGLIntel}/bin/nixGLIntel
+								mv $out/bin/Hyprland $out/bin/Hyprland.unwrapped
+								makeWrapper ${final.nixgl.nixGLIntel}/bin/nixGLIntel $out/bin/Hyprland \
+									--add-flags "$out/bin/Hyprland.unwrapped"
               '';
           });
 
