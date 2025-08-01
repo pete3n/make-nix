@@ -32,36 +32,15 @@ if has_nix_darwin; then
 fi
 
 nix_multi_user_uninstall() {
-	logf "%binfo:%b stopping nix-daemon.service ...\n"
-	if sudo systemctl stop nix-daemon.service; then
-		logf "%b✅ success.%b\n" "$GREEN" "$RESET"
-	else
-		logf "%b❌ failure.%b\n" "$RED" "$RESET"
-		logf "%berror:%b failed to uninstall Nix.\n" "$RED" "$RESET"
-		exit 1
-	fi
-	logf "%binfo:%b disabling nix-daemon.socket nix-daemon.service ...\n"
-	if sudo systemctl disable nix-daemon.socket nix-daemon.service; then
-		logf "%b✅ success.%b\n" "$GREEN" "$RESET"
-	else
-		logf "%b❌ failure.%b\n" "$RED" "$RESET"
-		logf "%berror:%b failed to uninstall Nix.\n" "$RED" "$RESET"
-		exit 1
-	fi
-	logf "%binfo:%b restarting systemctl daemon ...\n"
+	sudo systemctl stop nix-daemon.service
+	sudo systemctl disable nix-daemon.socket nix-daemon.service
 	sudo systemctl daemon-reload
 
 	logf "%binfo:%b removing %b/etc/nix%b %b/etc/profile.d/nix.sh%b %b/etc/tmpfiles.d/nix-daemon.conf%b \
-		%b/nix%b %b~root/.nix-channels%b %b~root/.nix-profile%b %b~root/.cache/nix%b \n" \
-		"$BLUE" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" \
-		"$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET"
-	if sudo -rf /etc/nix /etc/profile.d/nix.sh /etc/tmpfiles.d/nix-daemon.conf /nix ~root/.nix-channels ~root/.nix-profile ~root/.cach/nix; then
-		logf "%b✅ success:%b uninstall complete.\n" "$GREEN" "$RESET"
-	else
-		logf "%b❌ failure.%b\n" "$RED" "$RESET"
-		logf "%berror:%b failed to uninstall Nix.\n" "$RED" "$RESET"
-		exit 1
-	fi
+%b/nix%b %b~root/.nix-channels%b %b~root/.nix-profile%b %b~root/.cache/nix%b \n" \
+"$BLUE" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" \
+"$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET"
+	sudo -rf /etc/nix /etc/profile.d/nix.sh /etc/tmpfiles.d/nix-daemon.conf /nix ~root/.nix-channels ~root/.nix-profile ~root/.cach/nix
 
 	logf "%binfo:%b removing nixbld users...%b\n" "$BLUE" "$RESET"
 	if
@@ -126,7 +105,7 @@ if check_for_nix no_exit; then
 		exit 0
 	fi
 
-	if command -v systemctl && systemctl status nix-daemon.service >/dev/null 2>&1; then
+	if command -v systemctl >/dev/null 2>&1 && systemctl status nix-daemon.service >/dev/null 2>&1; then
 		nix_multi_user_uninstall
 	else
 		logf "%binfo:%b removing %b/nix%b %b$HOME/.nix-channels%b %b$HOME/.nix-defexpr%b %b$HOME/.nix-profile%b\n" \
