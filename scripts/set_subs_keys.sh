@@ -41,10 +41,10 @@ set_conf_value() {
 	if grep -q "^${key}[[:space:]]*=" "$file"; then
 		if sed --version >/dev/null 2>&1; then
 			# GNU sed
-			sed -i "s|^${key}[[:space:]]*=.*|$key = $value|" "$file"
+			sudo sed -i "s|^${key}[[:space:]]*=.*|$key = $value|" "$file"
 		else
 			# BSD sed (macOS)
-			sed -i "" "s|^${key}[[:space:]]*=.*|$key = $value|" "$file"
+			sudo sed -i "" "s|^${key}[[:space:]]*=.*|$key = $value|" "$file"
 		fi
 	else
 		printf "%s = %s\n" "${key}" "$value" >> "$file"
