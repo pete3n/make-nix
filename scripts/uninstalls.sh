@@ -108,7 +108,7 @@ if check_for_nix no_exit; then
 	else
 		logf "%binfo:%b removing %b/nix%b %b$HOME/.nix-channels%b %b$HOME/.nix-defexpr%b %b$HOME/.nix-profile%b\n" \
 			"$BLUE" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET" "$MAGENTA" "$RESET"
-		if sudo -rf /nix ~/.nix-channels ~/.nix-defexpr ~/.nix-profile; then
+		if sudo rm -rf /nix ~/.nix-channels ~/.nix-defexpr ~/.nix-profile; then
 			logf "%b✅ success:%b uninstall complete.\n" "$GREEN" "$RESET"
 			if [ -f "$HOME/.profile" ] && grep -iq "nix" "$HOME/.profile"; then
 				logf "%binfo: %b you may want remove references to Nix in %b%s%b" \
