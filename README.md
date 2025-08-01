@@ -1,8 +1,9 @@
 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-  <h1 style="margin: 0;">Make-nix - or "How my dotfiles escalated into a multi-platform configuration system for declaratively-configured world domination (working title)"</h1>
+  <h1 style="margin: 0;">Make-nix - <br> </h1>
+    <h3> or "How my dotfiles escalated into a multi-platform configuration system for declaratively-configured world domination (working title)"</h3>
   <div style="display: flex; align-items: center; padding: 8px 12px; border-radius: 8px; font-size: 1.6em;">
     <span>
-      <a href="https://www.gnu.org/software/make/" target="" style="text-decoration: none;"></a>
+      <a href="https://www.gnu.org/software/make/" target=" " style="text-decoration: none;"></a>
       make controlled
       <a href="https://nixos.org/" target="_blank" style="text-decoration: none;">
         <img src="assets/nixos-invert_bottom.png" alt="NixOS" width="80" style="vertical-align: middle; margin: 0 0px;">
