@@ -1,26 +1,19 @@
 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
   <h1 style="margin: 0;">Make-nix - <br> </h1>
     <h3> or <i>How my dotfiles escalated into a multi-platform configuration system for declaratively-configured world domination</i> (working title).</h3>
-  <div style="display: flex; align-items: center; padding: 8px 12px; border-radius: 8px; font-size: 1.6em;">
-    <span>
-      <a href="https://www.gnu.org/software/make/" target=" " style="text-decoration: none;"></a>
-      make controlled
-      <a href="https://nixos.org/" target="_blank" style="text-decoration: none;">
-        <img src="assets/nixos-invert_bottom.png" alt="NixOS" width="80" style="vertical-align: middle; margin: 0 0px;">
-      </a>
-      <a href="https://github.com/nix-darwin/nix-darwin" target="_blank" style="text-decoration: none;">
-        <img src="assets/nix-darwin.png" alt="Nix Darwin" width="30" style="vertical-align: middle; margin: 0 0px;">
-      </a>
-      Nix-Darwin and
-      <a href="https://github.com/nix-community/home-manager" target="_blank" style="text-decoration: none;">
-        <img src="assets/home-manager_bottom.png" alt="Home Manager" width="90" style="vertical-align: middle; margin: 0 0px;">
-      </a>
-      configuration management repo.
-    </span>
-  </div>
 </div>
 
 ## About
+  <div style="display: flex; align-items: center; padding: 8px 12px; border-radius: 8px; font-size: 1.6em;">
+    <span>
+      make controlled
+        <img src="assets/nixos-invert_bottom.png" alt="NixOS" width="80" style="vertical-align: middle; margin: 0 0px;">
+        <img src="assets/nix-darwin.png" alt="Nix Darwin" width="30" style="vertical-align: middle; margin: 0 0px;">
+      Nix-Darwin and
+        <img src="assets/home-manager_bottom.png" alt="Home Manager" width="90" style="vertical-align: middle; margin: 0 0px;">
+      configuration management repo.
+    </span>
+  </div>
 I wanted an easy way to manage and deploy flake-based Nix configurations for NixOS, 
 Nix-Darwin, and non-NixOS Linux distributions, so I created a central Makefile to manage
 all aspects of installing, building and deploying Nix!
