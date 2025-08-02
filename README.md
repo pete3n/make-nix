@@ -19,9 +19,9 @@
 
 ## About
 In 2023 I started experimenting with Nix. I thought I could keep it contained to just some 
-of my side-projects, but I soon lost control. I had heard of Nix before, but no one ever warned me.
+of my side-projects, but I soon lost control. I had heard about Nix before, but no one ever warned me;
 A little Nix on the side quickly became NixOS on my personal computer. In no time, I found myself up
-late nights re-writing my dotfiles, trying to make them more declarative, refactoring my system configuration
+late at nights re-writing my dotfiles, trying to make them more declarative, refactoring my system configuration
 in a language I can still barely comprehend. But it wasn't enough. I needed more.
 
 At work the hours dragged on while I suffered on Nixless machines. Just the thought of going eight hours without
