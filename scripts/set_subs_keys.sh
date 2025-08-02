@@ -46,7 +46,7 @@ set_conf_value() {
 			sudo sed -i "" "s|^${key}[[:space:]]*=.*|$key = $value|" "$file"
 		fi
 	else
-		printf "%s = %s\n" "${key}" "$value" >> "$file"
+		printf "%s = %s\n" "${key}" "$value" | sudo tee -a "$file"
 	fi
 }
 
