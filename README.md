@@ -8,7 +8,7 @@
         Make-nix is a 
         <img src="assets/gnu-invert.png" alt="GNU" width="25" style="vertical-align: middle; margin: 0 0px;">
         make controlled
-        <img src="assets/nix.png" alt="NixOS" width="35" style="vertical-align: middle; margin: 0 0px;">
+        <img src="assets/nix.png" alt="NixOS" width="32" style="vertical-align: middle; margin: 0 0px;">
         NixOS
         <img src="assets/nix-darwin.png" alt="Nix Darwin" width="30" style="vertical-align: middle; margin: 0 0px;">
         Nix-Darwin and
