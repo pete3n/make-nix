@@ -19,8 +19,7 @@ fi
 
 if command -v nix >/dev/null 2>&1; then
 	logf "\n%binfo:%b Nix found in PATH; skipping Nix installation...\n" "$BLUE" "$RESET"
-	logf "If you want to re-install, please follow these instructions to uninstall first: \n"
-	logf "%bhttps://nix.dev/manual/nix/latest/installation/uninstall.html%b\n" "$BLUE" "$RESET"
+	logf "If you want to re-install, please uninstall first.\n"
 else
 	if [ -f "$MAKE_NIX_INSTALLER" ]; then
 		sh "$MAKE_NIX_INSTALLER" "$install_flags"
