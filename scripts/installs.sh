@@ -108,7 +108,12 @@ if is_truthy "${USE_HOMEBREW:-}" && [ "${UNAME_S}" = "Darwin" ]; then
 	logf "\n%binfo:%bVerifying Homebrew installer integrity...\n" "$BLUE" "$RESET"
 	# Overwrites previous mktmp installer
 	check_integrity "$HOMEBREW_INSTALL_URL" "$HOMEBREW_INSTALL_HASH"
-	sh "$MAKE_NIX_INSTALLER"
+	if command -v bash; then
+		bash -c "$MAKE_NIX_INSTALLER"
+	else
+		logf "\n%berror:%b bash was not found. This is required for Homebrew installation.\n" "$RED" "$RESET"
+		exit 1
+	fi
 fi
 
 # Optional Nix-Darwin install
