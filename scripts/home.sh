@@ -51,8 +51,10 @@ build() {
 
 	if is_truthy "${USE_SCRIPT:-}"; then
 		script -a -q -c "$build_cmd" "$MAKE_NIX_LOG"
+		return $?
 	else
 		eval "$build_cmd" | tee "$MAKE_NIX_LOG"
+		return $?
 	fi
 }
 
@@ -67,8 +69,10 @@ activate() {
 
 	if is_truthy "${USE_SCRIPT:-}"; then
 		script -a -q -c "$activate_cmd" "$MAKE_NIX_LOG"
+		return $?
 	else
 		eval "$activate_cmd" | tee "$MAKE_NIX_LOG"
+		return $?
 	fi
 }
 
