@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, make_opts, ... }:
 {
   ##########################################################################
   #
@@ -33,11 +33,7 @@
     ./skhd.nix
   ];
 
-  # TODO To make this work, homebrew need to be installed manually, see https://brew.sh
-  #
-  # The apps installed by homebrew are not managed by nix, and not reproducible!
-  # But on macOS, homebrew has a much larger selection of apps than nixpkgs, especially for GUI apps!
-  homebrew = {
+  homebrew = lib.mkIf make_opts.useHomebrew {
     enable = true;
 
     onActivation = {
@@ -46,18 +42,14 @@
       # cleanup = "zap";
     };
 
-    taps = [ "homebrew/services" ];
-
     # `brew install`
     # TODO Feel free to add your favorite apps here.
     brews = [
-      # "aria2"  # download tool
     ];
 
     # `brew install --cask`
     # TODO Feel free to add your favorite apps here.
     casks = [
-      # "google-chrome"
     ];
   };
 }
