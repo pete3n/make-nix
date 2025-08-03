@@ -73,6 +73,12 @@ if is_truthy "${HOME_ALONE:-}"; then
 	is_home_alone=true
 fi
 
+if is_truthy "${USE_HOMEBREW:-}"; then
+	use_homebrew=true
+else
+	use_homebrew=false
+fi
+
 if is_truthy "${USE_CACHE:-}"; then
 	use_cache=true
 else
@@ -91,6 +97,7 @@ logf '  host              = "%s"\n' "$host"
 logf '  system            = "%s"\n' "$system"
 logf '  isLinux           = %s\n' "$is_linux"
 logf '  isHomeAlone       = %s\n' "$is_home_alone"
+logf '  useHomebrew       = %s\n' "$use_homebrew"
 logf '  useCache          = %s\n' "$use_cache"
 logf '  useKeys           = %s\n' "$use_keys"
 
@@ -123,6 +130,7 @@ logf " ]\n"
 	printf '  system = "%s";\n' "$system"
 	printf '  isLinux = %s;\n' "$is_linux"
 	printf '  isHomeAlone = %s;\n' "$is_home_alone"
+	printf '  useHomebrew = %s;\n' "$use_homebrew"
 	printf '  useCache = %s;\n' "$use_cache"
 	printf '  useKeys = %s;\n' "$use_keys"
 

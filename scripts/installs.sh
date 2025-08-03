@@ -103,7 +103,7 @@ fi
 sh "$SCRIPT_DIR/set_subs_keys.sh"
 
 # Optional Homebrew install
-if is_truthy "${HOMEBREW:-}" && [ "${UNAME_S}" = "Darwin" ]; then
+if is_truthy "${USE_HOMEBREW:-}" && [ "${UNAME_S}" = "Darwin" ]; then
 	logf "\n%b>>> Installing Homebrew...%b\n" "$BLUE" "$RESET"
 	logf "\n%binfo:%bVerifying Homebrew installer integrity...\n" "$BLUE" "$RESET"
 	# Overwrites previous mktmp installer
