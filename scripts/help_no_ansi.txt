@@ -22,7 +22,7 @@ Configuration parameters:
   TGT_HOST    - System configuration host (current hostname will be passed by default).
   TGT_TAGS    - User allows to customizing home-manager user configuration based on tags similar to specialisations for system configurations.
   TGT_SYSTEM  - System platform to target for builds: x86_64-linux, aarch64-linux, x86_64-darwin, or aarch64-darwin (current platform will be passed by default.)
-  TGT_SPEC    - Comma separated list of system specialisation configurations (no spaces).
+  TGT_SPEC    - Comma separated list of NixOS system specialisation configurations (no spaces).
 
 Option flags (These are boolean, assigning any truthy value will enable them):
 Truthy values are 1 yes Yes YES true True TRUE on On ON y Y
@@ -32,6 +32,8 @@ Install option flags (install):
 
   NIX_DARWIN=true   - Install Nix-Darwin for MacOS.
 
+  USE_HOMEBREW=true - Install Homebrew.
+
   SINGLE_USER=true  - Install Nix for single-user mode (default installer only).
 
   USE_CACHE=true    - Set a additional cache server URLs to be used as substituters (cache.nixos.org is used by default). This option is defined in make.env as a comma separated list of URLs (no spaces) in order of precedence.
@@ -40,6 +42,8 @@ Install option flags (install):
 
 Configuration option flags (home|system|all):
   DRY_RUN=true      - Evaluate the new configuration but don't activate it.
+
+  USE_HOMEBREW=true - Configure Homebrew package options for Nix-Darwin configurations.
 
   HOME_ALONE=true   - Configure options for a system running home-manager without NixOS or Nix-Darwin (autodetects current system).
 

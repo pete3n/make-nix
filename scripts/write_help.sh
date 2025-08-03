@@ -40,19 +40,21 @@ write_line "  ${CYAN}TGT_USER${RESET}    - User configuration (current user will
 write_line "  ${CYAN}TGT_HOST${RESET}    - System configuration host (current hostname will be passed by default)."
 write_line "  ${CYAN}TGT_TAGS${RESET}    - User allows to customizing home-manager user configuration based on tags similar to specialisations for system configurations."
 write_line "  ${CYAN}TGT_SYSTEM${RESET}  - System platform to target for builds: x86_64-linux, aarch64-linux, x86_64-darwin, or aarch64-darwin (current platform will be passed by default.)"
-write_line "  ${CYAN}TGT_SPEC${RESET}    - Comma separated list of system specialisation configurations (no spaces).\n"
+write_line "  ${CYAN}TGT_SPEC${RESET}    - Comma separated list of NixOS system specialisation configurations (no spaces).\n"
 
 write_line "${BLUE}Option flags${RESET} (These are boolean, assigning ${BOLD}any truthy${RESET} value will enable them):"
 write_line "Truthy values are 1 yes Yes YES true True TRUE on On ON y Y\n"
 write_line "Install option flags (install):"
 write_line "  ${BLUE}DETERMINATE${RESET}${RED}=${RESET}true  - Install Nix using the Determinate Systems installer.\n"
 write_line "  ${BLUE}NIX_DARWIN${RESET}${RED}=${RESET}true   - Install Nix-Darwin for MacOS.\n"
+write_line "  ${BLUE}USE_HOMEBREW${RESET}${RED}=${RESET}true - Install Homebrew.\n"
 write_line "  ${BLUE}SINGLE_USER${RESET}${RED}=${RESET}true  - Install Nix for single-user mode (default installer only).\n"
 write_line "  ${BLUE}USE_CACHE${RESET}${RED}=${RESET}true    - Set a additional cache server URLs to be used as substituters (cache.nixos.org is used by default). This option is defined in make.env as a comma separated list of URLs (no spaces) in order of precedence.\n"
 write_line "  ${BLUE}USE_KEYS${RESET}${RED}=${RESET}true     - Set additional trusted public keys for nix stores (cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= is used by default). This option is defined in make.env as comma separated list of Nix keyname:keyvalue pairs.\n"
 
 write_line "Configuration option flags (home|system|all):"
 write_line "  ${BLUE}DRY_RUN${RESET}${RED}=${RESET}true      - Evaluate the new configuration but don't activate it.\n"
+write_line "  ${BLUE}USE_HOMEBREW${RESET}${RED}=${RESET}true - Configure Homebrew package options for Nix-Darwin configurations.\n"
 write_line "  ${BLUE}HOME_ALONE${RESET}${RED}=${RESET}true   - Configure options for a system running home-manager without NixOS or Nix-Darwin (autodetects current system).\n"
 write_line "  ${BLUE}BOOT_SPEC${RESET}${RED}=${RESET}true    - Set the default boot menu option to the ${BOLD}first${RESET} listed specialisation. (NOTE: Only supports systemd boot configurations.)\n"
 

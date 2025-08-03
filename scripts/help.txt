@@ -22,7 +22,7 @@ Usage:
   [1;36mTGT_HOST[0m    - System configuration host (current hostname will be passed by default).
   [1;36mTGT_TAGS[0m    - User allows to customizing home-manager user configuration based on tags similar to specialisations for system configurations.
   [1;36mTGT_SYSTEM[0m  - System platform to target for builds: x86_64-linux, aarch64-linux, x86_64-darwin, or aarch64-darwin (current platform will be passed by default.)
-  [1;36mTGT_SPEC[0m    - Comma separated list of system specialisation configurations (no spaces).
+  [1;36mTGT_SPEC[0m    - Comma separated list of NixOS system specialisation configurations (no spaces).
 
 [1;34mOption flags[0m (These are boolean, assigning [1many truthy[0m value will enable them):
 Truthy values are 1 yes Yes YES true True TRUE on On ON y Y
@@ -32,6 +32,8 @@ Install option flags (install):
 
   [1;34mNIX_DARWIN[0m[0;31m=[0mtrue   - Install Nix-Darwin for MacOS.
 
+  [1;34mUSE_HOMEBREW[0m[0;31m=[0mtrue - Install Homebrew.
+
   [1;34mSINGLE_USER[0m[0;31m=[0mtrue  - Install Nix for single-user mode (default installer only).
 
   [1;34mUSE_CACHE[0m[0;31m=[0mtrue    - Set a additional cache server URLs to be used as substituters (cache.nixos.org is used by default). This option is defined in make.env as a comma separated list of URLs (no spaces) in order of precedence.
@@ -40,6 +42,8 @@ Install option flags (install):
 
 Configuration option flags (home|system|all):
   [1;34mDRY_RUN[0m[0;31m=[0mtrue      - Evaluate the new configuration but don't activate it.
+
+  [1;34mUSE_HOMEBREW[0m[0;31m=[0mtrue - Configure Homebrew package options for Nix-Darwin configurations.
 
   [1;34mHOME_ALONE[0m[0;31m=[0mtrue   - Configure options for a system running home-manager without NixOS or Nix-Darwin (autodetects current system).
 
