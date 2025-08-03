@@ -59,7 +59,7 @@ missing_optional=false
 
 for cmd in $required_utils; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
-    logf "%berror:%b missing required dependency: %b%s%b\n" "$RED" "$RESET" "$RED" "$cmd" "$RESET"
+    logf "\n%berror:%b missing required dependency: %b%s%b\n" "$RED" "$RESET" "$RED" "$cmd" "$RESET"
     missing_required=true
   fi
 done
@@ -67,17 +67,17 @@ done
 # Check optional utilities
 for cmd in $optional_utils; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
-    logf "%binfo:%b missing optional dependency: %s\n" "$BLUE" "$cmd" "$RESET"
+    logf "\n%binfo:%b missing optional dependency: %s\n" "$BLUE" "$cmd" "$RESET"
     missing_optional=true
   fi
 done
 
 # Final output
 if [ "$missing_required" = false ]; then
-  logf "%b✅%b All required dependencies are installed.\n" "$GREEN" "$RESET"
+  logf "\n%b✅%b All required dependencies are installed.\n" "$GREEN" "$RESET"
   [ "$missing_optional" = true ] && logf "%b⚠️%b  Some optional dependencies are missing.\n" "$YELLOW" "$RESET"
   exit 0
 else
-  logf "%b❌%b One or more required dependencies are missing.\n" "$RED" "$RESET"
+  logf "\n%b❌%b One or more required dependencies are missing.\n" "$RED" "$RESET"
   exit 1
 fi
