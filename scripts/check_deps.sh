@@ -8,7 +8,11 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Dependency groups
 common_deps="cat dirname grep printf pwd rm tee"
 install_deps="chmod curl cut mkdir shasum"
-uninstall_deps="cmp grep groupdel read seq tee userdel"
+if [ "${UNAME_S:-}" = "Linux" ]; then 
+	uninstall_deps="cmp grep groupdel read seq tee userdel"
+else
+	uninstall_deps=""
+fi
 config_common_deps="git uname whoami"
 config_system_deps="sudo"
 
@@ -25,7 +29,7 @@ required_utils="$common_deps"
 
 for target in $TARGETS; do
   case "$target" in
-    install)
+		install)
       required_utils="$required_utils $install_deps"
       ;;
 		uninstall)
