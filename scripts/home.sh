@@ -34,7 +34,6 @@ if is_truthy "${DRY_RUN:-}"; then
 fi
 dry_print_switch="${BLUE}${dry_switch}${RESET}"
 
-check_for_nix exit
 
 build() {
 	base_cmd=$1
@@ -48,6 +47,7 @@ build() {
 	logf "%b%s%b on %b%s%b host %b%s%b\n" "$CYAN" "$user" "$RESET" "$CYAN" "$TGT_SYSTEM" "$RESET" \
 		"$CYAN" "$host" "$RESET"
 	logf "\n%bBuild command:%b %b\n\n" "$BLUE" "$RESET" "$print_cmd"
+	check_for_nix exit
 
 	if is_truthy "${USE_SCRIPT:-}"; then
 		script -a -q -c "$build_cmd" "$MAKE_NIX_LOG"
@@ -66,6 +66,7 @@ activate() {
 	logf "%b%s%b on %b%s%b host %b%s%b %b%s%b\n" "$CYAN" "$user" "$RESET" \
 		"$CYAN" "$TGT_SYSTEM" "$RESET" "$CYAN" "$host" "$RESET"
 	logf "\n%bActivation command:%b %b\n\n" "$BLUE" "$RESET" "$print_cmd"
+	check_for_nix exit
 
 	if is_truthy "${USE_SCRIPT:-}"; then
 		script -a -q -c "$activate_cmd" "$MAKE_NIX_LOG"
