@@ -71,12 +71,12 @@ fi
 
 if check_for_nix no_exit; then
 	logf "\n%binfo:%b Nix found in PATH; skipping Nix installation...\n" "$BLUE" "$RESET"
-	logf "If you want to re-install, please run 'make uninstall' first: \n"
+	logf "If you want to re-install, please run 'make uninstall' first.\n"
 else
 	if [ -f "$MAKE_NIX_INSTALLER" ]; then
 		sh "$MAKE_NIX_INSTALLER" "$install_flags"
 	else
-		logf "\n%berror:%b Could not execute 'nix_installer.sh'.\n" "$RED" "$RESET"
+		logf "\n%berror:%b Could not execute 'sh %b'.\n" "$RED" "$RESET" "$MAKE_NIX_INSTALLER"
 		exit 1
 	fi
 fi
