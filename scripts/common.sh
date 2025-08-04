@@ -33,23 +33,18 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		exit "$status"
 	}
 
-	check_for_nix() {
-		if command -v nix >/dev/null 2>&1; then
-			return 0
-		fi
-		if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
-			# shellcheck disable=SC1091
-			. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-		fi
-		if command -v nix >/dev/null 2>&1; then
-			return 0
-		elif [ "${1:-exit}" != "no-exit" ]; then
-			logf "\n%berror:%b nix not found in PATH. Ensure it was correctly installed.\n" "$RED" "$RESET" >&2
+check_for_nix() {
+	if ! command -v nix >/dev/null 2>&1; then
+		if [ "${1:-exit}" != "no-exit" ]; then
+			logf "\n%berror:%b Nix not found in PATH.\n" "$RED" "$RESET"
 			exit 1
 		else
 			return 1
 		fi
-	}
+	fi
+
+	return 0
+}
 
 	has_nixos() {
 		if command -v nixos-rebuild >/dev/null 2>&1; then

@@ -69,7 +69,7 @@ else
 	fi
 fi
 
-if check_for_nix no_exit; then
+if check_for_nix no-exit; then
 	logf "\n%binfo:%b Nix found in PATH; skipping Nix installation...\n" "$BLUE" "$RESET"
 	logf "If you want to re-install, please run 'make uninstall' first.\n"
 else
@@ -79,6 +79,12 @@ else
 		logf "\n%berror:%b Could not execute 'sh %b'.\n" "$RED" "$RESET" "$MAKE_NIX_INSTALLER"
 		exit 1
 	fi
+fi
+
+# Source Nix to make it available immediately.
+if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
+	# shellcheck disable=SC1091
+	. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
 fi
 
 # Enabled flakes (Required before Nix-Darwin install)
