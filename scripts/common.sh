@@ -37,8 +37,10 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		if command -v nix >/dev/null 2>&1; then
 			return 0
 		else
-			# shellcheck disable=SC1091
-			. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+			if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
+				# shellcheck disable=SC1091
+				. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+			fi
 			if command -v nix >/dev/null 2>&1; then
 				return 0
 			else
