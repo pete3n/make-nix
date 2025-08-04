@@ -12,10 +12,10 @@ has_cat() {
   command -v cat >/dev/null 2>&1
 }
 
-supports_less_R() {
+supports_less_frx() {
   command -v less >/dev/null 2>&1 || return 1
   ESC_CHAR="$(printf '\033')"
-  printf '\033[1;32mTEST\033[0m\n' | less -R 2>/dev/null | grep -q "$ESC_CHAR"
+  printf '\033[1;32mTEST\033[0m\n' | less -FRX 2>/dev/null | grep -q "$ESC_CHAR"
 }
 
 help_dir="$(dirname "$0")"
@@ -34,7 +34,7 @@ if is_truthy "${NO_ANSI:-}"; then
   fi
   help_file="$help_no_ansi"
 else
-  if supports_less_R; then
+  if supports_less_frx; then
     help_cmd="less -R"
     help_file="$help_ansi"
   else
