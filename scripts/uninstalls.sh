@@ -49,7 +49,7 @@ cleanup_nix_files() {
 					logf "\n%binfo:%b could not modify: %b%s%b\n" \
 						"$BLUE" "$RESET" "$MAGENTA" "$file" "$RESET"
 				fi
-				logf "\n%binfo:%b removed:\n"
+				logf "\n%binfo:%b removed:\n" "$BLUE" "$RESET"
 				diff -u "$file.bak" "$file"
 			fi
 			rm -f "$tmp_file"
