@@ -25,7 +25,7 @@ else
 fi
 
 if [ -z "${TGT_HOST:-}" ]; then
-	host="$(hostaname -s)"
+	host="$(hostname -s)"
 	if [ -z "$host" ]; then
 		logf "\n%berror:%b could not determine local hostname.\n" "$RED" "$RESET"
 		exit 1 
