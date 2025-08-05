@@ -47,7 +47,7 @@ cleanup_nix_files() {
 				if ! sudo cp "$tmp_file" "$file"; then
 					is_success=false
 					logf "\n%binfo:%b could not modify: %b%s%b\n" \
-						"$BLUE" "$RESET" "$MAGENTA" "$RESET"
+						"$BLUE" "$RESET" "$MAGENTA" "$file" "$RESET"
 				fi
 				logf "\n%binfo:%b removed:\n"
 				diff -u "$file.bak" "$file"
