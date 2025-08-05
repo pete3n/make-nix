@@ -33,7 +33,7 @@ logf "\n%b>>> Starting uninstaller...%b\n" "$BLUE" "$RESET"
 
 cleanup_nix_files() {
 	is_success=true
-	logf "\n%b>>> Cleaning up Nix configuration files...\n" "$BLUE" "$RESET"
+	logf "\n%b>>> Cleaning up Nix configuration files...%b\n" "$BLUE" "$RESET"
 	nix_files="/etc/bash.bashrc /etc/bashrc /etc/profile /etc/zsh/zshrc /etc/zshrc"
 
 	for file in $nix_files; do
