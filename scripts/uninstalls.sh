@@ -39,7 +39,7 @@ cleanup_nix_files() {
 	for file in $nix_files; do
 		if [ -f "$file" ] && grep -iq 'Nix' "$file"; then
 			tmp_file="$(mktemp)"
-			sed '/^# Nix$/,/^# End Nix$/d' "$file" sudo tee "$tmp_file"
+			sed '/^# Nix$/,/^# End Nix$/d' "$file" | sudo tee "$tmp_file" >/dev/null
 			if ! cmp -s "$file" "$tmp_file"; then
 				logf "%binfo:%b removing Nix entries from %b%s%b\n" "$BLUE" "$RESET" \
 					"$MAGENTA" "$file" "$RESET"
