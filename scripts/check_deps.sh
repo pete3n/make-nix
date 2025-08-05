@@ -7,13 +7,13 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Dependency groups
 common_deps="cat dirname grep printf pwd rm tee"
-install_deps="chmod curl cut mkdir shasum"
+install_deps="chmod curl cut hostname mkdir shasum"
 if [ "${UNAME_S:-}" = "Linux" ]; then 
 	uninstall_deps="cp cmp diff grep groupdel read rm sed seq sudo tee userdel"
 else
 	uninstall_deps="cp cat cmp diff grep dscl launchctl read rm sed sudo tee"
 fi
-config_common_deps="git uname whoami"
+config_common_deps="git hostname uname whoami"
 config_system_deps="sudo"
 
 spec_boot_opt_deps="cut xargs"
