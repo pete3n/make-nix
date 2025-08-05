@@ -4,6 +4,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
+host="${TGT_HOST:-}"
 clobber_list="nix/nix.conf zshenv zshrc bashrc"
 restored=false
 restoration_list=""
@@ -47,8 +48,8 @@ if [ -f "$nix_conf_backup" ]; then
 fi
 
 logf "\n%binfo:%b installing Nix-Darwin with command:\n" "$BLUE" "$RESET"
-logf "sudo nix run --option experimental-features \"nix-command flakes\" --option trusted-substituters \"$substituters\" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake ."
-if sudo nix run --option experimental-features "nix-command flakes" --option trusted-substituters "$substituters" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .; then
+logf "sudo nix run --option experimental-features \"nix-command flakes\" --option trusted-substituters \"$substituters\" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .#%s\n" "$host" 
+if sudo nix run --option experimental-features "nix-command flakes" --option trusted-substituters "$substituters" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .#"${host}"; then
   logf "\n%b✓ Nix-Darwin install succeeded.%b\n" "$GREEN" "$RESET"
   # Prevent restoration on trap
   restoration_list=""
