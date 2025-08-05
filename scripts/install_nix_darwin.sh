@@ -4,18 +4,6 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
-
-if [ -z "${TGT_HOST:-}" ]; then
-	host="$(uname -n)"
-	if [ -z "$host" ]; then
-		logf "\n%berror:%b could not determine local hostname.\n" "$RED" "$RESET"
-		exit 1 
-	fi
-	printf "TGT_HOST=%s\n" "$host" >> "$MAKE_NIX_ENV"
-else
-	host=$TGT_HOST
-fi
-
 clobber_list="nix/nix.conf zshenv zshrc bashrc"
 restored=false
 restoration_list=""
@@ -58,9 +46,9 @@ if [ -f "$nix_conf_backup" ]; then
   fi
 fi
 
-logf "%binfo:%b installing with command\n"
-logf "nix run --option experimental-features \"nix-command flakes\" --option trusted-substituters \"$substituters\" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .#%s" "$host"
-if nix run --option experimental-features "nix-command flakes" --option trusted-substituters \""$substituters"\" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .#"$host"; then
+logf "\n%binfo:%b installing Nix-Darwin with command:\n" "$BLUE" "$RESET"
+logf "sudo nix run --option experimental-features \"nix-command flakes\" --option trusted-substituters \"$substituters\" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake ."
+if sudo nix run --option experimental-features "nix-command flakes" --option trusted-substituters "$substituters" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .; then
   logf "\n%b✓ Nix-Darwin install succeeded.%b\n" "$GREEN" "$RESET"
   # Prevent restoration on trap
   restoration_list=""
