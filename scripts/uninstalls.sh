@@ -32,12 +32,22 @@ fi
 logf "\n%b>>> Starting uninstaller...%b\n" "$BLUE" "$RESET"
 
 cleanup_nix_files() {
-	is_success=true
 	logf "\n%b>>> Cleaning up Nix configuration files...%b\n" "$BLUE" "$RESET"
-	nix_files="/etc/bash.bashrc /etc/bashrc /etc/profile /etc/zsh/zshrc /etc/zshrc"
+	is_success=true
 
-	for file in $nix_files; do
-		if [ -f "$file" ] && grep -iq 'Nix' "$file"; then
+	backup_files="/etc/zshrc.backup-before-nix /etc/bashrc.backup-before-nix /etc/bash.bashrc.backup-before-nix"
+
+	for file in $backup_files; do
+		original_file="${file%.backup-before-nix}"
+		if [ -f "$file" ]; then
+			printf "\n%binfo:%b restoring %b%s%b to %b%s%b ...\n" \
+				"$BLUE" "$RESET" "$MAGENTA" "$file" "$RESET" "$MAGENTA" "$original_file" "$RESET"
+			if ! sudo mv "$file" "$original_file"; then
+				printf "\n%berror:%b failed to restore: %b%s%b \n" "$RED" "$RESET" "$MAGENTA" "$file" "$RESET"
+				is_success=false
+			fi
+		# No backup
+		elif [ -f "$original_file" ] && grep -iq 'Nix' "$original_file"; then
 			tmp_file="$(mktemp)"
 			sed '/^# Nix$/,/^# End Nix$/d' "$file" | sudo tee "$tmp_file" >/dev/null
 			if ! cmp -s "$file" "$tmp_file"; then
@@ -54,12 +64,8 @@ cleanup_nix_files() {
 			fi
 			rm -f "$tmp_file"
 		fi
-	done
 
-	if [ -f "$HOME/.profile" ] && grep -iq "nix" "$HOME/.profile"; then
-		logf "%binfo: %b you may want remove references to Nix in %b%s%b" \
-			"$BLUE" "$RESET" "$MAGENTA" "$HOME/.profile" "$RESET"
-	fi
+	done
 
 	if [ "$is_success" = true ]; then
 		is_success=true
@@ -120,33 +126,6 @@ nix_multi_user_uninstall_linux() {
 
 nix_multi_user_uninstall_darwin() {
 	is_success=true
-	backup_files="/etc/zshrc.backup-before-nix /etc/bashrc.backup-before-nix /etc/bash.bashrc.backup-before-nix"
-
-	for file in $backup_files; do
-		original_file="${file%.backup-before-nix}"
-		if [ -f "$file" ]; then
-			printf "\n%binfo:%b restoring %b%s%b to %b%s%b ...\n" \
-				"$BLUE" "$RESET" "$MAGENTA" "$file" "$RESET" "$MAGENTA" "$original_file" "$RESET"
-			if ! sudo mv "$file" "$original_file"; then
-				printf "\n%berror:%b failed to restore: %b%s%b \n" "$RED" "$RESET" "$MAGENTA" "$file" "$RESET"
-				is_success=false
-			fi
-		# No backup
-		elif [ -f "$original_file" ] && grep -iq 'Nix' "$original_file"; then
-			tmp_file="$(mktemp)"
-			sed '/^# Nix$/,/^# End Nix$/d' "$file" sudo tee "$tmp_file"
-			if ! cmp -s "$original_file" "$tmp_file"; then
-				logf "%binfo:%b removing Nix entries from %b%s%b\n" "$BLUE" "$RESET" \
-					"$MAGENTA" "$original_file" "$RESET"
-				sudo cp "$original_file" "$file.bak"
-				sudo cp "$tmp_file" "$original_file"
-				logf "%binfo:%b removed:\n"
-				diff -u "$file.bak" "$original_file"
-			fi
-			rm -f "$tmp_file"
-		fi
-
-	done
 
 	logf "\n%binfo:%b stopping and disabling nix-daemon.service ..." "$BLUE" "$RESET"
 	if ! sudo launchctl unload /Library/LaunchDaemons/org.nixos.nix-daemon.plist; then
