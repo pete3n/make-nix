@@ -136,30 +136,30 @@ nix_multi_user_uninstall_linux() {
 	logf "\n%binfo:%b removing nixbld users...%b\n" "$BLUE" "$RESET"
 	for user in $(seq 1 32); do
 
-		if ! sudo userdel "nixbld$user" 2>/dev/null; then
-			rc=$?
-			if [ "$rc" -eq 6 ]; then
-				# User doesn't exist — not a failure condition
-				continue
-			else
-				is_success=false
-				logf "\n%berror:%b failed to remove user %b%s%b (code %d)\n" \
-					"$RED" "$RESET" "$CYAN" "nixbld$user" "$RESET" "$rc"
-			fi
+		rc=0
+		sudo userdel "nixbld$user" 2>/dev/null || rc=$?
+		if [ "$rc" -eq 6 ]; then
+			# 6 is user doesn't exist — not a failure condition
+			continue
+		elif [ "$rc" -ne 0 ]; then
+			is_success=false
+			logf "\n%berror:%b failed to remove user %b%s%b (code %d)\n" \
+				"$RED" "$RESET" "$CYAN" "nixbld$user" "$RESET" "$rc"
 		fi
 
 	done
 
 	logf "%binfo:%b removing nixbld group...%b\n" "$BLUE" "$RESET"
-	if ! sudo groupdel nixbld 2>/dev/null; then
-		rc=$?
-		if [ "$rc" -eq 6 ]; then
-			# Group does not exist — not an error condition
-			:
-		else
-			logf "%berror:%b failed to remove group (code %d)\n" "$RED" "$RESET" "$rc"
-			is_success=false
-		fi
+	rc=0
+	sudo groupdel nixbld 2>/dev/null
+	rc=$?
+	
+	if [ "$rc" -eq 6 ]; then
+		# Group does not exist — not an error condition
+		:
+	elif [ "$rc" -ne 0 ]; then
+		logf "%berror:%b failed to remove group (code %d)\n" "$RED" "$RESET" "$rc"
+		is_success=false
 	fi
 
 	if [ "$is_success" = true ]; then
