@@ -8,14 +8,14 @@ if is_truthy "${KEEP_LOGS:-}"; then
 	exit 0
 fi
 
-if [ -f "${MAKE_NIX_LOG:-}" ]; then
+if [ -e "${MAKE_NIX_LOG:-}" ]; then
 	rm -f "$MAKE_NIX_LOG"
 fi
 
-if [ -f "${MAKE_NIX_ENV:-}" ]; then
+if [ -e "${MAKE_NIX_ENV:-}" ]; then
 	rm -f "$MAKE_NIX_ENV"
 fi
 
-if [ -f "${MAKE_NIX_INSTALLER:-}" ]; then
+if [ -e "${MAKE_NIX_INSTALLER:-}" ]; then
 	rm -f "$MAKE_NIX_INSTALLER"
 fi

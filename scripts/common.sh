@@ -27,7 +27,9 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		status=$1
 		if [ "$status" -ne 0 ]; then
 			logf "\nCleaning up...\n"
-			make clean
+			SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+			# shellcheck disable=SC1091
+			sh "$SCRIPT_DIR/clean.sh"
 			cleaned=true
 		fi
 		exit "$status"
