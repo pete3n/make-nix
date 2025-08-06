@@ -38,7 +38,7 @@ cleanup_nix_files() {
 	backup_files="/etc/zshrc.backup-before-nix /etc/bashrc.backup-before-nix /etc/bash.bashrc.backup-before-nix"
 
 	for backup_file in $backup_files; do
-		original_file="${file%.backup-before-nix}"
+		original_file="${backup_file%.backup-before-nix}"
 		if [ -f "$backup_file" ]; then
 			printf "\n%binfo:%b restoring %b%s%b to %b%s%b ...\n" \
 				"$BLUE" "$RESET" "$MAGENTA" "$backup_file" "$RESET" "$MAGENTA" "$original_file" "$RESET"
