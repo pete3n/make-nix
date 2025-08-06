@@ -3,6 +3,7 @@
 
 # shellcheck disable=SC1091
 . "$(dirname "$0")/common.sh"
+trap 'rm -f "$rcfile"' EXIT INT TERM QUIT
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
 
 if [ -z "${TGT_SYSTEM:-}" ]; then
@@ -66,6 +67,7 @@ build() {
 activate() {
 	activate_cmd=$1
 	print_cmd=$2
+	rcfile="$(mktemp)"
 
 	logf "\n%b>>> Activating Nix Home-manager configuration for:\n"
 	logf "%b%s%b on %b%s%b host %b%s%b %b%s%b\n" "$CYAN" "$user" "$RESET" \
@@ -78,13 +80,19 @@ activate() {
 	fi
 
 	if is_truthy "${USE_SCRIPT:-}"; then
-		script -a -q -c "$activate_cmd" "$MAKE_NIX_LOG"
-		printf "DEBUG: activation returned: %s\n" "$?"
+		script -a -q -c "$activate_cmd; printf '%s\n' \$? > \"$rcfile\"" "$MAKE_NIX_LOG"
 		return $?
 	else
-		eval "$activate_cmd" | tee "$MAKE_NIX_LOG"
-		return $?
+		# Wrap in subshell to capture exit code to a file
+		(
+			eval "$activate_cmd"
+			printf "%s\n" "$?" >"$rcfile"
+		) 2>&1 | tee "$MAKE_NIX_LOG"
 	fi
+	
+	rc=$(cat "$rcfile")
+	rm -f "$rcfile"
+	return "$rc"
 }
 
 if [ "$mode" = "--build" ]; then
