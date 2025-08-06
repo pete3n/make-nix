@@ -75,16 +75,17 @@ if check_for_nix no-exit; then
 else
 	if [ -f "$MAKE_NIX_INSTALLER" ]; then
 		sh "$MAKE_NIX_INSTALLER" "$install_flags"
+
+		# Source Nix to make it available immediately.
+		if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
+			# shellcheck disable=SC1091
+			. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+		fi
+
 	else
 		logf "\n%berror:%b Could not execute 'sh %b'.\n" "$RED" "$RESET" "$MAKE_NIX_INSTALLER"
 		exit 1
 	fi
-fi
-
-# Source Nix to make it available immediately.
-if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
-	# shellcheck disable=SC1091
-	. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
 fi
 
 # Enabled flakes (Required before Nix-Darwin install)
@@ -96,15 +97,15 @@ if [ -f "$nix_conf" ]; then
 		logf "\n%b>>> Enabling flakes...%b\n" "$BLUE" "$RESET"
 		logf "\n%binfo:%b appending %s to %b%s%b\n" "$BLUE" "$RESET" "$features" \
 			"$MAGENTA" "$nix_conf" "$RESET"
-		printf "%s\n" "$features" >> "$nix_conf"
+		printf "%s\n" "$features" >>"$nix_conf"
 	fi
 else
 	logf "\n%b>>> Creating nix.conf with experimental features enabled...%b\n" "$BLUE" "$RESET"
 	mkdir -p "$(dirname "$nix_conf")"
-	printf "%s\n" "$features" > "$nix_conf"
+	printf "%s\n" "$features" >"$nix_conf"
 fi
 
-# Set user-defined binary cache URLs and Nix trusted public keys from make.env. 
+# Set user-defined binary cache URLs and Nix trusted public keys from make.env.
 # This is set before Nix-Darwin install so it can take advantage of cacheing.
 sh "$SCRIPT_DIR/set_subs_keys.sh"
 
