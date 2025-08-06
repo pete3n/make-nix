@@ -43,7 +43,7 @@ cleanup_nix_files() {
 			printf "\n%binfo:%b restoring %b%s%b to %b%s%b ...\n" \
 				"$BLUE" "$RESET" "$MAGENTA" "$backup_file" "$RESET" "$MAGENTA" "$original_file" "$RESET"
 			if ! sudo mv "$backup_file" "$original_file"; then
-				printf "\n%berror:%b failed to restore: %b%s%b \n" "$RED" "$RESET" "$MAGENTA" "$file" "$RESET"
+				printf "\n%berror:%b failed to restore: %b%s%b \n" "$RED" "$RESET" "$MAGENTA" "$backup_file" "$RESET"
 				is_success=false
 			fi
 		# No backup
