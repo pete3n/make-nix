@@ -50,18 +50,22 @@ cleanup_nix_files() {
 		elif [ -f "$original_file" ] && grep -iq 'Nix' "$original_file"; then
 			tmp_file="$(mktemp)"
 			sed '/^# Nix$/,/^# End Nix$/d' "$original_file" | tee "$tmp_file" >/dev/null
+
 			if ! cmp -s "$original_file" "$tmp_file"; then
 				logf "%binfo:%b removing Nix entries from %b%s%b\n" "$BLUE" "$RESET" \
-					"$MAGENTA" "$file" "$RESET"
+					"$MAGENTA" "$original_file" "$RESET"
 				sudo cp "$original_file" "$original_file.bak"
+
 				if ! sudo cp "$tmp_file" "$original_file"; then
 					is_success=false
 					logf "\n%binfo:%b could not modify: %b%s%b\n" \
 						"$BLUE" "$RESET" "$MAGENTA" "$original_file" "$RESET"
 				fi
-				logf "\n%binfo:%b removed:\n" "$BLUE" "$RESET"
+
+				logf "\n%binfo:%b changes made:\n" "$BLUE" "$RESET"
 				diff -u "$original_file.bak" "$original_file"
 			fi
+
 			rm -f "$tmp_file"
 		fi
 
