@@ -32,9 +32,9 @@ fi
 logf "\n%b>>> Starting uninstaller...%b\n" "$BLUE" "$RESET"
 
 cleanup_nix_files() {
-	logf "\n%b>>> Cleaning up Nix configuration files...%b\n" "$BLUE" "$RESET"
 	is_success=true
 
+	logf "\n%b>>> Cleaning up Nix configuration files...%b\n" "$BLUE" "$RESET"
 	backup_files="/etc/zshrc.backup-before-nix /etc/bashrc.backup-before-nix /etc/bash.bashrc.backup-before-nix"
 
 	for backup_file in $backup_files; do
@@ -72,7 +72,6 @@ cleanup_nix_files() {
 	done
 
 	if [ "$is_success" = true ]; then
-		is_success=true
 		logf "%b✅ success:%b all operations completed.\n" "$GREEN" "$RESET"
 		return 0
 	else
@@ -83,43 +82,87 @@ cleanup_nix_files() {
 
 nix_multi_user_uninstall_linux() {
 	is_success=true
+	err_log="$(mktemp)"
 
-	logf "\n%binfo:%b stopping and disabling nix-daemon.service ...\n" "$BLUE" "$RESET"
-	if ! sudo systemctl stop nix-daemon.service; then
-		is_success=false
+	logf "\n%binfo:%b stopping and disabling systemd services ...\n" "$BLUE" "$RESET"
+	# Try to stop the service; ignore "not loaded" errors
+	if ! sudo systemctl stop nix-daemon.service 2>"$err_log"; then
+		if grep -q -e 'not loaded' -e 'not be found' "$err_log"; then
+			logf "%binfo:%b nix-daemon.service not loaded; skipping stop.\n" "$BLUE" "$RESET"
+		else
+			is_success=false
+			logf "%berror:%b failed to stop nix-daemon.service\n" "$RED" "$RESET"
+			cat "$err_log"
+		fi
 	fi
-	if ! sudo systemctl disable nix-daemon.socket nix-daemon.service; then
-		is_success=false
+
+	# Try to disable services; ignore "does not exist" errors
+	if ! sudo systemctl disable nix-daemon.socket nix-daemon.service 2>"$err_log"; then
+		if grep -q -e 'does not exist' -e 'not found' -e 'not loaded' "$err_log"; then
+			logf "%binfo:%b nix-daemon services not present; skipping disable.\n" "$BLUE" "$RESET"
+		else
+			is_success=false
+			logf "%berror:%b failed to disable nix-daemon services\n" "$RED" "$RESET"
+			cat "$err_log"
+		fi
 	fi
 	sudo systemctl daemon-reload
+	: >"$err_log"
 
 	nix_files="/etc/nix /etc/profile.d/nix.sh /etc/tmpfiles.d/nix-daemon.conf /nix ~root/.nix-channels ~root/.nix-defexpr ~root/.nix-profile ~root/.cache/nix"
 
 	for file in $nix_files; do
 		if [ -e "$file" ]; then
 			logf "\n%binfo:%b removing: %b%s%b ..." "$BLUE" "$RESET" "$MAGENTA" "$file" "$RESET"
-			if ! sudo rm -rf "$file"; then
-				is_success=false
-				logf "\n%berror:%b failed to remove %b%s%b\n" "$RED" "$RESET" "$MAGENTA" "$file" "$RESET"
+
+			if ! sudo rm -rf "$file" 2>"$err_log"; then
+				if grep -q 'Permission denied' "$err_log"; then
+					logf "\n%berror:%b permission denied removing %b%s%b\n" "$RED" "$RESET" "$MAGENTA" "$file" "$RESET"
+					is_success=false
+				elif grep -q 'No such file' "$err_log"; then
+					# The file is already gone - not an error condition
+					:
+				else
+					logf "\n%berror:%b unknown error removing %b%s%b\n" "$RED" "$RESET" "$MAGENTA" "$file" "$RESET"
+					is_success=false
+				fi
 			fi
 		fi
+
+		: >"$err_log"
 	done
+	rm -f "$err_log"
 
 	logf "\n%binfo:%b removing nixbld users...%b\n" "$BLUE" "$RESET"
 	for user in $(seq 1 32); do
-		if ! sudo userdel nixbld"$user"; then
-			is_success=false
-			logf "\n%berror:%b failed to remove user: %b%s%b\n" "$RED" "$RESET" "$CYAN" "$user" "$RESET"
+
+		if ! sudo userdel "nixbld$user" 2>/dev/null; then
+			rc=$?
+			if [ "$rc" -eq 6 ]; then
+				# User doesn't exist — not a failure condition
+				continue
+			else
+				is_success=false
+				logf "\n%berror:%b failed to remove user %b%s%b (code %d)\n" \
+					"$RED" "$RESET" "$CYAN" "nixbld$user" "$RESET" "$rc"
+			fi
 		fi
+
 	done
 
 	logf "%binfo:%b removing nixbld group...%b\n" "$BLUE" "$RESET"
-	if ! sudo groupdel nixbld; then
-		logf "%berror:%b failed to remove group.\n" "$RED" "$RESET"
+	if ! sudo groupdel nixbld 2>/dev/null; then
+		rc=$?
+		if [ "$rc" -eq 6 ]; then
+			# Group does not exist — not an error condition
+			:
+		else
+			logf "%berror:%b failed to remove group (code %d)\n" "$RED" "$RESET" "$rc"
+			is_success=false
+		fi
 	fi
 
 	if [ "$is_success" = true ]; then
-		is_success=true
 		logf "%b✅ success:%b all operations completed.\n" "$GREEN" "$RESET"
 		return 0
 	else
@@ -130,25 +173,42 @@ nix_multi_user_uninstall_linux() {
 
 nix_multi_user_uninstall_darwin() {
 	is_success=true
+	err_log="$(mktemp)"
 
-	logf "\n%binfo:%b stopping and disabling nix-daemon.service ...\n" "$BLUE" "$RESET"
-	if ! sudo launchctl unload /Library/LaunchDaemons/org.nixos.nix-daemon.plist; then
-		is_success=false
-	fi
-	if ! sudo rm /Library/LaunchDaemons/org.nixos.nix-daemon.plist; then
-		is_success=false
-	fi
-	if ! sudo launchctl unload /Library/LaunchDaemons/org.nixos.darwin-store.plist; then
-		is_success=false
-	fi
-	if ! sudo rm /Library/LaunchDaemons/org.nixos.darwin-store.plist; then
-		is_success=false
+	logf "\n%binfo:%b stopping and removing launchd services ...\n" "$BLUE" "$RESET"
+	for plist in org.nixos.nix-daemon org.nixos.darwin-store; do
+		plist_path="/Library/LaunchDaemons/$plist.plist"
+
+		if sudo launchctl unload "$plist_path" 2>"$err_log"; then
+			logf "%binfo:%b unloaded %s\n" "$BLUE" "$RESET" "$plist_path"
+		elif grep -q -e "No such file" -e "not loaded" "$err_log"; then
+			logf "%binfo:%b %s not loaded; skipping unload\n" "$BLUE" "$RESET" "$plist_path"
+		else
+			is_success=false
+			logf "%berror:%b failed to unload %s\n" "$RED" "$RESET" "$plist_path"
+			cat "$err_log"
+		fi
+
+		if sudo rm "$plist_path" 2>"$err_log"; then
+			logf "%binfo:%b removed %s\n" "$BLUE" "$RESET" "$plist_path"
+		elif grep -q -e "No such file" "$err_log"; then
+			logf "%binfo:%b %s not found; skipping removal\n" "$BLUE" "$RESET" "$plist_path"
+		else
+			is_success=false
+			logf "%berror:%b failed to remove %s\n" "$RED" "$RESET" "$plist_path"
+			cat "$err_log"
+		fi
+
+		: >"$err_log"
+	done
+
+	logf "\n%binfo:%b removing nixbld users and group...\n" "$BLUE" "$RESET"
+	if ! sudo dscl . -delete /Groups/nixbld 2>/dev/null; then
+		logf "%binfo:%b nixbld group not found or already removed.\n" "$BLUE" "$RESET"
 	fi
 
-	logf "\n%binfo:%b removing nixbld users...%b\n" "$BLUE" "$RESET"
-	sudo dscl . -delete /Groups/nixbld
-	for user in $(sudo dscl . -list /Users | grep _nixbld); do
-		if ! sudo dscl . -delete /Users/"$user"; then
+	for user in $(sudo dscl . -list /Users | grep '^_nixbld'); do
+		if ! sudo dscl . -delete /Users/"$user" 2>/dev/null; then
 			is_success=false
 			logf "\n%berror:%b failed to remove user: %b%s%b\n" "$RED" "$RESET" "$CYAN" "$user" "$RESET"
 		fi
@@ -213,13 +273,18 @@ nix_multi_user_uninstall_darwin() {
 	done
 
 	logf "\n%binfo:%b removing apfs /nix volume ...\n" "$BLUE" "$RESET"
-	if ! sudo diskutil apfs deleteVolume /nix; then
-		is_success=false
-		logf "\n%berror:%b failed to remove /nix volume.\n" "$RED" "$RESET"
+	if ! sudo diskutil apfs deleteVolume /nix 2>"$err_log"; then
+		if grep -q -e "No such file or directory" -e "does not appear to be an APFS volume" "$err_log"; then
+			logf "%binfo:%b /nix volume not present or already deleted.\n" "$BLUE" "$RESET"
+		else
+			is_success=false
+			logf "\n%berror:%b failed to remove /nix volume.\n" "$RED" "$RESET"
+			cat "$err_log"
+		fi
 	fi
+	rm -f "$err_log"
 
 	if [ "$is_success" = true ]; then
-		is_success=true
 		logf "%b✅ success:%b all operations completed.\n" "$GREEN" "$RESET"
 		return 0
 	else
@@ -230,19 +295,30 @@ nix_multi_user_uninstall_darwin() {
 
 nix_single_user_uninstall() {
 	is_success=true
+	err_log=$(mktemp)
+
+	logf "\n%binfo:%b delete Nix files...\n" "$BLUE" "$RESET"
 	nix_files="/nix ~/.nix-channels ~/.nix-defexpr ~/.nix-profile"
 
 	for file in $nix_files; do
-		if [ -f "$file" ]; then
-			logf "\n%binfo:%b removing file: %b%s%b ..." "$BLUE" "$RESET" "$MAGENTA" "$file" "$RESET"
-			if ! sudo rm -rf "$file"; then
+
+		if ! sudo rm -rf "$file" 2>"$err_log"; then
+			if grep -q 'Permission denied' "$err_log"; then
+				logf "\n%berror:%b permission denied removing %b%s%b\n" "$RED" "$RESET" "$MAGENTA" "$file" "$RESET"
 				is_success=false
-				logf "\n%berror:%b failed to remove %b%s%b\n" "$RED" "$RESET" "$MAGENTA" "$file" "$RESET"
+			elif grep -q 'No such file' "$err_log"; then
+				# File is already gone, not an error condition.
+				:
+			else
+				logf "\n%berror:%b unknown error removing %b%s%b\n" "$RED" "$RESET" "$MAGENTA" "$file" "$RESET"
+				is_success=false
 			fi
 		fi
+
+		: >"$err_log"
 	done
+
 	if [ "$is_success" = true ]; then
-		is_success=true
 		logf "%b✅ success:%b all operations completed.\n" "$GREEN" "$RESET"
 		return 0
 	else
@@ -293,7 +369,7 @@ if [ "${UNAME_S}" = "Darwin" ]; then
 fi
 
 if [ "${UNAME_S}" = "Linux" ]; then
-	if systemctl status nix-daemon.service >/dev/null 2>&1 || \
+	if systemctl status nix-daemon.service >/dev/null 2>&1 ||
 		systemctl status nix-daemon.socket >/dev/null 2>&1; then
 		logf "\n%binfo:%b nix-daemon detected.\n" "$BLUE" "$RESET"
 		nix_multi_user_uninstall_linux && cleanup_nix_files
