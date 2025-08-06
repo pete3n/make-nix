@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-set -eu
+set -eux
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
