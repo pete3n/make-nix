@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+set eux
 if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 	_COMMON_SH_INCLUDED=1
 
