@@ -37,30 +37,30 @@ cleanup_nix_files() {
 
 	backup_files="/etc/zshrc.backup-before-nix /etc/bashrc.backup-before-nix /etc/bash.bashrc.backup-before-nix"
 
-	for file in $backup_files; do
+	for backup_file in $backup_files; do
 		original_file="${file%.backup-before-nix}"
-		if [ -f "$file" ]; then
+		if [ -f "$backup_file" ]; then
 			printf "\n%binfo:%b restoring %b%s%b to %b%s%b ...\n" \
-				"$BLUE" "$RESET" "$MAGENTA" "$file" "$RESET" "$MAGENTA" "$original_file" "$RESET"
-			if ! sudo mv "$file" "$original_file"; then
+				"$BLUE" "$RESET" "$MAGENTA" "$backup_file" "$RESET" "$MAGENTA" "$original_file" "$RESET"
+			if ! sudo mv "$backup_file" "$original_file"; then
 				printf "\n%berror:%b failed to restore: %b%s%b \n" "$RED" "$RESET" "$MAGENTA" "$file" "$RESET"
 				is_success=false
 			fi
 		# No backup
 		elif [ -f "$original_file" ] && grep -iq 'Nix' "$original_file"; then
 			tmp_file="$(mktemp)"
-			sed '/^# Nix$/,/^# End Nix$/d' "$file" | sudo tee "$tmp_file" >/dev/null
-			if ! cmp -s "$file" "$tmp_file"; then
+			sed '/^# Nix$/,/^# End Nix$/d' "$original_file" | sudo tee "$tmp_file" >/dev/null
+			if ! cmp -s "$original_file" "$tmp_file"; then
 				logf "%binfo:%b removing Nix entries from %b%s%b\n" "$BLUE" "$RESET" \
 					"$MAGENTA" "$file" "$RESET"
-				sudo cp "$file" "$file.bak"
-				if ! sudo cp "$tmp_file" "$file"; then
+				sudo cp "$original_file" "$original_file.bak"
+				if ! sudo cp "$tmp_file" "$original_file"; then
 					is_success=false
 					logf "\n%binfo:%b could not modify: %b%s%b\n" \
-						"$BLUE" "$RESET" "$MAGENTA" "$file" "$RESET"
+						"$BLUE" "$RESET" "$MAGENTA" "$original_file" "$RESET"
 				fi
 				logf "\n%binfo:%b removed:\n" "$BLUE" "$RESET"
-				diff -u "$file.bak" "$file"
+				diff -u "$original_file.bak" "$original_file"
 			fi
 			rm -f "$tmp_file"
 		fi
@@ -80,7 +80,7 @@ cleanup_nix_files() {
 nix_multi_user_uninstall_linux() {
 	is_success=true
 
-	logf "\n%binfo:%b stopping and disabling nix-daemon.service ..." "$BLUE" "$RESET"
+	logf "\n%binfo:%b stopping and disabling nix-daemon.service ...\n" "$BLUE" "$RESET"
 	if ! sudo systemctl stop nix-daemon.service; then
 		is_success=false
 	fi
@@ -127,7 +127,7 @@ nix_multi_user_uninstall_linux() {
 nix_multi_user_uninstall_darwin() {
 	is_success=true
 
-	logf "\n%binfo:%b stopping and disabling nix-daemon.service ..." "$BLUE" "$RESET"
+	logf "\n%binfo:%b stopping and disabling nix-daemon.service ...\n" "$BLUE" "$RESET"
 	if ! sudo launchctl unload /Library/LaunchDaemons/org.nixos.nix-daemon.plist; then
 		is_success=false
 	fi
