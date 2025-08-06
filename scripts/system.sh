@@ -51,7 +51,11 @@ build() {
 	build_cmd="${base_cmd} ${switches}"
 	print_cmd="${print_cmd} ${print_switches}"
 
-	check_for_nix exit
+	if ! has_nix && (source_nix && has_nix); then
+		printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
+		exit 1
+	fi
+
 	logf "\n%b>>> Building system configuration for:%b\n" "$BLUE" "$RESET"
 	logf "%b%s%b host %b%s%b\n" "$CYAN" "$TGT_SYSTEM" "$RESET" \
 		"$CYAN" "$host" "$RESET"
@@ -68,12 +72,17 @@ activate() {
 	activate_cmd=$1
 	print_cmd=$2
 
-	if [ "$UNAME_S" = "Linux" ] && ! has_nixos; then 
+	if ! has_nix && (source_nix && has_nix); then
+		printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
+		exit 1
+	fi
+
+	if [ "$UNAME_S" = "Linux" ] && ! has_nixos; then
 		logf "\n%berror:%b cannot activate a NixOS system configuration on Linux without %bnixos-rebuild%b.\n" \
 			"$RED" "$RESET" "$RED" "$RESET"
-	fi 
+	fi
 
- 	if [ "$UNAME_S" = "Darwin" ] && ! has_nix_darwin; then
+	if [ "$UNAME_S" = "Darwin" ] && ! has_nix_darwin; then
 		logf "\n%berror:%b cannot activate a Nix-Darwin system configuration on Darwin without darwin-rebuild.\n" \
 			"$RED" "$RESET" "$RED" "$RESET"
 	fi

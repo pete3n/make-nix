@@ -69,18 +69,15 @@ else
 	fi
 fi
 
-if check_for_nix no-exit; then
+if has_nix; then
 	logf "\n%binfo:%b Nix found in PATH; skipping Nix installation...\n" "$BLUE" "$RESET"
 	logf "If you want to re-install, please run 'make uninstall' first.\n"
 else
 	if [ -f "$MAKE_NIX_INSTALLER" ]; then
 		sh "$MAKE_NIX_INSTALLER" "$install_flags"
 
-		# Source Nix to make it available immediately.
-		if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
-			# shellcheck disable=SC1091
-			. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-		fi
+		# Make nix available immediately in the current shell
+		source_nix
 
 	else
 		logf "\n%berror:%b Could not execute 'sh %b'.\n" "$RED" "$RESET" "$MAKE_NIX_INSTALLER"
@@ -127,7 +124,12 @@ fi
 if is_truthy "${NIX_DARWIN:-}"; then
 	if [ "${UNAME_S:-}" = "Darwin" ]; then
 		logf "\n%b>>> Installing nix-darwin...%b\n" "$BLUE" "$RESET"
-		check_for_nix exit
+
+		if ! has_nix && (source_nix && has_nix); then
+			printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
+			exit 1
+		fi
+
 		sh "$SCRIPT_DIR/install_nix_darwin.sh"
 	else
 		logf "\n%binfo:%b Skipping nix-darwin install: macOS not detected.\n" "$BLUE" "$RESET"

@@ -7,7 +7,10 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
 
-check_for_nix exit
+if ! has_nix && (source_nix && has_nix); then
+	printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
+	exit 1
+fi
 
 logf "\n%b>>> Cache configuration started...%b\n" "$BLUE" "$RESET"
 

@@ -284,7 +284,7 @@ if [ "${UNAME_S}" = "Darwin" ]; then
 		nix_multi_user_uninstall_darwin && cleanup_nix_files
 		exit $?
 
-	elif check_for_nix no-exit; then
+	elif has_nix; then
 		logf "\n%binfo:%b nix detected.\n" "$BLUE" "$RESET"
 		try_installer_uninstall
 		nix_single_user_uninstall && cleanup_nix_files
@@ -299,7 +299,7 @@ if [ "${UNAME_S}" = "Linux" ]; then
 		nix_multi_user_uninstall_linux && cleanup_nix_files
 		exit $?
 
-	elif check_for_nix no-exit; then
+	elif has_nix; then
 		logf "\n%binfo:%b nix detected.\n" "$BLUE" "$RESET"
 		try_installer_uninstall
 		nix_single_user_uninstall && cleanup_nix_files

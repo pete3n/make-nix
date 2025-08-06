@@ -34,7 +34,6 @@ if is_truthy "${DRY_RUN:-}"; then
 fi
 dry_print_switch="${BLUE}${dry_switch}${RESET}"
 
-
 build() {
 	base_cmd=$1
 	print_cmd=$2
@@ -47,7 +46,11 @@ build() {
 	logf "%b%s%b on %b%s%b host %b%s%b\n" "$CYAN" "$user" "$RESET" "$CYAN" "$TGT_SYSTEM" "$RESET" \
 		"$CYAN" "$host" "$RESET"
 	logf "\n%bBuild command:%b %b\n\n" "$BLUE" "$RESET" "$print_cmd"
-	check_for_nix exit
+
+	if ! has_nix && (source_nix && has_nix); then
+		printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
+		exit 1
+	fi
 
 	if is_truthy "${USE_SCRIPT:-}"; then
 		script -a -q -c "$build_cmd" "$MAKE_NIX_LOG"
@@ -66,7 +69,11 @@ activate() {
 	logf "%b%s%b on %b%s%b host %b%s%b %b%s%b\n" "$CYAN" "$user" "$RESET" \
 		"$CYAN" "$TGT_SYSTEM" "$RESET" "$CYAN" "$host" "$RESET"
 	logf "\n%bActivation command:%b %b\n\n" "$BLUE" "$RESET" "$print_cmd"
-	check_for_nix exit
+
+	if ! has_nix && (source_nix && has_nix); then
+		printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
+		exit 1
+	fi
 
 	if is_truthy "${USE_SCRIPT:-}"; then
 		script -a -q -c "$activate_cmd" "$MAKE_NIX_LOG"

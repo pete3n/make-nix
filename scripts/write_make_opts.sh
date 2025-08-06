@@ -10,16 +10,16 @@ if [ -z "${TGT_USER:-}" ]; then
 	user="$(whoami)"
 	if [ -z "$user" ]; then
 		logf "\n%berror:%b could not determine local user.\n" "$RED" "$RESET"
-		exit 1 
+		exit 1
 	else
-		printf "TGT_USER=%s\n" "$user" >> "$MAKE_NIX_ENV"
+		printf "TGT_USER=%s\n" "$user" >>"$MAKE_NIX_ENV"
 	fi
 else
 	user=$TGT_USER
 fi
 
 if [ "${TGT_TAGS+x}" ]; then
-	printf "TGT_TAGS=%s\n" "$TGT_TAGS" >> "$MAKE_NIX_ENV"
+	printf "TGT_TAGS=%s\n" "$TGT_TAGS" >>"$MAKE_NIX_ENV"
 else
 	TGT_TAGS=""
 fi
@@ -28,45 +28,47 @@ if [ -z "${TGT_HOST:-}" ]; then
 	host="$(hostname -s)"
 	if [ -z "$host" ]; then
 		logf "\n%berror:%b could not determine local hostname.\n" "$RED" "$RESET"
-		exit 1 
+		exit 1
 	fi
-	printf "TGT_HOST=%s\n" "$host" >> "$MAKE_NIX_ENV"
+	printf "TGT_HOST=%s\n" "$host" >>"$MAKE_NIX_ENV"
 else
 	host=$TGT_HOST
 fi
 
 if [ "${TGT_SPEC+x}" ]; then
-	printf "TGT_SPEC=%s\n" "$TGT_SPEC" >> "$MAKE_NIX_ENV"
+	printf "TGT_SPEC=%s\n" "$TGT_SPEC" >>"$MAKE_NIX_ENV"
 else
 	TGT_SPEC=""
 fi
 
-check_for_nix exit
+if ! has_nix && (source_nix && has_nix); then
+	printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
+	exit 1
+fi
 
 if [ -z "${TGT_SYSTEM:-}" ]; then
-  system="$(nix --extra-experimental-features nix-command eval --impure --raw --expr 'builtins.currentSystem')"
-	printf "TGT_SYSTEM=%s\n" "$system" >> "$MAKE_NIX_ENV"
+	system="$(nix --extra-experimental-features nix-command eval --impure --raw --expr 'builtins.currentSystem')"
+	printf "TGT_SYSTEM=%s\n" "$system" >>"$MAKE_NIX_ENV"
 else
 	system=$TGT_SYSTEM
 fi
 
 case "$system" in
-  *-linux) is_linux=true ;;
-  *-darwin) is_linux=false ;;
-  *)
-    logf "\n%berror:%b unsupported system detected %s\n" "$RED" "$RESET" "$TGT_SYSTEM" >&2
-    exit 1
-    ;;
+*-linux) is_linux=true ;;
+*-darwin) is_linux=false ;;
+*)
+	logf "\n%berror:%b unsupported system detected %s\n" "$RED" "$RESET" "$TGT_SYSTEM" >&2
+	exit 1
+	;;
 esac
-printf "IS_LINUX=%s\n" "$is_linux" >> "$MAKE_NIX_ENV"
-
+printf "IS_LINUX=%s\n" "$is_linux" >>"$MAKE_NIX_ENV"
 
 nix_darwin_install=false
 if is_truthy "${NIX_DARWIN:-}"; then
 	nix_darwin_install=true
 fi
 
-# If we don't have NixOS and we don't have Nix-Darwin, and we aren't going to install 
+# If we don't have NixOS and we don't have Nix-Darwin, and we aren't going to install
 # Nix-Darwin, then we are using Home-manager standalone.
 is_home_alone=false
 if ! has_nixos && ! has_nix_darwin && [ "$nix_darwin_install" != true ]; then
@@ -170,10 +172,10 @@ if [ -f make_opts.nix ]; then
 	logf "%binfo:%b committing make_opts.nix to git tree.\n" "$BLUE" "$RESET"
 	git add -f make_opts.nix
 	GIT_AUTHOR_NAME="make-nix" \
-	GIT_AUTHOR_EMAIL="make-nix@bot" \
-	GIT_COMMITTER_NAME="make-nix" \
-	GIT_COMMITTER_EMAIL="make-nix@bot" \
-	git commit -m "build: Make-nix automated commit to keep git tree clean" || true
+		GIT_AUTHOR_EMAIL="make-nix@bot" \
+		GIT_COMMITTER_NAME="make-nix" \
+		GIT_COMMITTER_EMAIL="make-nix@bot" \
+		git commit -m "build: Make-nix automated commit to keep git tree clean" || true
 else
 	logf "\n%berror:%b make_opts.nix not found!\n" "$RED" "$RESET"
 	exit 1
