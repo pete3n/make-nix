@@ -23,10 +23,10 @@ if [ -z "$mode" ]; then
 	exit 1
 fi
 
-base_build_cmd="nix run nixpkgs#home-manager -- build -b backup --flake .#${user}@${host}"
-base_build_print_cmd="nix run nixpkgs#home-manager -- build -b backup --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
-base_activate_cmd="nix run nixpkgs#home-manager -- switch -b backup --flake .#${user}@${host}"
-base_activate_print_cmd="nix run nixpkgs#home-manager -- switch -b backup --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
+base_build_cmd="nix run nixpkgs#home-manager -- build -b beckup-before-nix-hm --flake .#${user}@${host}"
+base_build_print_cmd="nix run nixpkgs#home-manager -- build -b backup-before-nix-hm --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
+base_activate_cmd="nix run nixpkgs#home-manager -- switch -b backup-before-nix-hm --flake .#${user}@${host}"
+base_activate_print_cmd="nix run nixpkgs#home-manager -- switch -b backup-before-nix-hm --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
 
 dry_switch=""
 if is_truthy "${DRY_RUN:-}"; then
@@ -77,6 +77,7 @@ activate() {
 
 	if is_truthy "${USE_SCRIPT:-}"; then
 		script -a -q -c "$activate_cmd" "$MAKE_NIX_LOG"
+		printf "DEBUG: activation returned: %s\n" "$?"
 		return $?
 	else
 		eval "$activate_cmd" | tee "$MAKE_NIX_LOG"
