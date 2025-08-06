@@ -98,7 +98,7 @@ nix_multi_user_uninstall_linux() {
 	for file in $nix_files; do
 		if [ -e "$file" ]; then
 			logf "\n%binfo:%b removing: %b%s%b ..." "$BLUE" "$RESET" "$MAGENTA" "$file" "$RESET"
-			if ! sudo rm -rf file; then
+			if ! sudo rm -rf "$file"; then
 				is_success=false
 				logf "\n%berror:%b failed to remove %b%s%b\n" "$RED" "$RESET" "$MAGENTA" "$file" "$RESET"
 			fi
@@ -205,7 +205,7 @@ nix_multi_user_uninstall_darwin() {
 	for file in $nix_files; do
 		if [ -e "$file" ]; then
 			logf "\n%binfo:%b removing: %b%s%b ..." "$BLUE" "$RESET" "$MAGENTA" "$file" "$RESET"
-			if ! sudo rm -rf file; then
+			if ! sudo rm -rf "$file"; then
 				is_success=false
 				logf "\n%berror:%b failed to remove %b%s%b\n" "$RED" "$RESET" "$MAGENTA" "$file" "$RESET"
 			fi
@@ -235,7 +235,7 @@ nix_single_user_uninstall() {
 	for file in $nix_files; do
 		if [ -f "$file" ]; then
 			logf "\n%binfo:%b removing file: %b%s%b ..." "$BLUE" "$RESET" "$MAGENTA" "$file" "$RESET"
-			if ! sudo rm -rf file; then
+			if ! sudo rm -rf "$file"; then
 				is_success=false
 				logf "\n%berror:%b failed to remove %b%s%b\n" "$RED" "$RESET" "$MAGENTA" "$file" "$RESET"
 			fi
@@ -293,7 +293,8 @@ if [ "${UNAME_S}" = "Darwin" ]; then
 fi
 
 if [ "${UNAME_S}" = "Linux" ]; then
-	if systemctl status nix-daemon.service >/dev/null 2>&1 || systemctl status nix-daemon.socket; then
+	if systemctl status nix-daemon.service >/dev/null 2>&1 || \
+		systemctl status nix-daemon.socket >/dev/null 2>&1; then
 		logf "\n%binfo:%b nix-daemon detected.\n" "$BLUE" "$RESET"
 		nix_multi_user_uninstall_linux && cleanup_nix_files
 		exit $?
