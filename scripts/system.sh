@@ -50,6 +50,7 @@ build() {
 	print_switches=$4
 	build_cmd="${base_cmd} ${switches}"
 	print_cmd="${print_cmd} ${print_switches}"
+	rcfile="$(mktemp)"
 
 	if ! has_nix && (source_nix && has_nix); then
 		printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
@@ -62,15 +63,25 @@ build() {
 	logf "\n%bBuild command:%b %b\n\n" "$BLUE" "$RESET" "$print_cmd"
 
 	if is_truthy "${USE_SCRIPT:-}"; then
-		script -a -q -c "$build_cmd" "$MAKE_NIX_LOG"
+		script -a -q -c "$build_cmd; printf '%s\n' \$? > \"$rcfile\"" "$MAKE_NIX_LOG"
+		return $?
 	else
-		eval "$build_cmd" | tee "$MAKE_NIX_LOG"
+		# Wrap in subshell to capture exit code to a file
+		(
+			eval "$build_cmd"
+			printf "%s\n" "$?" >"$rcfile"
+		) 2>&1 | tee "$MAKE_NIX_LOG"
 	fi
+
+	rc=$(cat "$rcfile")
+	rm -f "$rcfile"
+	return "$rc"
 }
 
 activate() {
 	activate_cmd=$1
 	print_cmd=$2
+	rcfile="$(mktemp)"
 
 	if ! has_nix && (source_nix && has_nix); then
 		printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
@@ -92,10 +103,19 @@ activate() {
 	logf "\n%bActivate command:%b %b\n\n" "$BLUE" "$RESET" "$print_cmd"
 
 	if is_truthy "${USE_SCRIPT:-}"; then
-		script -a -q -c "$activate_cmd" "$MAKE_NIX_LOG"
+		script -a -q -c "$activate_cmd; printf '%s\n' \$? > \"$rcfile\"" "$MAKE_NIX_LOG"
+		return $?
 	else
-		eval "$activate_cmd" | tee "$MAKE_NIX_LOG"
+		# Wrap in subshell to capture exit code to a file
+		(
+			eval "$activate_cmd"
+			printf "%s\n" "$?" >"$rcfile"
+		) 2>&1 | tee "$MAKE_NIX_LOG"
 	fi
+
+	rc=$(cat "$rcfile")
+	rm -f "$rcfile"
+	return "$rc"
 }
 
 if is_truthy "${IS_LINUX:-}"; then

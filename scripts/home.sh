@@ -44,6 +44,7 @@ build() {
 	print_switches=$4
 	build_cmd="${base_cmd} ${switches}"
 	print_cmd="${print_cmd} ${print_switches}"
+	rcfile="$(mktemp)"
 
 	logf "\n%b>>> Building Nix Home-manager configuration for:%b\n" "$BLUE" "$RESET"
 	logf "%b%s%b on %b%s%b host %b%s%b\n" "$CYAN" "$user" "$RESET" "$CYAN" "$TGT_SYSTEM" "$RESET" \
@@ -56,12 +57,19 @@ build() {
 	fi
 
 	if is_truthy "${USE_SCRIPT:-}"; then
-		script -a -q -c "$build_cmd" "$MAKE_NIX_LOG"
+		script -a -q -c "$build_cmd; printf '%s\n' \$? > \"$rcfile\"" "$MAKE_NIX_LOG"
 		return $?
 	else
-		eval "$build_cmd" | tee "$MAKE_NIX_LOG"
-		return $?
+		# Wrap in subshell to capture exit code to a file
+		(
+			eval "$build_cmd"
+			printf "%s\n" "$?" >"$rcfile"
+		) 2>&1 | tee "$MAKE_NIX_LOG"
 	fi
+
+	rc=$(cat "$rcfile")
+	rm -f "$rcfile"
+	return "$rc"
 }
 
 activate() {
