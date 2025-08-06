@@ -275,13 +275,13 @@ if [ "${UNAME_S}" = "Darwin" ]; then
 
 	# Check for daemon for multi-user install
 	if launchctl list | grep -q '^org.nixos.nix-daemon$'; then
-		logf "%\binfo:%b nix-daemon detected.\n" "$BLUE" "$RESET"
+		logf "\n%binfo:%b nix-daemon detected.\n" "$BLUE" "$RESET"
 		try_installer_uninstall
 		nix_multi_user_uninstall_darwin && cleanup_nix_files
 		exit $?
 
 	elif check_for_nix no-exit; then
-		logf "%\binfo:%b nix detected.\n" "$BLUE" "$RESET"
+		logf "\n%binfo:%b nix detected.\n" "$BLUE" "$RESET"
 		try_installer_uninstall
 		nix_single_user_uninstall && cleanup_nix_files
 		exit $?
@@ -290,12 +290,12 @@ fi
 
 if [ "${UNAME_S}" = "Linux" ]; then
 	if systemctl status nix-daemon.service >/dev/null 2>&1; then
-		logf "%\binfo:%b nix-daemon detected.\n" "$BLUE" "$RESET"
+		logf "\n%binfo:%b nix-daemon detected.\n" "$BLUE" "$RESET"
 		nix_multi_user_uninstall_linux && cleanup_nix_files
 		exit $?
 
 	elif check_for_nix no-exit; then
-		logf "%\binfo:%b nix detected.\n" "$BLUE" "$RESET"
+		logf "\n%binfo:%b nix detected.\n" "$BLUE" "$RESET"
 		try_installer_uninstall
 		nix_single_user_uninstall && cleanup_nix_files
 		exit $?
