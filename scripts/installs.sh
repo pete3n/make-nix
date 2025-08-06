@@ -104,7 +104,9 @@ fi
 
 # Set user-defined binary cache URLs and Nix trusted public keys from make.env.
 # This is set before Nix-Darwin install so it can take advantage of cacheing.
-sh "$SCRIPT_DIR/set_subs_keys.sh"
+if istruthy "${USE_KEYS:-}" || istruthy "${USE_CACHE:-}"; then
+	sh "$SCRIPT_DIR/set_subs_keys.sh"
+fi
 
 # Optional Homebrew install
 if is_truthy "${USE_HOMEBREW:-}" && [ "${UNAME_S}" = "Darwin" ]; then

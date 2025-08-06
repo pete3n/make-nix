@@ -1,4 +1,6 @@
 #!/usr/bin/env sh
+[ $# -eq 0 ] && set -- --build --activate
+
 # shellcheck disable=SC1091
 . "$(dirname "$0")/common.sh"
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
