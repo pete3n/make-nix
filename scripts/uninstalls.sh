@@ -293,7 +293,7 @@ if [ "${UNAME_S}" = "Darwin" ]; then
 fi
 
 if [ "${UNAME_S}" = "Linux" ]; then
-	if systemctl status nix-daemon.service >/dev/null 2>&1; then
+	if systemctl status nix-daemon.service >/dev/null 2>&1 || systemctl status nix-daemon.socket; then
 		logf "\n%binfo:%b nix-daemon detected.\n" "$BLUE" "$RESET"
 		nix_multi_user_uninstall_linux && cleanup_nix_files
 		exit $?
