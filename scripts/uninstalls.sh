@@ -35,7 +35,7 @@ cleanup_nix_files() {
 	is_success=true
 
 	logf "\n%b>>> Cleaning up Nix configuration files...%b\n" "$BLUE" "$RESET"
-	backup_files="/etc/zshrc.backup-before-nix /etc/bashrc.backup-before-nix /etc/bash.bashrc.backup-before-nix"
+	backup_files="/etc/profile.d/nix/sh.backup-before-nix /etc/zshrc.backup-before-nix /etc/bashrc.backup-before-nix /etc/bash.bashrc.backup-before-nix"
 
 	for backup_file in $backup_files; do
 		original_file="${backup_file%.backup-before-nix}"
