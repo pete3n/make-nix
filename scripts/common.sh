@@ -67,11 +67,17 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 	}
 
 	has_goal() {
-		printf "%s\n" "$MAKE_GOALS" | grep -q "\b$1\b"
+		case " $MAKE_GOALS " in
+		*" $1 "*) return 0 ;;
+		*) return 1 ;;
+		esac
 	}
 
 	has_tag() {
-		printf "%s\n" "$TGT_TAGS" | grep -q "\b$1\b"
+		case ",$TGT_TAGS," in
+		*",$1,"*) return 0 ;;
+		*) return 1 ;;
+		esac
 	}
 
 fi # _COMMON_SH_INCLUDED
