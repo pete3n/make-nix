@@ -66,4 +66,12 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		fi
 	}
 
+	has_goal() {
+		printf "%s\n" "$MAKE_GOALS" | grep -q "\b$1\b"
+	}
+
+	has_tag() {
+		printf "%s\n" "$TGT_TAGS" | grep -q "\b$1\b"
+	}
+
 fi # _COMMON_SH_INCLUDED

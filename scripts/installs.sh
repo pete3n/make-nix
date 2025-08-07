@@ -139,6 +139,11 @@ if is_truthy "${NIX_DARWIN:-}"; then
 	fi
 fi
 
+if has_goal install && has_goal home && has_tag hyprland; then
+	logf "\n%b>>> Running Hyprland setup for display manager...%b\n" "$BLUE" "$RESET"
+	sh "$SCRIPT_DIR/hyprland_setup.sh"
+fi
+
 other_targets=$(printf "%s\n" "$MAKE_GOALS" | tr ' ' '\n' | grep -v '^install$')
 if [ -z "$other_targets" ]; then
 	sh "$SCRIPT_DIR/clean.sh"
