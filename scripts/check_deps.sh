@@ -71,7 +71,7 @@ done
 # Check optional utilities
 for cmd in $optional_utils; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
-    logf "\n%binfo:%b missing optional dependency: %s\n" "$BLUE" "$cmd" "$RESET"
+    logf "\n%binfo:%b missing optional dependency: %s\n" "$BLUE" "$RESET" "$cmd"
     missing_optional=true
   fi
 done
