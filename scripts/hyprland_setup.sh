@@ -6,39 +6,62 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 #
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
 
-# Check for GDM
-if ! command -v gdm3 >/dev/null 2>&1 && ! systemctl status gdm3.service >/dev/null 2>&1; then
-	printf "\nGDM3 not detected. Exiting.\n"
-	exit 0
+if ! command -v Hyprland >/dev/null 2>&1; then
+  logf "\n%berror:%b Hyprland is not in PATH. Halting setup...\n" "${RED:-}" "${RESET:-}"
+  exit 1
 fi
 
-# Install session entry
-HYPR_DESKTOP_ENTRY="/usr/share/wayland-sessions/hyprland.desktop"
+# Ensure GDM isn’t forcing Xorg (WaylandEnable=false)
+if [ -f /etc/gdm3/custom.conf ]; then
+  if grep -q '^WaylandEnable=false' /etc/gdm3/custom.conf; then
+    logf "\n%binfo:%b enabling Wayland in /etc/gdm3/custom.conf\n" "${BLUE:-}" "${RESET:-}"
+    sudo sed -i 's/^WaylandEnable=false/# WaylandEnable=false/' /etc/gdm3/custom.conf
+  fi
+else
+  logf "\n%binfo:%b /etc/gdm3/custom.conf not found; skipping Wayland check.\n" "${BLUE:-}" "${RESET:-}"
+fi
 
-if [ ! -f "$HYPR_DESKTOP_ENTRY" ]; then
-	printf "\nCreating Hyprland desktop entry for GDM3...\n"
-	sudo tee "$HYPR_DESKTOP_ENTRY" >/dev/null <<EOF
+WRAPPER=/usr/local/bin/hyprland-dm-session
+logf "%binfo:%b Writing wrapper: %b%s%b\n" "${BLUE:-}" "${RESET:-}" "${MAGENTA:-}" "$WRAPPER" "${RESET:-}"
+sudo install -D -m 0755 /dev/stdin "$WRAPPER" <<'EOF'
+#!/bin/sh
+set -eu
+
+# Make Nix tools visible for GDM sessions
+if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
+  # shellcheck disable=SC1091
+  . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+fi
+PATH="$HOME/.nix-profile/bin:$PATH"; export PATH
+
+# Wayland/session hints
+export XDG_SESSION_TYPE=wayland
+export XDG_CURRENT_DESKTOP=Hyprland
+export XDG_SESSION_DESKTOP=Hyprland
+export MOZ_ENABLE_WAYLAND=1
+export GDK_BACKEND=wayland
+export QT_QPA_PLATFORM=wayland
+# If NVIDIA is quirky:
+# export WLR_NO_HARDWARE_CURSORS=1
+
+# If a user bus already exists (GDM provides this), don’t spawn another
+if [ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ] || [ -S "${XDG_RUNTIME_DIR:-/run/user/$UID}/bus" ]; then
+  exec Hyprland
+else
+  exec dbus-run-session Hyprland
+fi
+EOF
+
+DESKTOP=/usr/share/wayland-sessions/hyprland.desktop
+logf "%binfo:%b Writing desktop entry: %b%s%b\n" "${BLUE:-}" "${RESET:-}" "${MAGENTA:-}" "$DESKTOP" "${RESET:-}"
+sudo install -D -m 0644 /dev/stdin "$DESKTOP" <<EOF
 [Desktop Entry]
 Name=Hyprland
 Comment=Hyprland Wayland Compositor
-Exec=Hyprland
+Exec=$WRAPPER
+TryExec=$WRAPPER
 Type=Application
 DesktopNames=Hyprland
 EOF
-else
-	printf "\nHyprland desktop entry already exists.\n"
-fi
 
-# Optional: set Hyprland as default session for current user
-DEFAULT_SESSION_DIR="$HOME/.dmrc"
-if [ ! -f "$DEFAULT_SESSION_DIR" ]; then
-	printf "\nCreating %s with Hyprland session...\n" "$DEFAULT_SESSION_DIR"
-	cat <<EOF > "$DEFAULT_SESSION_DIR"
-[Desktop]
-Session=Hyprland
-EOF
-else
-	printf "\n%s already exists; not overwriting.\n" "$DEFAULT_SESSION_DIR"
-fi
-
-printf "\n✅ Hyprland setup complete.\n"
+logf "\n%b✅ success:%b Hyprland session registered. Pick 'Hyprland' in GDM.\n" "${GREEN:-}" "${RESET:-}"
