@@ -63,7 +63,7 @@ cleanup_nix_files() {
 				fi
 
 				logf "\n%binfo:%b changes made:\n" "$BLUE" "$RESET"
-				diff -u "$original_file.bak" "$original_file"
+				diff -u "$original_file.bak" "$original_file" || true
 			fi
 
 			rm -f "$tmp_file"
