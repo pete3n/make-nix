@@ -5,6 +5,16 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
+has_cmd() {
+  # Build a search path that includes original $PATH and sbin dirs if missing
+  search_path="$PATH"
+  case ":$search_path:" in *":/sbin:"*) : ;;        *) search_path="$search_path:/sbin" ;; esac
+  case ":$search_path:" in *":/usr/sbin:"*) : ;;    *) search_path="$search_path:/usr/sbin" ;; esac
+  case ":$search_path:" in *":/usr/local/sbin:"*) : ;; *) search_path="$search_path:/usr/local/sbin" ;; esac
+
+  env PATH="$search_path" command -v -- "$1" >/dev/null 2>&1
+}
+
 # Dependency groups
 common_deps="cat dirname grep printf pwd rm tee"
 install_deps="chmod curl cut hostname mkdir shasum"
@@ -62,7 +72,7 @@ missing_required=false
 missing_optional=false
 
 for cmd in $required_utils; do
-  if ! command -v "$cmd" >/dev/null 2>&1; then
+  if ! has_cmd "$cmd"; then
     logf "\n%berror:%b missing required dependency: %b%s%b\n" "$RED" "$RESET" "$RED" "$cmd" "$RESET"
     missing_required=true
   fi
