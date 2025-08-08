@@ -46,6 +46,23 @@ fi
 
 sh "$SCRIPT_DIR/check_deps.sh" "$MAKE_GOALS"
 
+# Only the determinate installer works with SELinux
+if [ -z "${DETERMINATE:-}" ]; then
+	if command -v getenforce >/dev/null 2>&1; then
+		case "$(getenforce 2>/dev/null)" in
+		Enforcing | Permissive)
+			logf "\n%binfo:%b SELinux detected (%s). Using Determinate Systems installer.\n" \
+				"${BLUE:-}" "${RESET:-}" "$(getenforce)"
+			DETERMINATE=true
+			;;
+		esac
+	elif [ -f /sys/fs/selinux/enforce ] && [ "$(cat /sys/fs/selinux/enforce 2>/dev/null)" = "1" ]; then
+		logf "\n%binfo:%b SELinux detected (sysfs).  Using Determinate Systems installer.\n" \
+			"${BLUE:-}" "${RESET:-}"
+		DETERMINATE=true
+	fi
+fi
+
 # Integrity checks
 if is_truthy "${DETERMINATE:-}"; then
 	logf "\n%b>>> Verifying Determinate Systems installer integrity...%b\n" "$BLUE" "$RESET"

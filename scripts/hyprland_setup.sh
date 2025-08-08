@@ -6,11 +6,6 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 #
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
 
-if ! command -v Hyprland >/dev/null 2>&1; then
-  logf "\n%berror:%b Hyprland is not in PATH. Halting setup...\n" "${RED:-}" "${RESET:-}"
-  exit 1
-fi
-
 # Ensure GDM isn’t forcing Xorg (WaylandEnable=false)
 if [ -f /etc/gdm3/custom.conf ]; then
   if grep -q '^WaylandEnable=false' /etc/gdm3/custom.conf; then
