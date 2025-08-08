@@ -35,7 +35,7 @@ if is_truthy "${NO_ANSI:-}"; then
   help_file="$help_no_ansi"
 else
   if supports_less_frx; then
-    help_cmd="less -R"
+    help_cmd="less -FRX"
     help_file="$help_ansi"
   else
     NO_ANSI=true
