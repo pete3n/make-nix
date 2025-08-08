@@ -41,7 +41,12 @@ else
 	TGT_SPEC=""
 fi
 
-if ! has_nix || (source_nix && has_nix); then
+if ! has_nix; then
+	printf "\n%binfo:%b sourcing nix.\n"
+	source_nix
+fi
+
+if ! has_nix; then
 	printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
 	exit 1
 fi
@@ -54,8 +59,8 @@ else
 fi
 
 case "$system" in
-*-linux) is_linux=true ;;
-*-darwin) is_linux=false ;;
+*-linux is_linux=true ;;
+*-darwin is_linux=false ;;
 *)
 	logf "\n%berror:%b unsupported system detected %s\n" "$RED" "$RESET" "$TGT_SYSTEM" >&2
 	exit 1
