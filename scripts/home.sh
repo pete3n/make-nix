@@ -1,10 +1,13 @@
 #!/usr/bin/env sh
-[ $# -eq 0 ] && set -- --build --activate
-
+set -eu
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
-. "$(dirname "$0")/common.sh"
+. "$SCRIPT_DIR/common.sh"
+
 trap 'rm -f "$rcfile"' EXIT INT TERM QUIT
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
+
+#[ $# -eq 0 ] && set -- --build --activate 
 
 if [ -z "${TGT_SYSTEM:-}" ]; then
 	logf "\n%berror:%b Could not determine target system platform.\n" "$RED" "$RESET"
@@ -114,6 +117,9 @@ elif [ "$mode" = "--activate" ]; then
 	fi
 	if activate "$base_activate_cmd" "$base_activate_print_cmd"; then
 		logf "%b✅ success:%b home activation complete.\n" "$GREEN" "$RESET"
+		if [ "${HYPRLAND_SETUP:-}" = true ]; then
+			sh "$SCRIPT_DIR/hyprland_setup.sh"
+		fi
 	fi
 else
 	logf "\n%berror:%b Neither --build nor --activate was called for.\n" "$RED" "$RESET"

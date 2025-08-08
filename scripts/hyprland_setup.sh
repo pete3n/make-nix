@@ -6,6 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 #
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
 
+logf "\n%b>>> Running Hyprland setup for display manager...%b\n" "$BLUE" "$RESET"
 # Ensure GDM isn’t forcing Xorg (WaylandEnable=false)
 if [ -f /etc/gdm3/custom.conf ]; then
   if grep -q '^WaylandEnable=false' /etc/gdm3/custom.conf; then
