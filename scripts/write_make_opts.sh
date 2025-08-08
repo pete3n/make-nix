@@ -46,7 +46,7 @@ if ! has_nix && (source_nix && has_nix); then
 	exit 1
 fi
 
-if [ -z "${TGT_SYSTEM:-}" ]; then
+if [ -z "${TGT_SYSTEM:-}" ] && has_nix; then
 	system="$(nix --extra-experimental-features nix-command eval --impure --raw --expr 'builtins.currentSystem')"
 	printf "TGT_SYSTEM=%s\n" "$system" >>"$MAKE_NIX_ENV"
 else
