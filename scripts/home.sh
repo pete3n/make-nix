@@ -7,7 +7,13 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 trap 'rm -f "$rcfile"' EXIT INT TERM QUIT
 trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
 
-#[ $# -eq 0 ] && set -- --build --activate 
+if ! has_nix; then
+	source_nix
+	if ! has_nix; then
+		printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
+		exit 1
+	fi
+fi
 
 if [ -z "${TGT_SYSTEM:-}" ]; then
 	logf "\n%berror:%b Could not determine target system platform.\n" "$RED" "$RESET"

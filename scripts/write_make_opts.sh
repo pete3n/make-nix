@@ -42,13 +42,11 @@ else
 fi
 
 if ! has_nix; then
-	printf "\n%binfo:%b sourcing nix.\n" "$BLUE" "$RESET"
 	source_nix
-fi
-
-if ! has_nix; then
-	printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
-	exit 1
+	if ! has_nix; then
+		printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
+		exit 1
+	fi
 fi
 
 if [ -z "${TGT_SYSTEM:-}" ] && has_nix; then
@@ -59,11 +57,12 @@ else
 fi
 
 case "$system" in
-	*-linux) is_linux=true ;;
-	*-darwin) is_linux=false ;;
-	*)
+*-linux) is_linux=true ;;
+*-darwin) is_linux=false ;;
+*)
 	logf "\n%berror:%b unsupported system detected %s\n" "$RED" "$RESET" "$TGT_SYSTEM" >&2
 	exit 1
+	;;
 esac
 printf "IS_LINUX=%s\n" "$is_linux" >>"$MAKE_NIX_ENV"
 
