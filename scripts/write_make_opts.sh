@@ -41,7 +41,7 @@ else
 	TGT_SPEC=""
 fi
 
-if ! has_nix && (source_nix && has_nix); then
+if ! has_nix || (source_nix && has_nix); then
 	printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
 	exit 1
 fi
