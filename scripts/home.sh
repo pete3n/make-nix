@@ -19,9 +19,6 @@ if [ -z "${IS_LINUX:-}" ]; then
 	exit 1
 fi
 
-printf "DEBUG ENV: \n"
-cat "$MAKE_NIX_ENV"
-
 user="${TGT_USER:? error: user must be set.}"
 host="${TGT_HOST:? error: host must be set.}"
 : "${USE_SCRIPT:=false}"

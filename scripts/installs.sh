@@ -157,7 +157,7 @@ if is_truthy "${NIX_DARWIN:-}"; then
 fi
 
 if has_goal install && has_goal home && has_tag hyprland; then
-	printf "HYPRLAND_SETUP=true" >> "$MAKE_NIX_ENV"
+	printf "HYPRLAND_SETUP=true\n" >> "$MAKE_NIX_ENV"
 fi
 
 other_targets=$(printf "%s\n" "$MAKE_GOALS" | tr ' ' '\n' | grep -v '^install$')
