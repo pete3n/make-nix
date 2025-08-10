@@ -73,20 +73,21 @@
       # system and home configurations through outputs.
       make_opts = import ./make_opts.nix { };
 
-      hmAloneUsers = lib.mknix.getHomeAloneAttrs;
+      hmAloneUsers = lib.mknix.getHomeAttrs { dir = ./make-configs/home-alone; };
 
       hmAloneConfigs = builtins.mapAttrs (
-        _key: userCfg:
+        _key: userAttrs:
         home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages.${userCfg.system};
+          pkgs = nixpkgs.legacyPackages.${userAttrs.system};
           extraSpecialArgs = {
             inherit inputs lib outputs;
-            make_opts = userCfg;
+            make_opts = userAttrs;
           };
           modules = [
-            (lib.mknix.getHomeAlonePath {
-              system = userCfg.system;
-              user = userCfg.user;
+            (lib.mknix.getHomePath {
+              basePath = ./users/homes;
+              system = userAttrs.system;
+              user = userAttrs.user;
             })
           ];
         }
@@ -171,7 +172,12 @@
           {
             "${make_opts.host}" = nixpkgs.lib.nixosSystem {
               specialArgs = {
-                inherit inputs lib outputs make_opts;
+                inherit
+                  inputs
+                  lib
+                  outputs
+                  make_opts
+                  ;
               };
               modules = [
                 ./hosts/${make_opts.host}/configuration.nix
@@ -188,7 +194,12 @@
           {
             "${make_opts.host}" = nix-darwin.lib.darwinSystem {
               specialArgs = {
-                inherit inputs lib outputs make_opts;
+                inherit
+                  inputs
+                  lib
+                  outputs
+                  make_opts
+                  ;
               };
               modules = [
                 ./hosts/${make_opts.host}/nix-core.nix
@@ -210,9 +221,21 @@
                 # Home-manager requires 'pkgs' instance to be manually specified
                 pkgs = nixpkgs.legacyPackages.${make_opts.system};
                 extraSpecialArgs = {
-                  inherit inputs lib outputs make_opts;
+                  inherit
+                    inputs
+                    lib
+                    outputs
+                    make_opts
+                    ;
                 };
-                modules = [ ./users/homes/${make_opts.user}/linux/home.nix ];
+                modules = [
+                  (lib.mknix.getHomePath {
+                    basePath = ./users/homes;
+                    system = make_opts.system;
+                    user = make_opts.user;
+                  })
+                ];
+
               };
             }
           else
@@ -221,9 +244,20 @@
               "${make_opts.user}@${make_opts.host}" = home-manager-darwin.lib.homeManagerConfiguration {
                 pkgs = nixpkgs.legacyPackages.${make_opts.system};
                 extraSpecialArgs = {
-                  inherit inputs lib outputs make_opts;
+                  inherit
+                    inputs
+                    lib
+                    outputs
+                    make_opts
+                    ;
                 };
-                modules = [ ./users/homes/${make_opts.user}/darwin/home.nix ];
+                modules = [
+                  (lib.mknix.getHomePath {
+                    basePath = ./users/homes;
+                    system = make_opts.system;
+                    user = make_opts.user;
+                  })
+                ];
               };
             }
         )
