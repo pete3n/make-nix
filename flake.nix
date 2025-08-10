@@ -168,7 +168,7 @@
 
       # System configuration for Linux based systems
       nixosConfigurations =
-        if lib.mknix.isLinux make_opts.system then
+        if lib.mknix.isLinux make_opts.system && (!make_opts.isHomeAlone) then
           {
             "${make_opts.host}" = nixpkgs.lib.nixosSystem {
               specialArgs = {
@@ -180,7 +180,12 @@
                   ;
               };
               modules = [
-                ./hosts/${make_opts.host}/configuration.nix
+                (
+                  assert
+                    builtins.pathExists ./hosts/${make_opts.host}/configuration.nix
+                    || throw "nixosConfigurations: missing ./hosts/${make_opts.host}/configuration.nix";
+                  ./hosts/${make_opts.host}/configuration.nix
+                )
                 ./users/linux_user.nix
               ];
             };
@@ -190,7 +195,7 @@
 
       # System configuration for Darwin based systems
       darwinConfigurations =
-        if lib.mknix.isDarwin make_opts.system then
+        if lib.mknix.isDarwin make_opts.system && (!make_opts.isHomeAlone) then
           {
             "${make_opts.host}" = nix-darwin.lib.darwinSystem {
               specialArgs = {
@@ -205,6 +210,24 @@
                 ./hosts/${make_opts.host}/nix-core.nix
                 ./hosts/${make_opts.host}/system.nix
                 ./hosts/${make_opts.host}/apps.nix
+                (
+                  assert
+                    builtins.pathExists ./hosts/${make_opts.host}/nix-core.nix
+                    || throw "darwinConfigurations: missing ./hosts/${make_opts.host}/nix-core.nix";
+                  ./hosts/${make_opts.host}/nix-core.nix
+                )
+                (
+                  assert
+                    builtins.pathExists ./hosts/${make_opts.host}/system.nix
+                    || throw "darwinConfigurations: missing ./hosts/${make_opts.host}/system.nix";
+                  ./hosts/${make_opts.host}/system.nix
+                )
+                (
+                  assert
+                    builtins.pathExists ./hosts/${make_opts.host}/apps.nix
+                    || throw "darwinConfigurations: missing ./hosts/${make_opts.host}/apps.nix";
+                  ./hosts/${make_opts.host}/apps.nix
+                )
                 ./users/darwin_user.nix
               ];
             };
@@ -212,8 +235,9 @@
         else
           { };
 
-      homeConfigurations = hmAloneConfigs // 
-        (
+      homeConfigurations =
+        hmAloneConfigs
+        // (
           if lib.mknix.isLinux make_opts.system then
             {
               # Home-manager configuration for Linux based systems

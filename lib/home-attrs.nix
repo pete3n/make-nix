@@ -5,15 +5,25 @@
 { dir }: # lib to be bound once and dir multiple times.
 assert builtins.pathExists dir || throw "getHomeAttrs: directory not found: ${toString dir}";
 let
+
   entries = builtins.readDir dir;
+
+  fileType =
+    name:
+    let
+      v = entries.${name};
+    in
+    if builtins.isAttrs v then v.type else v;
 
   isNixFile =
     name:
-    (entries.${name}.type == "regular" || entries.${name}.type == "symlink")
-    && lib.strings.hasSuffix ".nix" name;
+    let
+      t = fileType name;
+    in
+    (t == "regular" || t == "symlink") && lib.strings.hasSuffix ".nix" name;
 
   attrFiles = builtins.filter isNixFile (
-    lib.lists.sort lib.strings.lessThan (builtins.attrNames entries)
+    builtins.sort (name1: name2: name1 < name2) (builtins.attrNames entries)
   );
 
   loadAttrFile =
