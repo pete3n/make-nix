@@ -171,7 +171,7 @@
           {
             "${make_opts.host}" = nixpkgs.lib.nixosSystem {
               specialArgs = {
-                inherit inputs outputs make_opts;
+                inherit inputs lib outputs make_opts;
               };
               modules = [
                 ./hosts/${make_opts.host}/configuration.nix
@@ -188,7 +188,7 @@
           {
             "${make_opts.host}" = nix-darwin.lib.darwinSystem {
               specialArgs = {
-                inherit inputs outputs make_opts;
+                inherit inputs lib outputs make_opts;
               };
               modules = [
                 ./hosts/${make_opts.host}/nix-core.nix
@@ -210,7 +210,7 @@
                 # Home-manager requires 'pkgs' instance to be manually specified
                 pkgs = nixpkgs.legacyPackages.${make_opts.system};
                 extraSpecialArgs = {
-                  inherit inputs outputs make_opts;
+                  inherit inputs lib outputs make_opts;
                 };
                 modules = [ ./users/homes/${make_opts.user}/linux/home.nix ];
               };
