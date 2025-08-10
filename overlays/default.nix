@@ -1,5 +1,5 @@
 # This file defined flake-wide overlays
-{ inputs, lib, make_opts, ... }:
+{ inputs, makeNix, make_opts, ... }:
 {
   # Import local pkgs from ./packages as overlays.local-packages and prepend
   # them with local to differentiate between nixpkgs version. Call with pkgs.local
@@ -12,10 +12,10 @@
         crossPlatformPackages = import ../packages/cross-platform { inherit pkgs; };
 
         # Import linux-only packages if our target is linux
-        linuxPackages = if lib.mknix.isLinux make_opts.system then import ../packages/linux { inherit pkgs; } else { };
+        linuxPackages = if makeNix.isLinux make_opts.system then import ../packages/linux { inherit pkgs; } else { };
 
         # Import darwin-only packages if our target is darwin
-        darwinPackages = if lib.mknix.isDarwin make_opts.system then import ../packages/darwin { inherit pkgs; } else { };
+        darwinPackages = if makeNix.isDarwin make_opts.system then import ../packages/darwin { inherit pkgs; } else { };
       in
       # Merge all packages into `local`
       crossPlatformPackages // linuxPackages // darwinPackages;
@@ -76,5 +76,5 @@
     };
   };
 
-  nixgl = if lib.mknix.isLinux make_opts.system then inputs.nixgl.overlay else (_: _: { });
+  nixgl = if makeNix.isLinux make_opts.system then inputs.nixgl.overlay else (_: _: { });
 }

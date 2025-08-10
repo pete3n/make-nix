@@ -7,7 +7,6 @@
   user,
 }:
 assert builtins.pathExists basePath || throw "getHomePath: base filepath not found: ${toString basePath}";
-assert builtins.readDir basePath || throw "getHomePath: basePath is not a directory: ${toString basePath}";
 assert (system != "") || throw "getHomePath: system was not passed.";
 assert (user != "") || throw "getHomePath: user was not passed.";
 
