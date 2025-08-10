@@ -5,5 +5,5 @@
   system = "x86_64-linux";
   isHomeAlone = true;
   useHomebrew = false;
-  tags = [ "poweruser" ];
+  tags = [ "superuser" ];
 }
