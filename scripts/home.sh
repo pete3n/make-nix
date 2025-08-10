@@ -67,7 +67,6 @@ build() {
 
 	if is_truthy "${USE_SCRIPT:-}"; then
 		script -a -q -c "$build_cmd; printf '%s\n' \$? > \"$rcfile\"" "$MAKE_NIX_LOG"
-		return $?
 	else
 		# Wrap in subshell to capture exit code to a file
 		(
@@ -98,7 +97,6 @@ activate() {
 
 	if is_truthy "${USE_SCRIPT:-}"; then
 		script -a -q -c "$activate_cmd; printf '%s\n' \$? > \"$rcfile\"" "$MAKE_NIX_LOG"
-		return $?
 	else
 		# Wrap in subshell to capture exit code to a file
 		(

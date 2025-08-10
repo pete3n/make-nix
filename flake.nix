@@ -55,14 +55,11 @@
     # configurations
     let
 
-      lib = nixpkgs.lib.extend (
-        final: prev: {
-          mknix = import ./lib {
-            inherit inputs; # pass flake inputs if needed
-            lib = prev; # base nixpkgs.lib
-          };
-        }
-      );
+      # make-nix library
+      makeNix = import ./lib {
+        lib = nixpkgs.lib;
+        inherit inputs;
+      };
 
       outputs = self.outputs; # Could be writting as 'inherit (self) outputs' but
       # this is more clear. We need to include outputs because we reference our
@@ -73,18 +70,18 @@
       # system and home configurations through outputs.
       make_opts = import ./make_opts.nix { };
 
-      hmAloneUsers = lib.mknix.getHomeAttrs { dir = ./make-configs/home-alone; };
+      hmAloneUsers = makeNix.getHomeAttrs { dir = ./make-configs/home-alone; };
 
       hmAloneConfigs = builtins.mapAttrs (
         _key: userAttrs:
         home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.${userAttrs.system};
           extraSpecialArgs = {
-            inherit inputs lib outputs;
+            inherit inputs makeNix outputs;
             make_opts = userAttrs;
           };
           modules = [
-            (lib.mknix.getHomePath {
+            (makeNix.getHomePath {
               basePath = ./users/homes;
               system = userAttrs.system;
               user = userAttrs.user;
@@ -102,7 +99,7 @@
       ];
       # This is a function to generate an attribute set for each of the
       # systems in the supportedSystems list
-      forAllSystems = lib.genAttrs supportedSystems;
+      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
     in
     {
       # Custom locally defined packages from the ./packages directory
@@ -124,7 +121,7 @@
           # for non-Linux build targets, this prevents errors when evaluating
           # the flake
           localLinuxPackages =
-            if lib.mknix.isLinux system then
+            if makeNix.isLinux system then
               import ./packages/linux {
                 inherit system pkgs;
                 config = {
@@ -137,7 +134,7 @@
           # These packages only support Darwin so they are excluded
           # for non-Darwin build targets
           localDarwinPackages =
-            if lib.mknix.isDarwin system then
+            if makeNix.isDarwin system then
               import ./packages/darwin {
                 inherit system pkgs;
                 config = {
@@ -150,7 +147,7 @@
         # Combine our local cross-platform packages with the appropriate
         # Linux-only or Darwin-only local packages depending on the build target
         pkgs.lib.recursiveUpdate localPackages (
-          if lib.mknix.isLinux system then localLinuxPackages else localDarwinPackages
+          if makeNix.isLinux system then localLinuxPackages else localDarwinPackages
         )
       );
 
@@ -158,7 +155,7 @@
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
 
       # Flake wide overlays accessible though ouputs.overlays
-      overlays = import ./overlays { inherit inputs lib make_opts; };
+      overlays = import ./overlays { inherit inputs makeNix make_opts; };
 
       # Provide an easy import for all home-manager modules to each configuration
       homeModules = import ./modules/home-manager;
@@ -168,14 +165,14 @@
 
       # System configuration for Linux based systems
       nixosConfigurations =
-        if lib.mknix.isLinux make_opts.system && (!make_opts.isHomeAlone) then
+        if makeNix.isLinux make_opts.system && (!make_opts.isHomeAlone) then
           {
             "${make_opts.host}" = nixpkgs.lib.nixosSystem {
               specialArgs = {
                 inherit
                   inputs
-                  lib
                   outputs
+                  makeNix
                   make_opts
                   ;
               };
@@ -195,14 +192,14 @@
 
       # System configuration for Darwin based systems
       darwinConfigurations =
-        if lib.mknix.isDarwin make_opts.system && (!make_opts.isHomeAlone) then
+        if makeNix.isDarwin make_opts.system && (!make_opts.isHomeAlone) then
           {
             "${make_opts.host}" = nix-darwin.lib.darwinSystem {
               specialArgs = {
                 inherit
                   inputs
-                  lib
                   outputs
+                  makeNix
                   make_opts
                   ;
               };
@@ -238,7 +235,7 @@
       homeConfigurations =
         hmAloneConfigs
         // (
-          if lib.mknix.isLinux make_opts.system then
+          if makeNix.isLinux make_opts.system then
             {
               # Home-manager configuration for Linux based systems
               "${make_opts.user}@${make_opts.host}" = home-manager.lib.homeManagerConfiguration {
@@ -247,13 +244,13 @@
                 extraSpecialArgs = {
                   inherit
                     inputs
-                    lib
                     outputs
+                    makeNix
                     make_opts
                     ;
                 };
                 modules = [
-                  (lib.mknix.getHomePath {
+                  (makeNix.getHomePath {
                     basePath = ./users/homes;
                     system = make_opts.system;
                     user = make_opts.user;
@@ -270,13 +267,13 @@
                 extraSpecialArgs = {
                   inherit
                     inputs
-                    lib
                     outputs
+                    makeNix
                     make_opts
                     ;
                 };
                 modules = [
-                  (lib.mknix.getHomePath {
+                  (makeNix.getHomePath {
                     basePath = ./users/homes;
                     system = make_opts.system;
                     user = make_opts.user;
