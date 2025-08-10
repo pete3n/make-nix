@@ -119,7 +119,7 @@ commit_config() {
 }
 
 # Standalone Home-manager configuration
-home_alone_config="/make-configs/home-alone/$user@$host.nix"
+home_alone_config="./make-configs/home-alone/$user@$host.nix"
 write_home_alone() {
 	logf "\n%binfo:%b writing %b%s%b with:\n" \
 		"$BLUE" "$RESET" "$MAGENTA" "$home_alone_config" "$RESET"
@@ -163,7 +163,7 @@ write_home_alone() {
 }
 
 # System configuration
-system_config="make-configs/system/$user@$host.nix"
+system_config="./make-configs/system/$user@$host.nix"
 write_system() {
 	logf "\n%binfo:%b writing %b%s%b with:\n" \
 		"$BLUE" "$RESET" "$MAGENTA" "$system_config" "$RESET"
