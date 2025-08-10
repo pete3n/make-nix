@@ -80,4 +80,10 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		esac
 	}
 
+	resolve_path() {
+		# $1 = file path (can be relative, with ../, etc.)
+		dir="$(cd "$(dirname -- "$1")" && pwd)"
+		base="$(basename -- "$1")"
+		printf '%s/%s\n' "$dir" "$base"
+	}
 fi # _COMMON_SH_INCLUDED

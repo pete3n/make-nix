@@ -105,7 +105,7 @@ fi
 # Kludge to prevent Git tree from being marked as dirty
 commit_config() {
 	if [ -f "{$1}" ]; then
-		logf "%binfo:%b committing make_opts.nix to git tree.\n" "$BLUE" "$RESET"
+		logf "%binfo:%b committing %b%s%b to git tree.\n" "$BLUE" "$RESET" "$MAGENTA" "$1" "$RESET"
 		git add -f "{$1}"
 		GIT_AUTHOR_NAME="make-nix" \
 			GIT_AUTHOR_EMAIL="make-nix@bot" \
@@ -119,7 +119,7 @@ commit_config() {
 }
 
 # Standalone Home-manager configuration
-home_alone_config="$SCRIPT_DIR/../make-configs/home-alone/$user@$host.nix"
+home_alone_config="$(resolve_path "../make-configs/home-alone/$user@$host.nix")"
 write_home_alone() {
 	logf "\n%binfo:%b writing %b%s%b with:\n" \
 		"$BLUE" "$RESET" "$MAGENTA" "$home_alone_config" "$RESET"
@@ -163,7 +163,7 @@ write_home_alone() {
 }
 
 # System configuration
-system_config="$SCRIPT_DIR/../make-configs/system/$user@$host.nix"
+system_config="$(resolve_path "../make-configs/system/$user@$host.nix")"
 write_system() {
 	logf "\n%binfo:%b writing %b%s%b with:\n" \
 		"$BLUE" "$RESET" "$MAGENTA" "$system_config" "$RESET"
