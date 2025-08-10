@@ -54,6 +54,16 @@
     # @inputs because we need to pass both inputs and outputs to our
     # configurations
     let
+
+      lib = nixpkgs.lib.extend (
+        final: prev: {
+          mknix = import ./lib {
+            inherit inputs; # pass flake inputs if needed
+            lib = prev; # base nixpkgs.lib
+          };
+        }
+      );
+
       outputs = self.outputs; # Could be writting as 'inherit (self) outputs' but
       # this is more clear. We need to include outputs because we reference our
       # own outputs in our outputs
@@ -62,6 +72,25 @@
       # target system options to the flake, which will be accessible to
       # system and home configurations through outputs.
       make_opts = import ./make_opts.nix { };
+
+      hmAloneUsers = lib.mknix.getHomeAloneAttrs;
+
+      hmAloneConfigs = builtins.mapAttrs (
+        _key: userCfg:
+        home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages.${userCfg.system};
+          extraSpecialArgs = {
+            inherit inputs outputs;
+            make_opts = userCfg;
+          };
+          modules = [
+            (lib.mknix.getHomeAlonePath {
+              system = userCfg.system;
+              user = userCfg.user;
+            })
+          ];
+        }
+      ) hmAloneUsers;
 
       # Supported systems for flake packages, shells, etc.
       supportedSystems = [
@@ -94,7 +123,7 @@
           # for non-Linux build targets, this prevents errors when evaluating
           # the flake
           localLinuxPackages =
-            if make_opts.isLinux then
+            if lib.mknix.isLinux system then
               import ./packages/linux {
                 inherit system pkgs;
                 config = {
@@ -107,7 +136,7 @@
           # These packages only support Darwin so they are excluded
           # for non-Darwin build targets
           localDarwinPackages =
-            if !make_opts.isLinux then
+            if lib.mknix.isDarwin system then
               import ./packages/darwin {
                 inherit system pkgs;
                 config = {
@@ -120,7 +149,7 @@
         # Combine our local cross-platform packages with the appropriate
         # Linux-only or Darwin-only local packages depending on the build target
         pkgs.lib.recursiveUpdate localPackages (
-          if make_opts.isLinux then localLinuxPackages else localDarwinPackages
+          if lib.mknix.isLinux system then localLinuxPackages else localDarwinPackages
         )
       );
 
@@ -128,7 +157,7 @@
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
 
       # Flake wide overlays accessible though ouputs.overlays
-      overlays = import ./overlays { inherit inputs make_opts; };
+      overlays = import ./overlays { inherit inputs lib make_opts; };
 
       # Provide an easy import for all home-manager modules to each configuration
       homeModules = import ./modules/home-manager;
@@ -138,7 +167,7 @@
 
       # System configuration for Linux based systems
       nixosConfigurations =
-        if make_opts.isLinux then
+        if lib.mknix.isLinux make_opts.system then
           {
             "${make_opts.host}" = nixpkgs.lib.nixosSystem {
               specialArgs = {
@@ -155,7 +184,7 @@
 
       # System configuration for Darwin based systems
       darwinConfigurations =
-        if !make_opts.isLinux then
+        if lib.mknix.isDarwin make_opts.system then
           {
             "${make_opts.host}" = nix-darwin.lib.darwinSystem {
               specialArgs = {
@@ -173,28 +202,31 @@
           { };
 
       homeConfigurations =
-        if make_opts.isLinux then
-          {
-            # Home-manager configuration for Linux based systems
-            "${make_opts.user}@${make_opts.host}" = home-manager.lib.homeManagerConfiguration {
-              # Home-manager requires 'pkgs' instance to be manually specified
-              pkgs = nixpkgs.legacyPackages.${make_opts.system};
-              extraSpecialArgs = {
-                inherit inputs outputs make_opts;
+        (
+          if lib.mknix.isLinux make_opts.system then
+            {
+              # Home-manager configuration for Linux based systems
+              "${make_opts.user}@${make_opts.host}" = home-manager.lib.homeManagerConfiguration {
+                # Home-manager requires 'pkgs' instance to be manually specified
+                pkgs = nixpkgs.legacyPackages.${make_opts.system};
+                extraSpecialArgs = {
+                  inherit inputs outputs make_opts;
+                };
+                modules = [ ./users/homes/${make_opts.user}/linux/home.nix ];
               };
-              modules = [ ./users/homes/${make_opts.user}/linux/home.nix ];
-            };
-          }
-        else
-          {
-            # Home-manager configuration for Darwin based systems
-            "${make_opts.user}@${make_opts.host}" = home-manager-darwin.lib.homeManagerConfiguration {
-              pkgs = nixpkgs.legacyPackages.${make_opts.system};
-              extraSpecialArgs = {
-                inherit inputs outputs make_opts;
+            }
+          else
+            {
+              # Home-manager configuration for Darwin based systems
+              "${make_opts.user}@${make_opts.host}" = home-manager-darwin.lib.homeManagerConfiguration {
+                pkgs = nixpkgs.legacyPackages.${make_opts.system};
+                extraSpecialArgs = {
+                  inherit inputs outputs make_opts;
+                };
+                modules = [ ./users/homes/${make_opts.user}/darwin/home.nix ];
               };
-              modules = [ ./users/homes/${make_opts.user}/darwin/home.nix ];
-            };
-          };
+            }
+        )
+        // hmAloneConfigs;
     };
 }

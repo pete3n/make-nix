@@ -102,84 +102,152 @@ else
 	use_keys=false
 fi
 
-logf "%b>>> Writing make_opts.nix with:%b\n" "$BLUE" "$RESET"
-logf '  user              = "%s"\n' "$user"
-logf '  host              = "%s"\n' "$host"
-logf '  system            = "%s"\n' "$system"
-logf '  isLinux           = %s\n' "$is_linux"
-logf '  isHomeAlone       = %s\n' "$is_home_alone"
-logf '  useHomebrew       = %s\n' "$use_homebrew"
-logf '  useCache          = %s\n' "$use_cache"
-logf '  useKeys           = %s\n' "$use_keys"
+# Kludge to prevent Git tree from being marked as dirty
+commit_config() {
+	if [ -f "{$1}" ]; then
+		logf "%binfo:%b committing make_opts.nix to git tree.\n" "$BLUE" "$RESET"
+		git add -f "{$1}"
+		GIT_AUTHOR_NAME="make-nix" \
+			GIT_AUTHOR_EMAIL="make-nix@bot" \
+			GIT_COMMITTER_NAME="make-nix" \
+			GIT_COMMITTER_EMAIL="make-nix@bot" \
+			git commit -m "build: Make-nix automated commit to keep git tree clean" || true
+	else
+		logf "\n%berror:%b %b%s%b not found!\n" "$RED" "$RESET" "$MAGENTA" "$1" "$RESET"
+		exit 1
+	fi
+}
 
-logf "  tags              = ["
-if [ -n "$TGT_TAGS" ]; then
-	old_ifs=$IFS
-	IFS=','
-	for tag in $TGT_TAGS; do
-		logf ' "%s"' "$tag"
-	done
-	IFS=$old_ifs
-fi
-logf " ]\n"
-
-logf "  specialisations   = ["
-if [ -n "$TGT_SPEC" ]; then
-	old_ifs=$IFS
-	IFS=','
-	for spec in $TGT_SPEC; do
-		logf ' "%s"' "$spec"
-	done
-	IFS=$old_ifs
-fi
-logf " ]\n"
-
-{
-	printf "{ ... }:\n{\n"
-	printf '  user = "%s";\n' "$user"
-	printf '  host = "%s";\n' "$host"
-	printf '  system = "%s";\n' "$system"
-	printf '  isLinux = %s;\n' "$is_linux"
-	printf '  isHomeAlone = %s;\n' "$is_home_alone"
-	printf '  useHomebrew = %s;\n' "$use_homebrew"
-	printf '  useCache = %s;\n' "$use_cache"
-	printf '  useKeys = %s;\n' "$use_keys"
-
-	printf "  tags = ["
+# Standalone Home-manager configuration
+home_alone_config="/make-configs/home-alone/$user@$host.nix"
+write_home_alone() {
+	logf "\n%binfo:%b writing %b%s%b with:\n" \
+		"$BLUE" "$RESET" "$MAGENTA" "$home_alone_config" "$RESET"
+	logf '  user              = "%s"\n' "$user"
+	logf '  host              = "%s"\n' "$host"
+	logf '  system            = "%s"\n' "$system"
+	logf '  isHomeAlone       = %s\n' "$is_home_alone"
+	logf '  useHomebrew       = %s\n' "$use_homebrew"
+	logf '  useCache          = %s\n' "$use_cache"
+	logf '  useKeys           = %s\n' "$use_keys"
+	logf "  tags              = ["
 	if [ -n "$TGT_TAGS" ]; then
 		old_ifs=$IFS
-		IFS=","
+		IFS=','
 		for tag in $TGT_TAGS; do
-			printf ' "%s"' "$tag"
+			logf ' "%s"' "$tag"
 		done
 		IFS=$old_ifs
 	fi
-	printf " ];\n"
+	logf " ]\n"
 
-	printf "  specialisations = ["
+	{
+		printf "{ ... }:\n{\n"
+		printf '  user = "%s";\n' "$user"
+		printf '  host = "%s";\n' "$host"
+		printf '  system = "%s";\n' "$system"
+		printf '  isHomeAlone = %s;\n' "$is_home_alone"
+		printf '  useHomebrew = %s;\n' "$use_homebrew"
+		printf "  tags = ["
+		if [ -n "$TGT_TAGS" ]; then
+			old_ifs=$IFS
+			IFS=","
+			for tag in $TGT_TAGS; do
+				printf ' "%s"' "$tag"
+			done
+			IFS=$old_ifs
+		fi
+		printf " ];\n"
+		printf '}\n'
+	} >"$home_alone_config"
+}
+
+# System configuration
+system_config="make-configs/system/$user@$host.nix"
+write_system() {
+	logf "\n%binfo:%b writing %b%s%b with:\n" \
+		"$BLUE" "$RESET" "$MAGENTA" "$system_config" "$RESET"
+	logf '  user              = "%s"\n' "$user"
+	logf '  host              = "%s"\n' "$host"
+	logf '  system            = "%s"\n' "$system"
+	logf '  isHomeAlone       = %s\n' "$is_home_alone"
+	logf '  useHomebrew       = %s\n' "$use_homebrew"
+	logf '  useCache          = %s\n' "$use_cache"
+	logf '  useKeys           = %s\n' "$use_keys"
+	logf "  tags              = ["
+	if [ -n "$TGT_TAGS" ]; then
+		old_ifs=$IFS
+		IFS=','
+		for tag in $TGT_TAGS; do
+			logf ' "%s"' "$tag"
+		done
+		IFS=$old_ifs
+	fi
+	logf " ]\n"
+
+	logf "  specialisations   = ["
 	if [ -n "$TGT_SPEC" ]; then
 		old_ifs=$IFS
-		IFS=","
+		IFS=','
 		for spec in $TGT_SPEC; do
-			printf ' "%s"' "$spec"
+			logf ' "%s"' "$spec"
 		done
 		IFS=$old_ifs
 	fi
-	printf " ];\n"
+	logf " ]\n"
 
-	printf '}\n'
-} >make_opts.nix
+	{
+		printf "{ ... }:\n{\n"
+		printf '  user = "%s";\n' "$user"
+		printf '  host = "%s";\n' "$host"
+		printf '  system = "%s";\n' "$system"
+		printf '  isHomeAlone = %s;\n' "$is_home_alone"
+		printf '  useHomebrew = %s;\n' "$use_homebrew"
+		printf '  useCache = %s;\n' "$use_cache"
+		printf '  useKeys = %s;\n' "$use_keys"
+		printf "  tags = ["
+		if [ -n "$TGT_TAGS" ]; then
+			old_ifs=$IFS
+			IFS=","
+			for tag in $TGT_TAGS; do
+				printf ' "%s"' "$tag"
+			done
+			IFS=$old_ifs
+		fi
+		printf " ];\n"
 
-# Kludge to prevent Git tree from being marked as dirty
-if [ -f make_opts.nix ]; then
-	logf "%binfo:%b committing make_opts.nix to git tree.\n" "$BLUE" "$RESET"
-	git add -f make_opts.nix
-	GIT_AUTHOR_NAME="make-nix" \
-		GIT_AUTHOR_EMAIL="make-nix@bot" \
-		GIT_COMMITTER_NAME="make-nix" \
-		GIT_COMMITTER_EMAIL="make-nix@bot" \
-		git commit -m "build: Make-nix automated commit to keep git tree clean" || true
-else
-	logf "\n%berror:%b make_opts.nix not found!\n" "$RED" "$RESET"
-	exit 1
+		printf "  specialisations = ["
+		if [ -n "$TGT_SPEC" ]; then
+			old_ifs=$IFS
+			IFS=","
+			for spec in $TGT_SPEC; do
+				printf ' "%s"' "$spec"
+			done
+			IFS=$old_ifs
+		fi
+		printf " ];\n"
+
+		printf '}\n'
+	} >"$system_config"
+}
+
+logf "\n%b>>> Writing Nix configuration.%b\n" "$BLUE" "$RESET"
+if [ "$is_home_alone" = true ]; then
+	if write_home_alone; then
+		commit_config "$home_alone_config"
+	else
+		logf "\n%berror: %b could not write configuration: %b%s%b\n" \
+			"$RED" "$RESET" "$MAGENTA" "$home_alone_config" "$RESET"
+		exit 1
+	fi
+
+	else
+		if write_system; then
+			commit_config "$system_config"
+		else
+			logf "\n%berror: %b could not write configuration: %b%s%b\n" \
+				"$RED" "$RESET" "$MAGENTA" "$system_config" "$RESET"
+			exit 1
+		fi
+
 fi
