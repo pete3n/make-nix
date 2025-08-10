@@ -106,7 +106,7 @@ fi
 commit_config() {
 	if [ -f "$1" ]; then
 		logf "%binfo:%b committing %b%s%b to git tree.\n" "$BLUE" "$RESET" "$MAGENTA" "$1" "$RESET"
-		git add -f "{$1}"
+		git add -f "$1"
 		GIT_AUTHOR_NAME="make-nix" \
 			GIT_AUTHOR_EMAIL="make-nix@bot" \
 			GIT_COMMITTER_NAME="make-nix" \
