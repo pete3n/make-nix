@@ -104,7 +104,7 @@ fi
 
 # Kludge to prevent Git tree from being marked as dirty
 commit_config() {
-	if [ -f "{$1}" ]; then
+	if [ -f "$1" ]; then
 		logf "%binfo:%b committing %b%s%b to git tree.\n" "$BLUE" "$RESET" "$MAGENTA" "$1" "$RESET"
 		git add -f "{$1}"
 		GIT_AUTHOR_NAME="make-nix" \
