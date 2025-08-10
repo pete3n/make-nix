@@ -76,5 +76,5 @@
     };
   };
 
-  nixgl = if make_opts.isLinux then inputs.nixgl.overlay else (_: _: { });
+  nixgl = if lib.mknix.isLinux make_opts.system then inputs.nixgl.overlay else (_: _: { });
 }
