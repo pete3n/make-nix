@@ -80,7 +80,7 @@
         home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.${userCfg.system};
           extraSpecialArgs = {
-            inherit inputs outputs;
+            inherit inputs lib outputs;
             make_opts = userCfg;
           };
           modules = [
@@ -221,7 +221,7 @@
               "${make_opts.user}@${make_opts.host}" = home-manager-darwin.lib.homeManagerConfiguration {
                 pkgs = nixpkgs.legacyPackages.${make_opts.system};
                 extraSpecialArgs = {
-                  inherit inputs outputs make_opts;
+                  inherit inputs lib outputs make_opts;
                 };
                 modules = [ ./users/homes/${make_opts.user}/darwin/home.nix ];
               };
