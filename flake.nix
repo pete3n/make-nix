@@ -102,7 +102,7 @@
       ];
       # This is a function to generate an attribute set for each of the
       # systems in the supportedSystems list
-      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+      forAllSystems = lib.genAttrs supportedSystems;
     in
     {
       # Custom locally defined packages from the ./packages directory
@@ -212,7 +212,7 @@
         else
           { };
 
-      homeConfigurations =
+      homeConfigurations = hmAloneConfigs // 
         (
           if lib.mknix.isLinux make_opts.system then
             {
@@ -260,7 +260,6 @@
                 ];
               };
             }
-        )
-        // hmAloneConfigs;
+        );
     };
 }
