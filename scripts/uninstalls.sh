@@ -153,7 +153,7 @@ nix_multi_user_uninstall_linux() {
 	rc=0
 	sudo groupdel nixbld 2>/dev/null
 	rc=$?
-	
+
 	if [ "$rc" -eq 6 ]; then
 		# Group does not exist — not an error condition
 		:
@@ -339,16 +339,13 @@ try_installer_uninstall() {
 
 if [ "${UNAME_S}" = "Darwin" ]; then
 	# Check for Nix-Darwin first because we need to remove it before removing Nix.
-	if has_nix_darwin || is_truthy "${NIX_DARWIN:-}" ; then
-		if ! sudo darwin-uninstaller; then
-			if ! sudo nix --extra-experimental-features "nix-command flakes" run nix-darwin#darwin-uninstaller; then
-				logf "\n%berror:%b failed to uninstall Nix-Darwin.\n"
-				exit 1
-			else
-				logf "\n%b✅ success:%b uninstall complete.\n" "$GREEN" "$RESET"
-			fi
-		else
+	if has_nix_darwin || is_truthy "${NIX_DARWIN:-}"; then
+		if command -v darwin-uninstaller >/dev/null 2>&1 && sudo darwin-uninstaller ||
+			sudo nix --extra-experimental-features "nix-command flakes" run nix-darwin#darwin-uninstaller; then
 			logf "\n%b✅ success:%b uninstall complete.\n" "$GREEN" "$RESET"
+		else
+			logf "\n%berror:%b failed to uninstall Nix-Darwin.\n" "$RED" "$RESET"
+			exit 1
 		fi
 	fi
 
