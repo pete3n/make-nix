@@ -8,5 +8,5 @@
   useCache = true;
   useKeys = true;
   tags = [ "hyprland" "superuser" ];
-  specialisations = [ ];
+  specialisations = [ "wayland" "wayland_egpu" "x11" "x11_egpu" ];
 }
