@@ -1,6 +1,28 @@
-# This file defined flake-wide overlays
-{ inputs, makeNix, make_opts, ... }:
+# overlays/default.nix
+# Expose named overlays AND an ordered list 'all'.
+# Optionally accept makeNixAttrs (user/system context); if not provided, fall back to final.system.
 {
+  inputs,
+  makeNix,
+  makeNixAttrs ? null,
+}:
+let
+  # Helper: determine platform using either makeNixAttrs.system (provided from userAttrs)
+  # or the current final.system from nixpkgs.
+  isLinuxFor =
+    final:
+    let
+      sys = if makeNixAttrs == null then final.system else makeNixAttrs.system;
+    in
+    makeNix.isLinux sys;
+
+  isDarwinFor =
+    final:
+    let
+      sys = if makeNixAttrs == null then final.system else makeNixAttrs.system;
+    in
+    makeNix.isDarwin sys;
+
   # Import local pkgs from ./packages as overlays.local-packages and prepend
   # them with local to differentiate between nixpkgs version. Call with pkgs.local
   local-packages = final: prev: {
@@ -12,10 +34,12 @@
         crossPlatformPackages = import ../packages/cross-platform { inherit pkgs; };
 
         # Import linux-only packages if our target is linux
-        linuxPackages = if makeNix.isLinux make_opts.system then import ../packages/linux { inherit pkgs; } else { };
+        linuxPackages =
+          if isLinuxFor final then import ../packages/linux { inherit pkgs; } else { };
 
         # Import darwin-only packages if our target is darwin
-        darwinPackages = if makeNix.isDarwin make_opts.system then import ../packages/darwin { inherit pkgs; } else { };
+        darwinPackages =
+          if isDarwinFor final then import ../packages/darwin { inherit pkgs; } else { };
       in
       # Merge all packages into `local`
       crossPlatformPackages // linuxPackages // darwinPackages;
@@ -27,16 +51,18 @@
     mod =
       if prev ? unstable && prev ? local then
         {
-					# Wrapper to transparently launch Hyprland with nixGLIntel on non-NixOS
-					# systems which require it to function correctly.
+          # Wrapper to transparently launch Hyprland with nixGLIntel on non-NixOS
+          # systems which require it to function correctly.
           hyprland-nixgli-wrapped = prev.hyprland.overrideAttrs (oldAttrs: {
             postInstall =
               (oldAttrs.postInstall or "")
-              + ''
-								mv $out/bin/Hyprland $out/bin/Hyprland.unwrapped
-								makeWrapper ${final.nixgl.nixGLIntel}/bin/nixGLIntel $out/bin/Hyprland \
-									--add-flags "$out/bin/Hyprland.unwrapped"
-              '';
+              +
+                # sh
+                ''
+                  mv $out/bin/Hyprland $out/bin/Hyprland.unwrapped
+                  makeWrapper ${final.nixgl.nixGLIntel}/bin/nixGLIntel $out/bin/Hyprland \
+                  --add-flags "$out/bin/Hyprland.unwrapped"
+                '';
           });
 
           # Workaround for: https://github.com/signalapp/Signal-Desktop/issues/6855
@@ -76,5 +102,19 @@
     };
   };
 
-  nixgl = if makeNix.isLinux make_opts.system then inputs.nixgl.overlay else (_: _: { });
+  linux-compatibility-packages =
+    final: prev:
+    if isLinuxFor final then
+			inputs.nixgl.overlay final prev
+    else {};
+
+in
+{
+  # Name overlays (for flake outputs.overlays.<name>)
+  inherit
+    local-packages
+    mod-packages
+    unstable-packages
+    linux-compatibility-packages
+    ;
 }

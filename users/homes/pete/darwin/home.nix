@@ -2,7 +2,7 @@
   inputs,
   outputs,
   pkgs,
-  make_opts,
+  makeNixAttrs,
   ...
 }:
 {
@@ -41,7 +41,7 @@
     homeDirectory = "/Users/pete";
 
     packages =
-      [ inputs.nixvim.packages.${make_opts.system}.default ]
+      [ inputs.nixvim.packages.${makeNixAttrs.system}.default ]
       ++ (with pkgs; [
         local.yubioath-darwin
         python312Packages.base58

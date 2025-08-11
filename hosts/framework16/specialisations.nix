@@ -2,7 +2,7 @@
   lib,
   pkgs,
   outputs,
-  make_opts,
+  makeNixAttrs,
   ...
 }:
 
@@ -17,7 +17,7 @@ let
 
   availableSpecs = builtins.filter (
     name: builtins.elem name availableSpecialisations
-  ) make_opts.specialisations;
+  ) makeNixAttrs.specialisations;
 
   specMap = {
     x11 = import ./specialisations/x11.nix { inherit lib pkgs outputs; };

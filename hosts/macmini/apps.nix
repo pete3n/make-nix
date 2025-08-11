@@ -1,4 +1,4 @@
-{ pkgs, lib, make_opts, ... }:
+{ pkgs, lib, makeNixAttrs, ... }:
 {
   ##########################################################################
   #
@@ -33,7 +33,7 @@
     ./skhd.nix
   ];
 
-  homebrew = lib.mkIf make_opts.useHomebrew {
+  homebrew = lib.mkIf makeNixAttrs.useHomebrew {
     enable = true;
 
     onActivation = {

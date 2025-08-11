@@ -73,15 +73,20 @@ fi
 
 # If we don't have NixOS and we don't have Nix-Darwin, and we aren't going to install
 # Nix-Darwin, then we are using Home-manager standalone.
-is_home_alone=false
-if ! has_nixos && ! has_nix_darwin && [ "$nix_darwin_install" != true ]; then
+if has_nixos || has_nix_darwin || [ "$nix_darwin_install" = true ]; then
+	is_home_alone=false
+else
 	is_home_alone=true
 fi
 
 # If the user specifies HOME_ALONE (for a different system build), then it overrides
 # any auto-detection.
-if is_truthy "${HOME_ALONE:-}"; then
-	is_home_alone=true
+if [ -n "${HOME_ALONE-}" ]; then
+	if is_truthy "$HOME_ALONE"; then
+		is_home_alone=true
+	else
+		is_home_alone=false
+	fi
 fi
 
 if is_truthy "${USE_HOMEBREW:-}"; then
@@ -119,7 +124,7 @@ commit_config() {
 }
 
 # Standalone Home-manager configuration
-home_alone_config="$(resolve_path "./make-configs/home-alone/$user@$host.nix")"
+home_alone_config="$(resolve_path "./make-attrs/home-alone/$user@$host.nix")"
 write_home_alone() {
 	logf "\n%binfo:%b writing %b%s%b with:\n" \
 		"$BLUE" "$RESET" "$MAGENTA" "$home_alone_config" "$RESET"
@@ -163,7 +168,7 @@ write_home_alone() {
 }
 
 # System configuration
-system_config="$(resolve_path "./make-configs/system/$user@$host.nix")"
+system_config="$(resolve_path "./make-attrs/system/$user@$host.nix")"
 write_system() {
 	logf "\n%binfo:%b writing %b%s%b with:\n" \
 		"$BLUE" "$RESET" "$MAGENTA" "$system_config" "$RESET"

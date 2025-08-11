@@ -24,6 +24,7 @@ if [ -z "${IS_LINUX:-}" ]; then
 	exit 1
 fi
 
+user="${TGT_USER:? error: user must be set.}"
 host="${TGT_HOST:? error: host must be set.}"
 : "${USE_SCRIPT:=false}"
 
@@ -38,8 +39,8 @@ base_darwin_build_print_cmd="nix build .#darwinConfigurations.${CYAN}${host}${RE
 base_darwin_activate_cmd="sudo ./result/sw/bin/darwin-rebuild switch --flake .#${host}"
 base_darwin_activate_print_cmd="sudo ./result/sw/bin/darwin-rebuild switch --flake .#${CYAN}${host}${RESET}"
 
-base_linux_build_cmd="nix build .#nixosConfigurations.${host}.config.system.build.toplevel"
-base_linux_build_print_cmd="nix build .#nixosConfigurations.${CYAN}${host}${RESET}.config.system.build.toplevel"
+base_linux_build_cmd="nix build .#nixosConfigurations.${user}@${host}.config.system.build.toplevel"
+base_linux_build_print_cmd="nix build .#nixosConfigurations.${CYAN}${user}@${host}${RESET}.config.system.build.toplevel"
 base_linux_activate_cmd="sudo ./result/sw/bin/nixos-rebuild switch --flake .#${host}"
 base_linux_activate_print_cmd="sudo ./result/sw/bin/nixos-rebuild switch --flake .#${CYAN}${host}${RESET}"
 

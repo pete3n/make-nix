@@ -1,8 +1,7 @@
 {
-  outputs,
   pkgs,
   config,
-  make_opts,
+  makeNixAttrs,
   ...
 }:
 {
@@ -12,10 +11,6 @@
   ];
 
   nixpkgs = {
-    overlays = [
-      outputs.overlays.unstable-packages
-      outputs.overlays.mod-packages
-    ];
     config = {
       allowUnfree = true;
       # Workaround for https://github.com/nix-community/home-manager/issues/2942
@@ -66,7 +61,7 @@
 
   wayland.windowManager.hyprland = {
     enable = true;
-    package = if make_opts.isHomeAlone then pkgs.mod.hyprland-nixgli-wrapped else pkgs.hyprland;
+    package = if makeNixAttrs.isHomeAlone then pkgs.mod.hyprland-nixgli-wrapped else pkgs.hyprland;
     xwayland.enable = true;
     settings = {
       debug = {

@@ -2,7 +2,7 @@
   config,
   pkgs,
   lib,
-  make_opts,
+  makeNixAttrs,
   ...
 }:
 let
