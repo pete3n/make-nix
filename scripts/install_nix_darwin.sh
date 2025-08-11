@@ -4,8 +4,6 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
-
-
 clobber_list="nix/nix.conf zshenv zshrc bashrc"
 restored=false
 restoration_list=""
@@ -35,7 +33,7 @@ for file in $clobber_list; do
   fi
 done
 
-"$SCRIPT_DIR/write_write_make_nix_attrs.sh"
+"$SCRIPT_DIR/write_nix_attrs.sh"
 
 # shellcheck disable=SC1090
 . "$MAKE_NIX_ENV"
