@@ -61,30 +61,82 @@
         inherit inputs;
       };
 
+			homeModules' = import ./modules/home-manager;
+
       outputs = self.outputs; # Could be writting as 'inherit (self) outputs' but
       # this is more clear. We need to include outputs because we reference our
       # own outputs in our outputs
 
-      # This is a workaround to allow passing a specified user, host, and
-      # target system options to the flake, which will be accessible to
-      # system and home configurations through outputs.
-      make_opts = import ./make_opts.nix { };
+      # Home-manager users that have a NixOS/Nix-Darwin system config
+      hmUsers = makeNix.getHomeAttrs { dir = ./make-attrs/system; };
+      linuxUsers = nixpkgs.lib.filterAttrs (_: sa: makeNix.isLinux sa.system) hmUsers;
+      darwinUsers = nixpkgs.lib.filterAttrs (_: sa: makeNix.isDarwin sa.system) hmUsers;
 
-      hmAloneUsers = makeNix.getHomeAttrs { dir = ./make-configs/home-alone; };
-
-      hmAloneConfigs = builtins.mapAttrs (
-        _key: userAttrs:
+      hmConfigs = builtins.mapAttrs (
+        _key: sa:
+        let
+          userOverlays = import ./overlays {
+            inherit inputs makeNix;
+            makeNixAttrs = sa;
+          };
+          pkgsForUser = import nixpkgs {
+            system = sa.system;
+            overlays = [
+              userOverlays.unstable-packages
+              userOverlays.local-packages
+              userOverlays.linux-compatibility-packages
+              userOverlays.mod-packages
+            ];
+          };
+        in
         home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages.${userAttrs.system};
+          pkgs = pkgsForUser;
           extraSpecialArgs = {
-            inherit inputs makeNix outputs;
-            make_opts = userAttrs;
+            inherit inputs makeNix;
+            homeModules = homeModules';
+						makeNixAttrs = makeNix.makeAttrsCtx sa;
           };
           modules = [
             (makeNix.getHomePath {
               basePath = ./users/homes;
-              system = userAttrs.system;
-              user = userAttrs.user;
+              system = sa.system;
+              user = sa.user;
+            })
+          ];
+        }
+      ) hmUsers;
+
+      hmAloneUsers = makeNix.getHomeAttrs { dir = ./make-attrs/home-alone; };
+
+      hmAloneConfigs = builtins.mapAttrs (
+        _key: ua:
+        let
+          userOverlays = import ./overlays {
+            inherit inputs makeNix;
+						system = ua.system;
+          };
+          pkgsForUser = import nixpkgs {
+            system = ua.system;
+            overlays = [
+              userOverlays.unstable-packages
+              userOverlays.local-packages
+              userOverlays.linux-compatibility-packages
+              userOverlays.mod-packages
+            ];
+          };
+        in
+        home-manager.lib.homeManagerConfiguration {
+          pkgs = pkgsForUser;
+          extraSpecialArgs = {
+            inherit inputs makeNix;
+            homeModules = homeModules';
+						makeNixAttrs = makeNix.makeAttrsCtx ua;
+          };
+          modules = [
+            (makeNix.getHomePath {
+              basePath = ./users/homes;
+              system = ua.system;
+              user = ua.user;
             })
           ];
         }
@@ -155,7 +207,7 @@
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
 
       # Flake wide overlays accessible though ouputs.overlays
-      overlays = import ./overlays { inherit inputs makeNix make_opts; };
+      overlays = import ./overlays { inherit inputs makeNix; };
 
       # Provide an easy import for all home-manager modules to each configuration
       homeModules = import ./modules/home-manager;
@@ -164,123 +216,59 @@
       nixosModules = import ./modules/nixos;
 
       # System configuration for Linux based systems
-      nixosConfigurations =
-        if makeNix.isLinux make_opts.system && (!make_opts.isHomeAlone) then
-          {
-            "${make_opts.host}" = nixpkgs.lib.nixosSystem {
-              specialArgs = {
-                inherit
-                  inputs
-                  outputs
-                  makeNix
-                  make_opts
-                  ;
-              };
-              modules = [
-                (
-                  assert
-                    builtins.pathExists ./hosts/${make_opts.host}/configuration.nix
-                    || throw "nixosConfigurations: missing ./hosts/${make_opts.host}/configuration.nix";
-                  ./hosts/${make_opts.host}/configuration.nix
-                )
-                ./users/linux_user.nix
-              ];
-            };
-          }
-        else
-          { };
+      nixosConfigurations = builtins.mapAttrs (
+        _key: sa:
+        nixpkgs.lib.nixosSystem {
+          specialArgs = {
+            inherit inputs outputs makeNix;
+            makeNixAttrs = makeNix.makeAttrsCtx sa;
+          };
+          modules = [
+            (
+              assert
+                builtins.pathExists ./hosts/${sa.host}/configuration.nix
+                || throw "nixosConfigurations: missing ./hosts/${sa.host}/configuration.nix";
+              ./hosts/${sa.host}/configuration.nix
+            )
+            ./users/linux_user.nix
+            { }
+          ];
+        }
+      ) linuxUsers;
 
       # System configuration for Darwin based systems
-      darwinConfigurations =
-        if makeNix.isDarwin make_opts.system && (!make_opts.isHomeAlone) then
-          {
-            "${make_opts.host}" = nix-darwin.lib.darwinSystem {
-              specialArgs = {
-                inherit
-                  inputs
-                  outputs
-                  makeNix
-                  make_opts
-                  ;
-              };
-              modules = [
-                ./hosts/${make_opts.host}/nix-core.nix
-                ./hosts/${make_opts.host}/system.nix
-                ./hosts/${make_opts.host}/apps.nix
-                (
-                  assert
-                    builtins.pathExists ./hosts/${make_opts.host}/nix-core.nix
-                    || throw "darwinConfigurations: missing ./hosts/${make_opts.host}/nix-core.nix";
-                  ./hosts/${make_opts.host}/nix-core.nix
-                )
-                (
-                  assert
-                    builtins.pathExists ./hosts/${make_opts.host}/system.nix
-                    || throw "darwinConfigurations: missing ./hosts/${make_opts.host}/system.nix";
-                  ./hosts/${make_opts.host}/system.nix
-                )
-                (
-                  assert
-                    builtins.pathExists ./hosts/${make_opts.host}/apps.nix
-                    || throw "darwinConfigurations: missing ./hosts/${make_opts.host}/apps.nix";
-                  ./hosts/${make_opts.host}/apps.nix
-                )
-                ./users/darwin_user.nix
-              ];
-            };
-          }
-        else
-          { };
+      darwinConfigurations = builtins.mapAttrs (
+        _key: sa:
+        nix-darwin.lib.darwinSystem {
+          specialArgs = {
+            inherit inputs outputs makeNix;
+            makeNixAttrs = makeNix.makeAttrsCtx sa;
+          };
+          modules = [
+            (
+              assert
+                builtins.pathExists ./hosts/${sa.host}/nix-core.nix
+                || throw "darwinConfigurations: missing ./hosts/${sa.host}/nix-core.nix";
+              ./hosts/${sa.host}/nix-core.nix
+            )
+            (
+              assert
+                builtins.pathExists ./hosts/${sa.host}/system.nix
+                || throw "darwinConfigurations: missing ./hosts/${sa.host}/system.nix";
+              ./hosts/${sa.host}/system.nix
+            )
+            (
+              assert
+                builtins.pathExists ./hosts/${sa.host}/apps.nix
+                || throw "darwinConfigurations: missing ./hosts/${sa.host}/apps.nix";
+              ./hosts/${sa.host}/apps.nix
+            )
+            ./users/darwin_user.nix
+          ];
 
-      homeConfigurations =
-        hmAloneConfigs
-        // (
-          if makeNix.isLinux make_opts.system then
-            {
-              # Home-manager configuration for Linux based systems
-              "${make_opts.user}@${make_opts.host}" = home-manager.lib.homeManagerConfiguration {
-                # Home-manager requires 'pkgs' instance to be manually specified
-                pkgs = nixpkgs.legacyPackages.${make_opts.system};
-                extraSpecialArgs = {
-                  inherit
-                    inputs
-                    outputs
-                    makeNix
-                    make_opts
-                    ;
-                };
-                modules = [
-                  (makeNix.getHomePath {
-                    basePath = ./users/homes;
-                    system = make_opts.system;
-                    user = make_opts.user;
-                  })
-                ];
+        }
+      ) darwinUsers;
 
-              };
-            }
-          else
-            {
-              # Home-manager configuration for Darwin based systems
-              "${make_opts.user}@${make_opts.host}" = home-manager-darwin.lib.homeManagerConfiguration {
-                pkgs = nixpkgs.legacyPackages.${make_opts.system};
-                extraSpecialArgs = {
-                  inherit
-                    inputs
-                    outputs
-                    makeNix
-                    make_opts
-                    ;
-                };
-                modules = [
-                  (makeNix.getHomePath {
-                    basePath = ./users/homes;
-                    system = make_opts.system;
-                    user = make_opts.user;
-                  })
-                ];
-              };
-            }
-        );
+      homeConfigurations = hmAloneConfigs // hmConfigs;
     };
 }

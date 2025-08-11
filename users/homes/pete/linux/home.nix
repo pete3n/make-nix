@@ -1,9 +1,9 @@
 {
   inputs,
-  outputs,
   lib,
   pkgs,
-  make_opts,
+	makeNixAttrs,
+	homeModules,
   ...
 }:
 
@@ -18,7 +18,7 @@
 let
   linuxTags = [ "hyprland" ];
 
-  availableTags = builtins.filter (tag: builtins.elem tag linuxTags) make_opts.tags;
+  availableTags = builtins.filter (tag: builtins.elem tag linuxTags) makeNixAttrs.tags;
 
   tagImportMap = {
     hyprland = [
@@ -31,7 +31,7 @@ let
 in
 {
   imports =
-    builtins.attrValues outputs.homeModules
+    builtins.attrValues homeModules
     ++ [
       ../cross-platform/alacritty-config.nix
       ../cross-platform/git-config.nix
@@ -47,12 +47,6 @@ in
     ++ tagImports;
 
   nixpkgs = {
-    overlays = [
-      outputs.overlays.unstable-packages
-      outputs.overlays.local-packages
-      outputs.overlays.mod-packages
-      outputs.overlays.nixgl
-    ];
     config = {
       allowUnfree = true;
       # Workaround for https://github.com/nix-community/home-manager/issues/2942
@@ -96,9 +90,9 @@ in
 
     packages =
 			# Build the default Nixvim package for the system architecture
-      [ inputs.nixvim.packages.${make_opts.system}.default ]
+      [ inputs.nixvim.packages.${makeNixAttrs.system}.default ]
 			# non-NixOS systems get 
-      ++ lib.optionals make_opts.isHomeAlone [
+      ++ lib.optionals makeNixAttrs.isHomeAlone [
         pkgs.nixgl.nixGLIntel
         pkgs.nixgl.nixVulkanIntel
       ]

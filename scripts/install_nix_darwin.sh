@@ -35,7 +35,7 @@ for file in $clobber_list; do
   fi
 done
 
-"$SCRIPT_DIR/write_make_opts.sh"
+"$SCRIPT_DIR/write_write_make_nix_attrs.sh"
 
 # shellcheck disable=SC1090
 . "$MAKE_NIX_ENV"

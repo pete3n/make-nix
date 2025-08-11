@@ -1,14 +1,14 @@
 # System-level user configuration.
 # You can write this as a single file that evaluates or
 # As multiple files explicitly referenced.
-{ lib, make_opts, ... }:
+{ lib, makeNixAttrs, ... }:
 let
   userRoleTags = [
     "sudoer"
     "poweruser"
   ];
 
-  availableTags = builtins.filter (tag: builtins.elem tag userRoleTags) make_opts.tags;
+  availableTags = builtins.filter (tag: builtins.elem tag userRoleTags) makeNixAttrs.tags;
 
   tagGroupMap = {
     sudoer = [
@@ -34,7 +34,7 @@ let
   );
 in
 {
-  users.users.${make_opts.user} = {
+  users.users.${makeNixAttrs.user} = {
     isNormalUser = true;
     description = tagRoleDescription;
     extraGroups = tagRoleGroups;

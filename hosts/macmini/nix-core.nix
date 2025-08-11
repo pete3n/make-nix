@@ -1,6 +1,6 @@
-{ pkgs, make_opts, ... }:
+{ pkgs, makeNixAttrs, ... }:
 {
-  system.primaryUser = make_opts.user;
+  system.primaryUser = makeNixAttrs.user;
 	imports = [ ../infrax.nix ];
   nix.settings = {
     # enable flakes globally

@@ -2,12 +2,12 @@
 {
   config,
   lib,
-  make_opts,
+  makeNixAttrs,
   ...
 }:
 let
   tmux_preserve_path =
-    lib.optionalString make_opts.isHomeAlone # sh
+    lib.optionalString makeNixAttrs.isHomeAlone # sh
       ''
         # For non-NixOS or Nix-Darwin systems preserve PATH for tmux.
         # Determine path to store saved PATH
@@ -45,7 +45,7 @@ let
         fi
       '';
   sudo_wrapper =
-    lib.optionalString make_opts.isHomeAlone # sh
+    lib.optionalString makeNixAttrs.isHomeAlone # sh
       ''
         # sudo wrapper do workaround missing path for commands when run as sudo
         sudo() {

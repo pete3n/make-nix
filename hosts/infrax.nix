@@ -1,7 +1,7 @@
-{ lib, make_opts, ... }:
+{ lib, makeNixAttrs, ... }:
 {
   nix.settings = lib.mkMerge [
-    (lib.mkIf make_opts.useCache {
+    (lib.mkIf makeNixAttrs.useCache {
       substituters = [
         # This is a local Nginx cache for cache.nixos and
         # nix-community.cachix.org, see https://github.com/pete3n/nix-cache.git
@@ -14,7 +14,7 @@
         "https://nix-community.cachix.org"
       ];
     })
-    (lib.mkIf make_opts.useKeys {
+    (lib.mkIf makeNixAttrs.useKeys {
       # Verify at: https://app.cachix.org/cache/nix-community#pull
       trusted-public-keys = [ "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=" ];
     })
