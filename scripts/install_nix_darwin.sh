@@ -14,7 +14,9 @@ restore_clobbered_files() {
     for file in $restoration_list; do
       if [ -e "/etc/${file}.before_darwin" ]; then
         logf "  ↩️  restoring /etc/%s\n" "$file"
-        sudo mv "/etc/${file}.before_darwin" "/etc/$file"
+        if sudo cp "/etc/${file}.before_darwin" "/etc/$file"; then
+					sudo rm -f "/etc/${file}.before_darwin"
+				fi
       fi
     done
     restored=true
