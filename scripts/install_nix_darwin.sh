@@ -4,7 +4,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
-clobber_list="nix/nix.conf zshenv zshrc bashrc"
+clobber_list="zshenv zshrc bashrc"
 restored=false
 restoration_list=""
 
