@@ -30,7 +30,7 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		[ "$_CLEANED" -eq 1 ] && return
 		_CLEANED=1
 
-		status=${1:-0} 
+		status=${1:-0}
 		reason=${2:-EXIT}
 
 		if ! is_truthy "${KEEP_LOGS:-}"; then
@@ -95,5 +95,13 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		dir="$(cd "$(dirname "$1")" && pwd)"
 		base="$(basename "$1")"
 		printf '%s/%s\n' "$dir" "$base"
+	}
+
+	is_deadlink() {
+		if [ -L "$1" ] && [ ! -e "$1" ]; then
+			return 1
+		else
+			return 0
+		fi
 	}
 fi # _COMMON_SH_INCLUDED
