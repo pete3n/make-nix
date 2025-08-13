@@ -4,7 +4,6 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
-trap 'cleanup $? EXIT' EXIT
 trap 'cleanup 130 SIGNAL' INT TERM QUIT   # one generic non-zero code for signals
 
 if [ -z "${TGT_USER:-}" ]; then
