@@ -21,17 +21,35 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		printf "$@" | tee -a "$MAKE_NIX_LOG"
 	}
 
-	cleaned=false
+	_CLEANED=0
+
 	cleanup_on_halt() {
-		$cleaned && return
-		status=$1
+		[ "${_CLEANED}" -eq 1 ] && return
+		_CLEANED=1
+
+		status=${1:-$?}
+
 		if [ "$status" -ne 0 ]; then
-			logf "\nCleaning up...\n"
-			SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-			# shellcheck disable=SC1091
-			sh "$SCRIPT_DIR/clean.sh"
-			cleaned=true
+			logf "\n%b>>> Cleaning up...%b\n" "$BLUE" "$RESET"
 		fi
+
+		# Keep logs and exit with original status for debug
+		if is_truthy "${KEEP_LOGS:-}"; then
+			exit "$status"
+		fi
+
+		rm_if_set() {
+			eval 'file="$'"$1"'"'
+			if [ -n "${file:-}" ] && [ -e "$file" ]; then
+				rm -f -- "$file" || true
+				eval "$1=''"
+			fi
+		}
+
+		rm_if_set MAKE_NIX_LOG
+		rm_if_set MAKE_NIX_ENV
+		rm_if_set MAKE_NIX_INSTALLER
+
 		exit "$status"
 	}
 
