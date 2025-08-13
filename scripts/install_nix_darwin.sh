@@ -87,13 +87,17 @@ if ! /bin/launchctl print system/org.nixos.nix-daemon >/dev/null 2>&1; then
 fi
 
 logf "\n%binfo:%b building Nix-Darwin with command:\n" "$BLUE" "$RESET"
-logf "nix build --option experimental-features \"nix-command flakes\" .#darwinConfigurations.%b%s%b@%b%s%b.system" \
+logf "nix build --option experimental-features \"nix-command flakes\" .#darwinConfigurations.%b%s%b@%b%s%b.system\n" \
 	"$CYAN" "$TGT_USER" "$RESET" "$CYAN" "$TGT_HOST" "$RESET"
 if nix build --option experimental-features "nix-command flakes" .#darwinConfigurations."${TGT_USER}@${TGT_HOST}".system; then
   logf "\n%b✓ Nix-Darwin build success.%b\n" "$GREEN" "$RESET"
 else
   logf "\n%b❌%b Nix-Darwin build failed. Files will be restored.\n" "$RED" "$RESET"
 	exit 1
+fi
+
+if [ -f /etc/nix/nix.conf ]; then
+	sudo mv /etc/nix/nix.conf /etc/nix/nix.before-nix-darwin
 fi
 
 logf "\n%binfo:%b activating Nix-Darwin with command:\n" "$BLUE" "$RESET"
