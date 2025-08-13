@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 . "$SCRIPT_DIR/common.sh"
 
 trap 'cleanup $? EXIT' EXIT
-trap 'cleanup 130 SIGNAL' INT TERM QUIT   # one generic non-zero code for signals
+trap 'cleanup 130 SIGNAL' INT TERM QUIT # one generic non-zero code for signals
 
 if ! has_nix && (source_nix && has_nix); then
 	printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
@@ -84,7 +84,7 @@ set_conf_value "$user_nix_conf" "substituters" "$cache_urls"
 
 # Restart daemon
 logf "%b>>> Restarting Nix daemon to apply changes...%b\n" "$BLUE" "$RESET"
-case "$(uname)" in
+case "${UNAME_S:-}" in
 Darwin)
 	if sudo launchctl kickstart -k system/org.nixos.nix-daemon; then
 		logf "%b✓ nix-daemon restarted successfully on macOS.%b\n" "$GREEN" "$RESET"

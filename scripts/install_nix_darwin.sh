@@ -27,6 +27,34 @@ trap 'restore_clobbered_files' EXIT INT TERM QUIT
 trap 'cleanup $? EXIT' EXIT
 trap 'cleanup 130 SIGNAL' INT TERM QUIT   # one generic non-zero code for signals
 
+ensure_nix_daemon() {
+  # Ensure the daemon binary path exists
+  if ! [ -x /nix/var/nix/profiles/default/bin/nix-daemon ]; then
+    logf "\n%berror:%b nix-daemon binary missing in default profile\n" "$RED" "$RESET"
+    exit 1
+  fi
+
+  # Enable & bootstrap the service in the system domain
+  sudo launchctl enable system/org.nixos.nix-daemon || true
+  sudo launchctl bootstrap system /Library/LaunchDaemons/org.nixos.nix-daemon.plist 2>/dev/null || true
+  sudo launchctl kickstart -k system/org.nixos.nix-daemon || true
+
+  # Wait for the socket
+  i=1
+  while [ $i -lt 20 ] && ! [ -S /nix/var/nix/daemon-socket/socket ]; do
+    i=$((i+1)); sleep 0.1
+  done
+  if ! [ -S /nix/var/nix/daemon-socket/socket ]; then
+    logf "\n%berror:%b nix-daemon socket missing after bootstrap/kickstart\n" "$RED" "$RESET"
+    sudo launchctl print system/org.nixos.nix-daemon | sed -n '1,120p' >&2 || true
+    exit 1
+  fi
+
+  # Force client→daemon mode (avoid env leakage)
+  unset NIX_REMOTE || true
+  export NIX_REMOTE=daemon
+}
+
 logf "\n%binfo:%b backing up files before Nix-Darwin install...\n" "$BLUE" "$RESET"
 for file in $clobber_list; do
   if [ -e "/etc/$file" ]; then
@@ -54,25 +82,8 @@ if [ -f "$nix_conf_backup" ]; then
   fi
 fi
 
-# --- run as a regular user, not root ---
-if [ "$(id -u)" -eq 0 ]; then
-  logf "\n%berror:%b do not run this installer as root.\n" "$RED" "$RESET"
-  exit 1
-fi
-
-# Force client/daemon mode and clear any leaked local-mode env.
-unset NIX_REMOTE NIX_STORE_DIR NIX_STATE_DIR NIX_LOG_DIR NIX_CONF_DIR NIX_DATA_DIR || true
-export NIX_REMOTE=daemon
-
 if ! /bin/launchctl print system/org.nixos.nix-daemon >/dev/null 2>&1; then
-  logf "\n%berror:%b nix-daemon is not loaded. Try:\n  sudo launchctl load /Library/LaunchDaemons/org.nixos.nix-daemon.plist\n" \
-		"$RED" "$RESET"
-  exit 1
-fi
-
-if [ ! -S /nix/var/nix/daemon-socket/socket ]; then
-  logf "\n%berror:%b nix-daemon socket missing at /nix/var/nix/daemon-socket/socket\n" "$RED" "$RESET"
-  exit 1
+	ensure_nix_daemon
 fi
 
 logf "\n%binfo:%b installing Nix-Darwin with command:\n" "$BLUE" "$RESET"
