@@ -86,13 +86,23 @@ if ! /bin/launchctl print system/org.nixos.nix-daemon >/dev/null 2>&1; then
 	ensure_nix_daemon
 fi
 
-logf "\n%binfo:%b installing Nix-Darwin with command:\n" "$BLUE" "$RESET"
-logf "sudo nix run --option experimental-features \"nix-command flakes\" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .#%s\n" "$TGT_HOST" 
-if sudo nix run --option experimental-features "nix-command flakes" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .#"${TGT_HOST}"; then
-  logf "\n%b✓ Nix-Darwin install succeeded.%b\n" "$GREEN" "$RESET"
+logf "\n%binfo:%b building Nix-Darwin with command:\n" "$BLUE" "$RESET"
+logf "nix build --option experimental-features \"nix-command flakes\" .#darwinConfigurations.%b%s%b@%b%s%b.system" \
+	"$CYAN" "$TGT_USER" "$RESET" "$CYAN" "$TGT_HOST" "$RESET"
+if nix build --option experimental-features "nix-command flakes" .#darwinConfigurations."${TGT_USER}@${TGT_HOST}".system; then
+  logf "\n%b✓ Nix-Darwin build success.%b\n" "$GREEN" "$RESET"
+else
+  logf "\n%b❌%b Nix-Darwin build failed. Files will be restored.\n" "$RED" "$RESET"
+	exit 1
+fi
+
+logf "\n%binfo:%b activating Nix-Darwin with command:\n" "$BLUE" "$RESET"
+logf "sudo ./result/activate\n" 
+if sudo ./result/activate; then
+  logf "\n%b✓ Nix-Darwin activation success.%b\n" "$GREEN" "$RESET"
   # Prevent restoration on trap
   restoration_list=""
 else
-  logf "\n%b❌%b Nix-Darwin install failed. Files will be restored.\n" "$RED" "$RESET"
-  exit 1
+  logf "\n%b❌%b Nix-Darwin activation failed. Files will be restored.\n" "$RED" "$RESET"
+	exit 1
 fi
