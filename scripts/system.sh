@@ -35,10 +35,10 @@ if [ -z "$mode" ]; then
 	exit 1
 fi
 
-base_darwin_build_cmd="nix build .#darwinConfigurations.${host}.system"
-base_darwin_build_print_cmd="nix build .#darwinConfigurations.${CYAN}${host}${RESET}.system"
-base_darwin_activate_cmd="sudo ./result/sw/bin/darwin-rebuild switch --flake .#${host}"
-base_darwin_activate_print_cmd="sudo ./result/sw/bin/darwin-rebuild switch --flake .#${CYAN}${host}${RESET}"
+base_darwin_build_cmd="nix build .#darwinConfigurations.${user}@${host}.system"
+base_darwin_build_print_cmd="nix build .#darwinConfigurations.${CYAN}${user}${RESET}@{$CYAN}{host}${RESET}.system"
+base_darwin_activate_cmd="sudo ./result/sw/bin/darwin-rebuild switch --flake .#${user}@${host}"
+base_darwin_activate_print_cmd="sudo ./result/sw/bin/darwin-rebuild switch --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
 
 base_linux_build_cmd="nix build .#nixosConfigurations.${user}@${host}.config.system.build.toplevel"
 base_linux_build_print_cmd="nix build .#nixosConfigurations.${CYAN}${user}@${host}${RESET}.config.system.build.toplevel"
