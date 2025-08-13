@@ -20,7 +20,7 @@ else
 fi
 
 WRAPPER=/usr/local/bin/hyprland-dm-session
-logf "%binfo:%b Writing wrapper: %b%s%b\n" "${BLUE:-}" "${RESET:-}" "${MAGENTA:-}" "$WRAPPER" "${RESET:-}"
+logf "%binfo:%b writing wrapper: %b%s%b\n" "${BLUE:-}" "${RESET:-}" "${MAGENTA:-}" "$WRAPPER" "${RESET:-}"
 sudo install -D -m 0755 /dev/stdin "$WRAPPER" <<'EOF'
 #!/bin/sh
 set -eu
@@ -51,7 +51,7 @@ fi
 EOF
 
 DESKTOP=/usr/share/wayland-sessions/hyprland.desktop
-logf "%binfo:%b Writing desktop entry: %b%s%b\n" "${BLUE:-}" "${RESET:-}" "${MAGENTA:-}" "$DESKTOP" "${RESET:-}"
+logf "%binfo:%b writing desktop entry: %b%s%b\n" "${BLUE:-}" "${RESET:-}" "${MAGENTA:-}" "$DESKTOP" "${RESET:-}"
 sudo install -D -m 0644 /dev/stdin "$DESKTOP" <<EOF
 [Desktop Entry]
 Name=Hyprland
