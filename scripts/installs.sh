@@ -4,7 +4,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
-trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
+trap 'cleanup $? EXIT' EXIT
+trap 'cleanup 130 SIGNAL' INT TERM QUIT   # one generic non-zero code for signals
 
 MAKE_GOALS="${1:-install}" # default to "install" if nothing is passed
 
@@ -162,5 +163,5 @@ fi
 
 other_targets=$(printf "%s\n" "$MAKE_GOALS" | tr ' ' '\n' | grep -v '^install$')
 if [ -z "$other_targets" ]; then
-	sh "$SCRIPT_DIR/clean.sh"
+	cleanup 0 EXIT
 fi

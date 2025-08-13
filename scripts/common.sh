@@ -18,39 +18,31 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 
 	# shellcheck disable=SC2059
 	logf() {
-		printf "$@" | tee -a "$MAKE_NIX_LOG"
+		if [ -n "${MAKE_NIX_LOG:-}" ]; then
+			printf "$@" | tee -a "$MAKE_NIX_LOG"
+		else
+			printf "$@"
+		fi
 	}
 
 	_CLEANED=0
-
-	cleanup_on_halt() {
-		[ "${_CLEANED}" -eq 1 ] && return
+	cleanup() {
+		[ "$_CLEANED" -eq 1 ] && return
 		_CLEANED=1
 
-		status=${1:-$?}
+		status=${1:-0} 
+		reason=${2:-EXIT}
 
-		if [ "$status" -ne 0 ]; then
-			logf "\n%b>>> Cleaning up...%b\n" "$BLUE" "$RESET"
-		fi
-
-		# Keep logs and exit with original status for debug
-		if is_truthy "${KEEP_LOGS:-}"; then
-			exit "$status"
-		fi
-
-		rm_if_set() {
-			eval 'file="$'"$1"'"'
-			if [ -n "${file:-}" ] && [ -e "$file" ]; then
-				rm -f -- "$file" || true
-				eval "$1=''"
+		if ! is_truthy "${KEEP_LOGS:-}"; then
+			dir=${MAKE_NIX_TMPDIR:-}
+			if [ -n "$dir" ] && [ -d "$dir" ]; then
+				# Prevent deleting root paths if $dir gets truncated somehow
+				case "$dir" in "" | / | /tmp | /var/tmp) : ;; *) rm -rf -- "$dir" ;; esac
 			fi
-		}
+		fi
 
-		rm_if_set MAKE_NIX_LOG
-		rm_if_set MAKE_NIX_ENV
-		rm_if_set MAKE_NIX_INSTALLER
-
-		exit "$status"
+		# Do not 'exit' on EXIT trap; only exit on INT/TERM so the script stops.
+		[ "$reason" = EXIT ] || exit "$status"
 	}
 
 	has_nix() {
@@ -100,8 +92,8 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 
 	resolve_path() {
 		# $1 = file path (can be relative, with ../, etc.)
-		dir="$(cd "$(dirname -- "$1")" && pwd)"
-		base="$(basename -- "$1")"
+		dir="$(cd "$(dirname "$1")" && pwd)"
+		base="$(basename "$1")"
 		printf '%s/%s\n' "$dir" "$base"
 	}
 fi # _COMMON_SH_INCLUDED
