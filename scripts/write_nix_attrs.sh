@@ -54,6 +54,7 @@ case "$system" in
 	;;
 esac
 printf "IS_LINUX=%s\n" "$is_linux" >>"$MAKE_NIX_ENV"
+printf "TGT_SYSTEM=%s\n" "$TGT_SYSTEM" >> "$MAKE_NIX_ENV"
 
 if [ "${TGT_SPEC+x}" ]; then
 	printf "TGT_SPEC=%s\n" "$TGT_SPEC" >>"$MAKE_NIX_ENV"
