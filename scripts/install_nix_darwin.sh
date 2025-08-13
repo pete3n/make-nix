@@ -27,13 +27,11 @@ trap 'restore_clobbered_files' EXIT INT TERM QUIT
 trap 'cleanup 130 SIGNAL' INT TERM QUIT   # one generic non-zero code for signals
 
 ensure_nix_daemon() {
-  # Ensure the daemon binary path exists
   if ! [ -x /nix/var/nix/profiles/default/bin/nix-daemon ]; then
     logf "\n%berror:%b nix-daemon binary missing in default profile\n" "$RED" "$RESET"
     exit 1
   fi
 
-  # Enable & bootstrap the service in the system domain
   sudo launchctl enable system/org.nixos.nix-daemon || true
   sudo launchctl bootstrap system /Library/LaunchDaemons/org.nixos.nix-daemon.plist 2>/dev/null || true
   sudo launchctl kickstart -k system/org.nixos.nix-daemon || true
@@ -43,15 +41,12 @@ ensure_nix_daemon() {
   while [ $i -lt 20 ] && ! [ -S /nix/var/nix/daemon-socket/socket ]; do
     i=$((i+1)); sleep 0.1
   done
+
   if ! [ -S /nix/var/nix/daemon-socket/socket ]; then
     logf "\n%berror:%b nix-daemon socket missing after bootstrap/kickstart\n" "$RED" "$RESET"
     sudo launchctl print system/org.nixos.nix-daemon | sed -n '1,120p' >&2 || true
     exit 1
   fi
-
-  # Force client→daemon mode (avoid env leakage)
-  unset NIX_REMOTE || true
-  export NIX_REMOTE=daemon
 }
 
 logf "\n%binfo:%b backing up files before Nix-Darwin install...\n" "$BLUE" "$RESET"
@@ -81,9 +76,7 @@ if [ -f "$nix_conf_backup" ]; then
   fi
 fi
 
-if ! /bin/launchctl print system/org.nixos.nix-daemon >/dev/null 2>&1; then
-	ensure_nix_daemon
-fi
+ensure_nix_daemon
 
 logf "\n%binfo:%b building Nix-Darwin with command:\n" "$BLUE" "$RESET"
 logf "nix build --option experimental-features \"nix-command flakes\" .#darwinConfigurations.%b%s%b@%b%s%b.system\n" \
