@@ -301,7 +301,7 @@ nix_single_user_uninstall() {
 	nix_files="/nix ~/.nix-channels ~/.nix-defexpr ~/.nix-profile"
 
 	for file in $nix_files; do
-
+		logf "\n%binfo:%b deleting: %b%s%b\n" "$BLUE" "$RESET" "$MAGENTA" "$file" "$RESET"
 		if ! sudo rm -rf "$file" 2>"$err_log"; then
 			if grep -q 'Permission denied' "$err_log"; then
 				logf "\n%berror:%b permission denied removing %b%s%b\n" "$RED" "$RESET" "$MAGENTA" "$file" "$RESET"
@@ -335,6 +335,11 @@ try_installer_uninstall() {
 			exit $?
 		fi
 	fi
+}
+
+# SSL cert bug:
+remove_bad_ssl() {
+	:
 }
 
 if [ "${UNAME_S}" = "Darwin" ]; then
