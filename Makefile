@@ -6,19 +6,30 @@
 # Please see https://github.com/pete3n/make-nix for documentation.
 .DEFAULT_GOAL := help
 MAKEFLAGS += --no-print-directory
+SHELL := /bin/sh
 
 UNAME_S := $(shell uname -s)
 
+ifeq ($(origin MAKE_NIX_TMPDIR), undefined)
+  MAKE_NIX_TMPDIR := $(shell TMPDIR="$${TMPDIR:-/tmp}"; mktemp -d "$$TMPDIR/make-nix.XXXXXX")
+  export MAKE_NIX_TMPDIR
+endif
+
 ifeq ($(origin MAKE_NIX_ENV), undefined)
-  MAKE_NIX_ENV := $(shell mktemp -t make-nix.env.XXXXXX)
-  export MAKE_NIX_ENV
-  MAKE_NIX_LOG := $(shell mktemp -t make-nix.log.XXXXXX)
-  export MAKE_NIX_LOG
-  MAKE_NIX_INSTALLER := $(shell mktemp -t make-nix_installer.XXXXXX)
-  export MAKE_NIX_INSTALLER
+  MAKE_NIX_ENV := $(MAKE_NIX_TMPDIR)/env
+  MAKE_NIX_LOG := $(MAKE_NIX_TMPDIR)/log
+  MAKE_NIX_INSTALLER := $(MAKE_NIX_TMPDIR)/installer
+  export MAKE_NIX_ENV MAKE_NIX_LOG MAKE_NIX_INSTALLER
+
+  # Ensure the files exist before appending
+  $(shell : > "$(MAKE_NIX_ENV)")
+  $(shell : > "$(MAKE_NIX_LOG)")
+  $(shell : > "$(MAKE_NIX_INSTALLER)")
+
+  # Seed the env file with the other paths you want to source in common.sh
   $(shell printf "MAKE_NIX_LOG=%s\n" "$(MAKE_NIX_LOG)" >> "$(MAKE_NIX_ENV)")
   $(shell printf "MAKE_NIX_INSTALLER=%s\n" "$(MAKE_NIX_INSTALLER)" >> "$(MAKE_NIX_ENV)")
-  $(shell printf "UNAME_S=%s\n" "$(UNAME_S)" >> "$(MAKE_NIX_ENV)")
+  $(shell printf "UNAME_S=%s\n" "$(shell uname -s)" >> "$(MAKE_NIX_ENV)")
 endif
 
 #
