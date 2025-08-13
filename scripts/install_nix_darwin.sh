@@ -24,6 +24,8 @@ restore_clobbered_files() {
 }
 
 trap 'restore_clobbered_files' EXIT INT TERM QUIT
+trap 'cleanup $? EXIT' EXIT
+trap 'cleanup 130 SIGNAL' INT TERM QUIT   # one generic non-zero code for signals
 
 logf "\n%binfo:%b backing up files before Nix-Darwin install...\n" "$BLUE" "$RESET"
 for file in $clobber_list; do
@@ -37,6 +39,7 @@ done
 
 "$SCRIPT_DIR/write_nix_attrs.sh"
 
+# Re-source env because write_nix_attrs could pupulate user, host, system etc.
 # shellcheck disable=SC1090
 . "$MAKE_NIX_ENV"
 
@@ -49,6 +52,27 @@ if [ -f "$nix_conf_backup" ]; then
     subs_values=$(printf "%s\n" "$subs_line" | cut -d'=' -f2- | sed 's/^ *//' | tr -s ' ')
     substituters="$subs_values $substituters"
   fi
+fi
+
+# --- run as a regular user, not root ---
+if [ "$(id -u)" -eq 0 ]; then
+  logf "\n%berror:%b do not run this installer as root.\n" "$RED" "$RESET"
+  exit 1
+fi
+
+# Force client/daemon mode and clear any leaked local-mode env.
+unset NIX_REMOTE NIX_STORE_DIR NIX_STATE_DIR NIX_LOG_DIR NIX_CONF_DIR NIX_DATA_DIR || true
+export NIX_REMOTE=daemon
+
+if ! /bin/launchctl print system/org.nixos.nix-daemon >/dev/null 2>&1; then
+  logf "\n%berror:%b nix-daemon is not loaded. Try:\n  sudo launchctl load /Library/LaunchDaemons/org.nixos.nix-daemon.plist\n" \
+		"$RED" "$RESET"
+  exit 1
+fi
+
+if [ ! -S /nix/var/nix/daemon-socket/socket ]; then
+  logf "\n%berror:%b nix-daemon socket missing at /nix/var/nix/daemon-socket/socket\n" "$RED" "$RESET"
+  exit 1
 fi
 
 logf "\n%binfo:%b installing Nix-Darwin with command:\n" "$BLUE" "$RESET"
