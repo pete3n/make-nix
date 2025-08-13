@@ -87,8 +87,8 @@ if ! /bin/launchctl print system/org.nixos.nix-daemon >/dev/null 2>&1; then
 fi
 
 logf "\n%binfo:%b installing Nix-Darwin with command:\n" "$BLUE" "$RESET"
-logf "nix run --option experimental-features \"nix-command flakes\" --option trusted-substituters \"$substituters\" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .#%s\n" "$TGT_HOST" 
-if nix run --option experimental-features "nix-command flakes" --option trusted-substituters "$substituters" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .#"${TGT_HOST}"; then
+logf "sudo nix run --option experimental-features \"nix-command flakes\" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .#%s\n" "$TGT_HOST" 
+if sudo nix run --option experimental-features "nix-command flakes" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .#"${TGT_HOST}"; then
   logf "\n%b✓ Nix-Darwin install succeeded.%b\n" "$GREEN" "$RESET"
   # Prevent restoration on trap
   restoration_list=""
