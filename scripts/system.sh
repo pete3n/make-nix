@@ -36,7 +36,7 @@ if [ -z "$mode" ]; then
 fi
 
 base_darwin_build_cmd="nix build .#darwinConfigurations.${user}@${host}.system"
-base_darwin_build_print_cmd="nix build .#darwinConfigurations.${CYAN}${user}${RESET}@{$CYAN}{host}${RESET}.system"
+base_darwin_build_print_cmd="nix build .#darwinConfigurations.${CYAN}${user}${RESET}@${CYAN}{host}${RESET}.system"
 base_darwin_activate_cmd="sudo ./result/sw/bin/darwin-rebuild switch --flake .#${user}@${host}"
 base_darwin_activate_print_cmd="sudo ./result/sw/bin/darwin-rebuild switch --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
 
