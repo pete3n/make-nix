@@ -52,8 +52,8 @@ if [ -f "$nix_conf_backup" ]; then
 fi
 
 logf "\n%binfo:%b installing Nix-Darwin with command:\n" "$BLUE" "$RESET"
-logf "sudo nix run --option experimental-features \"nix-command flakes\" --option trusted-substituters \"$substituters\" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .#%s\n" "$TGT_HOST" 
-if sudo nix run --option experimental-features "nix-command flakes" --option trusted-substituters "$substituters" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .#"${TGT_HOST}"; then
+logf "nix run --option experimental-features \"nix-command flakes\" --option trusted-substituters \"$substituters\" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .#%s\n" "$TGT_HOST" 
+if nix run --option experimental-features "nix-command flakes" --option trusted-substituters "$substituters" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .#"${TGT_HOST}"; then
   logf "\n%b✓ Nix-Darwin install succeeded.%b\n" "$GREEN" "$RESET"
   # Prevent restoration on trap
   restoration_list=""
