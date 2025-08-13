@@ -103,6 +103,14 @@ else
 	fi
 fi
 
+ca_certs="/etc/ssl/certs/ca-certificates.crt"
+if is_deadlink ca_certs; then
+	sudo rm "$ca_certs"
+	if [ -f "/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt" ]; then
+		sudo ln -s /nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt "$ca_certs"
+	fi
+fi
+
 # Enabled flakes (Required before Nix-Darwin install)
 nix_conf="$HOME/.config/nix/nix.conf"
 features="experimental-features = nix-command flakes"
