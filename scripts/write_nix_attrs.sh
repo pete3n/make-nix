@@ -35,23 +35,11 @@ else
 	host=$TGT_HOST
 fi
 
-if [ "${TGT_SPEC+x}" ]; then
-	printf "TGT_SPEC=%s\n" "$TGT_SPEC" >>"$MAKE_NIX_ENV"
-else
-	TGT_SPEC=""
-fi
-
-if ! has_nix; then
-	source_nix
-	if ! has_nix; then
-		printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
-		exit 1
-	fi
-fi
-
-if [ -z "${TGT_SYSTEM:-}" ] && has_nix; then
-	system="$(nix --extra-experimental-features nix-command eval --impure --raw --expr 'builtins.currentSystem')"
-	printf "TGT_SYSTEM=%s\n" "$system" >>"$MAKE_NIX_ENV"
+if [ -z "${TGT_SYSTEM:-}" ]; then
+	arch=$(uname -m)
+	[ "$arch" = "arm64" ] && arch=aarch64
+  os=$(printf "%s" "${UNAME_S:-$(uname -s)}" | tr '[:upper:]' '[:lower:]')
+  system=$(printf "%s-%s" "$arch" "$os")
 else
 	system=$TGT_SYSTEM
 fi
@@ -65,6 +53,20 @@ case "$system" in
 	;;
 esac
 printf "IS_LINUX=%s\n" "$is_linux" >>"$MAKE_NIX_ENV"
+
+if [ "${TGT_SPEC+x}" ]; then
+	printf "TGT_SPEC=%s\n" "$TGT_SPEC" >>"$MAKE_NIX_ENV"
+else
+	TGT_SPEC=""
+fi
+
+if ! has_nix; then
+	source_nix
+	if ! has_nix; then
+		printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
+		exit 1
+	fi
+fi
 
 nix_darwin_install=false
 if is_truthy "${NIX_DARWIN:-}"; then
