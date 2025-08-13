@@ -31,17 +31,17 @@ check_integrity() {
 }
 
 if [ "${UNAME_S:-}" != "Linux" ] && [ "${UNAME_S:-}" != "Darwin" ]; then
-	printf "%binfo%b: unsupported OS: %s\n" "$BLUE" "$RESET" "${UNAME_S:-}"
+	logf "%binfo%b: unsupported OS: %s\n" "$BLUE" "$RESET" "${UNAME_S:-}"
 	exit 1
 fi
 
 if has_nixos; then
-	printf "%binfo:%b NixOS is installed. Installation aborted...\n" "$BLUE" "$RESET"
+	logf "%binfo:%b NixOS is installed. Installation aborted...\n" "$BLUE" "$RESET"
 	exit 0
 fi
 
 if has_nix_darwin; then
-	printf "%binfo:%b Nix-Darwin is installed. Installation aborted...\n" "$BLUE" "$RESET"
+	logf "%binfo:%b Nix-Darwin is installed. Installation aborted...\n" "$BLUE" "$RESET"
 	exit 0
 fi
 
@@ -146,7 +146,7 @@ if is_truthy "${NIX_DARWIN:-}"; then
 		logf "\n%b>>> Installing nix-darwin...%b\n" "$BLUE" "$RESET"
 
 		if ! has_nix && (source_nix && has_nix); then
-			printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
+			logf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
 			exit 1
 		fi
 

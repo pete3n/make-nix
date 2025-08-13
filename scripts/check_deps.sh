@@ -5,6 +5,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
+trap 'cleanup 130 SIGNAL' INT TERM QUIT # one generic non-zero code for signals
+
 has_cmd() {
   search_path="$PATH"
 

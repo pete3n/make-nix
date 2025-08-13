@@ -24,7 +24,6 @@ restore_clobbered_files() {
 }
 
 trap 'restore_clobbered_files' EXIT INT TERM QUIT
-trap 'cleanup $? EXIT' EXIT
 trap 'cleanup 130 SIGNAL' INT TERM QUIT   # one generic non-zero code for signals
 
 ensure_nix_daemon() {
