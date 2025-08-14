@@ -71,6 +71,11 @@ cleanup_nix_files() {
 
 	done
 
+	ca_certs="/etc/ssl/certs/ca-certificates.crt"
+	if is_deadlink ca_certs; then
+		sudo rm "$ca_certs"
+	fi
+
 	if [ "$is_success" = true ]; then
 		logf "%b✅ success:%b all operations completed.\n" "$GREEN" "$RESET"
 		return 0
