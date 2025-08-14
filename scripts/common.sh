@@ -117,9 +117,9 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 
 	is_deadlink() {
 		if [ -L "$1" ] && [ ! -e "$1" ]; then
-			return 1
-		else
 			return 0
+		else
+			return 1
 		fi
 	}
 fi # _COMMON_SH_INCLUDED
