@@ -1,9 +1,11 @@
 #!/usr/bin/env sh
 set -eu
 
+# defaults
 IS_FINAL_GOAL=0
 mode=""  # "build" or "activate"
 
+# parse flags
 while [ $# -gt 0 ]; do
   case "$1" in
     -F)
@@ -16,9 +18,11 @@ while [ $# -gt 0 ]; do
       shift
       ;;
     --build)
+      [ -z "$mode" ] || { printf '%s: duplicate mode (--build/--activate)\n' "${0##*/}" >&2; exit 2; }
       mode="build"; shift
       ;;
     --activate)
+      [ -z "$mode" ] || { printf '%s: duplicate mode (--build/--activate)\n' "${0##*/}" >&2; exit 2; }
       mode="activate"; shift
       ;;
     --) shift; break ;;
@@ -26,6 +30,16 @@ while [ $# -gt 0 ]; do
     *)  break ;;
   esac
 done
+
+# no stray positional args allowed (optional; keep if you expect none)
+[ "$#" -eq 0 ] || { printf '%s: unexpected argument: %s\n' "${0##*/}" "$1" >&2; exit 2; }
+
+# ensure a mode was chosen
+if [ -z "$mode" ]; then
+  # if common.sh isn't sourced yet, use printf instead of logf
+  printf '%s: error: no mode specified; use --build or --activate\n' "${0##*/}" >&2
+  exit 1
+fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091

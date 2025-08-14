@@ -120,22 +120,22 @@ write-nix-attrs:
 # Build flake-based Home-manager configurations for Linux or Darwin systems.
 .PHONY: build-home
 build-home:
-	@sh scripts/home.sh --build -F $(IS_LAST)
+	@sh scripts/home.sh -F $(IS_LAST) -- --build
 
 # Activate flake-based Home-manager configurations for Linux or Darwin systems.
 .PHONY: activate-home
 activate-home:
-	@sh scripts/home.sh --activate -F $(IS_LAST)
+	@sh scripts/home.sh -F $(IS_LAST) -- --activate
 
 # Build flake-based system configurations for Linux or Darwin systems.
 .PHONY: build-system
 build-system:
-	@sh scripts/system.sh --build -F $(IS_LAST)
+	@sh scripts/system.sh -F $(IS_LAST) -- --build
 
 # Activate flake-based system configurations for Linux or Darwin systems.
 .PHONY: activate-system
 activate-system:
-	@sh scripts/system.sh --activate -F $(IS_LAST)
+	@sh scripts/system.sh -F $(IS_LAST) -- --activate
 
 # Set the default boot menu option to the first specified specialisation for a system.
 .PHONY: set-spec-boot

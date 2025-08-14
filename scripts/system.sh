@@ -16,9 +16,11 @@ while [ $# -gt 0 ]; do
       shift
       ;;
     --build)
+      [ -z "$mode" ] || { printf '%s: duplicate mode (--build/--activate)\n' "${0##*/}" >&2; exit 2; }
       mode="build"; shift
       ;;
     --activate)
+      [ -z "$mode" ] || { printf '%s: duplicate mode (--build/--activate)\n' "${0##*/}" >&2; exit 2; }
       mode="activate"; shift
       ;;
     --) shift; break ;;
@@ -26,6 +28,13 @@ while [ $# -gt 0 ]; do
     *)  break ;;
   esac
 done
+
+[ "$#" -eq 0 ] || { printf '%s: unexpected argument: %s\n' "${0##*/}" "$1" >&2; exit 2; }
+
+if [ -z "$mode" ]; then
+  printf '%s: error: no mode specified; use --build or --activate\n' "${0##*/}" >&2
+  exit 1
+fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
