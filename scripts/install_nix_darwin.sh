@@ -12,7 +12,7 @@ backup_files() {
 	for file in $clobber_list; do
 		if [ -e "/etc/${file}" ]; then
 			logf "%binfo:%b backing up /etc/%s\n" "$BLUE" "$RESET" "$file"
-			sudo cp "/etc/$file" "/etc/${file}.before_darwin"
+			sudo mv "/etc/$file" "/etc/${file}.before_darwin"
 		fi
 	done
 	if [ -f /etc/nix/nix.conf ]; then
