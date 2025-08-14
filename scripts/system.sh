@@ -2,26 +2,30 @@
 set -eu
 
 IS_FINAL_GOAL=0
+mode=""  # "build" or "activate"
 
-while getopts ':F:' opt; do
-  case "$opt" in
-    F)
-      case "$OPTARG" in
-        0|1) IS_FINAL_GOAL=$OPTARG ;;
-        *) printf '%s: invalid -F value: %s (expected 0 or 1)\n' "${0##*/}" "$OPTARG" >&2; exit 2 ;;
-      esac
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -F)
+      [ $# -ge 2 ] || { printf '%s: -F requires an argument\n' "${0##*/}" >&2; exit 2; }
+      case "$2" in 0|1) IS_FINAL_GOAL=$2 ;; *) printf '%s: invalid -F value: %s\n' "${0##*/}" "$2" >&2; exit 2 ;; esac
+      shift 2
       ;;
-    :)
-      printf '%s: option -%s requires an argument\n' "${0##*/}" "$OPTARG" >&2
-      exit 2
+    -F[01])
+      IS_FINAL_GOAL=${1#-F}
+      shift
       ;;
-    \?)
-      printf '%s: invalid option -- %s\n' "${0##*/}" "$OPTARG" >&2
-      exit 2
+    --build)
+      mode=build; shift
       ;;
+    --activate)
+      mode=activate; shift
+      ;;
+    --) shift; break ;;
+    -*) printf '%s: invalid option: %s\n' "${0##*/}" "$1" >&2; exit 2 ;;
+    *)  break ;;
   esac
 done
-shift $((OPTIND - 1))
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
@@ -58,7 +62,6 @@ user="${TGT_USER:? error: user must be set.}"
 host="${TGT_HOST:? error: host must be set.}"
 : "${USE_SCRIPT:=false}"
 
-mode="${1:-}"
 if [ -z "$mode" ]; then
 	logf "\n%berror:%b No mode was passed. Use --build or --activate.\n" "$RED" "$RESET"
 	exit 1
@@ -156,11 +159,11 @@ activate() {
 }
 
 if is_truthy "${IS_LINUX:-}"; then
-	if [ "$mode" = "--build" ]; then
+	if [ "$mode" = "build" ]; then
 		build "$base_linux_build_cmd" "$base_linux_build_print_cmd" \
 			"${dry_switch} ${nix_cmd_switch} ${flake_switch}" \
 			"${dry_print_switch} ${nix_cmd_switch} ${flake_switch}"
-	elif [ "$mode" = "--activate" ]; then
+	elif [ "$mode" = "activate" ]; then
 		if [ "$dry_switch" = "--dry-run" ]; then
 			logf "\n%bDRY_RUN%b %btrue%b: skipping system activation...\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
 			exit 0
