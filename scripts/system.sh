@@ -36,6 +36,19 @@ if [ -z "$mode" ]; then
   exit 1
 fi
 
+clobber_list="zshenv zshrc bashrc"
+backup_files() {
+	for file in $clobber_list; do
+		if [ -e "/etc/${file}" ]; then
+			logf "%binfo:%b backing up /etc/%s\n" "$BLUE" "$RESET" "$file"
+			sudo mv "/etc/$file" "/etc/${file}.before_darwin"
+		fi
+	done
+	if [ -f /etc/nix/nix.conf ]; then
+		sudo mv /etc/nix/nix.conf /etc/nix/nix.conf.before_darwin
+	fi
+}
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
@@ -177,6 +190,7 @@ if is_truthy "${IS_LINUX:-}"; then
 			logf "\n%bDRY_RUN%b %btrue%b: skipping system activation...\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
 			exit 0
 		fi
+		backup_files
 		activate "$base_linux_activate_cmd" "$base_linux_activate_print_cmd"
 	else
 		logf "\n%berror:%b Neither --build nor --activate was called for.\n" "$RED" "$RESET"
@@ -191,6 +205,7 @@ else
 			logf "\n%bDRY_RUN%b %btrue%b: skipping system activation...\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
 			exit 0
 		fi
+		backup_files
 		activate "$base_darwin_activate_cmd" "$base_darwin_activate_print_cmd"
 	else
 		logf "\n%berror:%b Neither --build nor --activate was called for.\n" "$RED" "$RESET"
