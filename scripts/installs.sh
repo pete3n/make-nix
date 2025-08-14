@@ -36,8 +36,6 @@ trap '
   exit 130
 ' INT TERM QUIT
 
-sh "$SCRIPT_DIR/check_deps.sh" "$MAKE_GOALS"
-
 # Only the determinate installer works with SELinux
 if [ -z "${DETERMINATE:-}" ]; then
 	if command -v getenforce >/dev/null 2>&1; then

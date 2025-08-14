@@ -63,7 +63,7 @@ show-help:
 #
 
 .PHONY: install
-install: set-env installs
+install: set-env check-deps installs
 
 .PHONY: installs
 installs:
