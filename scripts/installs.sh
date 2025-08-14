@@ -1,64 +1,33 @@
 #!/usr/bin/env sh
 set -eu
+
+IS_FINAL_GOAL=0
+
+while getopts ':F:' opt; do
+  case "$opt" in
+    F)
+      case "$OPTARG" in
+        0|1) IS_FINAL_GOAL=$OPTARG ;;
+        *) printf '%s: invalid -F value: %s (expected 0 or 1)\n' "${0##*/}" "$OPTARG" >&2; exit 2 ;;
+      esac
+      ;;
+    \?) printf '%s: invalid option -- %s\n' "${0##*/}" "$OPTARG" >&2
+  esac
+done
+shift $((OPTIND - 1))
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
-MAKE_GOALS="${1:-install}" # default to "install" if nothing is passed
-CURRENT_TARGET="${CURRENT_TARGET:-install}"
-
-# install can be one of multiple targets, if it is the last target, then we
-# want to cleanup the environment artifacts, otherwise we need to preserve them.
-others=$(
-	printf '%s\n' "$MAKE_GOALS" |
-		tr ' ' '\n' |
-		grep -v -x "$CURRENT_TARGET" |
-		sed '/^$/d'
-)
-IS_FINAL_GOAL=false
-[ -z "$others" ] && IS_FINAL_GOAL=true
-export IS_FINAL_GOAL
-
 trap '
   [ "${IS_FINAL_GOAL:-0}" -eq 1 ] && cleanup "$?" EXIT
 ' EXIT
-trap 'cleanup 130 SIGNAL' INT TERM QUIT # one generic non-zero code for signals
 
-check_integrity() {
-	URL=$1
-	EXPECTED_HASH=$2
-
-	curl -Ls "$URL" >"$MAKE_NIX_INSTALLER"
-	# shellcheck disable=SC2002
-	ACTUAL_HASH=$(cat "$MAKE_NIX_INSTALLER" | shasum | cut -d ' ' -f 1)
-
-	if [ "$ACTUAL_HASH" != "$EXPECTED_HASH" ]; then
-		logf "\n%bIntegrity check failed!%b\n" "$YELLOW" "$RESET"
-		logf "Expected: %b" "$EXPECTED_HASH\n"
-		logf "Actual:   %b" "$RED$ACTUAL_HASH$RESET\n"
-		logf "%bCheck%b the URL and HASH values in your make.env file.\n" "$BLUE" "$RESET"
-		rm "$MAKE_NIX_INSTALLER"
-		exit 1
-	else
-		logf "\n%b✅Integrity check passed.%b\n" "$GREEN" "$RESET"
-		chmod +x "$MAKE_NIX_INSTALLER"
-	fi
-}
-
-if [ "${UNAME_S:-}" != "Linux" ] && [ "${UNAME_S:-}" != "Darwin" ]; then
-	logf "%binfo%b: unsupported OS: %s\n" "$BLUE" "$RESET" "${UNAME_S:-}"
-	exit 1
-fi
-
-if has_nixos; then
-	logf "%binfo:%b NixOS is installed. Installation aborted...\n" "$BLUE" "$RESET"
-	exit 0
-fi
-
-if has_nix_darwin; then
-	logf "%binfo:%b Nix-Darwin is installed. Installation aborted...\n" "$BLUE" "$RESET"
-	exit 0
-fi
+trap '
+  cleanup 130 SIGNAL
+  exit 130
+' INT TERM QUIT
 
 sh "$SCRIPT_DIR/check_deps.sh" "$MAKE_GOALS"
 

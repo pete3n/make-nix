@@ -32,6 +32,10 @@ ifeq ($(origin MAKE_NIX_ENV), undefined)
   $(shell printf "UNAME_S=%s\n" "$(shell uname -s)" >> "$(MAKE_NIX_ENV)")
 endif
 
+define IS_LAST
+$(if $(filter $@,$(lastword $(MAKECMDGOALS))),1,0)
+endef
+
 #
 # Utility targets.
 #
@@ -42,7 +46,7 @@ set-env:
 
 .PHONY: check-deps
 check-deps:
-	@sh scripts/check_deps.sh "$(MAKECMDGOALS)"
+	@sh scripts/check_deps.sh
 .PHONY: clean
 clean:
 	@sh scripts/clean.sh
@@ -52,7 +56,7 @@ help: set-env show-help clean
 
 .PHONY: show-help
 show-help:
-	@sh scripts/print_help.sh
+	@sh scripts/print_help.sh -F $(IS_LAST)
 
 #
 # Install/uninstall targets.
@@ -63,14 +67,14 @@ install: set-env installs
 
 .PHONY: installs
 installs:
-	@sh scripts/installs.sh "$(MAKECMDGOALS)"
+	@sh scripts/installs.sh -F $(IS_LAST)
 
 .PHONY: uninstall
 uninstall: set-env uninstalls
 
 .PHONY: uninstalls
 uninstalls:
-	@sh scripts/uninstalls.sh "$(MAKECMDGOALS)"
+	@sh scripts/uninstalls.sh -F $(IS_LAST)
 
 #
 # Configuration targets.
@@ -116,22 +120,22 @@ write-nix-attrs:
 # Build flake-based Home-manager configurations for Linux or Darwin systems.
 .PHONY: build-home
 build-home:
-	@sh scripts/home.sh --build
+	@sh scripts/home.sh --build -F $(IS_LAST)
 
 # Activate flake-based Home-manager configurations for Linux or Darwin systems.
 .PHONY: activate-home
 activate-home:
-	@sh scripts/home.sh --activate
+	@sh scripts/home.sh --activate -F $(IS_LAST)
 
 # Build flake-based system configurations for Linux or Darwin systems.
 .PHONY: build-system
 build-system:
-	@sh scripts/system.sh --build
+	@sh scripts/system.sh --build -F $(IS_LAST)
 
 # Activate flake-based system configurations for Linux or Darwin systems.
 .PHONY: activate-system
 activate-system:
-	@sh scripts/system.sh --activate
+	@sh scripts/system.sh --activate -F $(IS_LAST)
 
 # Set the default boot menu option to the first specified specialisation for a system.
 .PHONY: set-spec-boot
