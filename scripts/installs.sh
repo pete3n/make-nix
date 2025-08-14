@@ -170,8 +170,3 @@ fi
 if has_tag hyprland && is_truthy "${HOME_ALONE:-}"; then
 	printf "HYPRLAND_SETUP=true\n" >>"$MAKE_NIX_ENV"
 fi
-
-other_targets=$(printf "%s\n" "$MAKE_GOALS" | tr ' ' '\n' | grep -v '^install$')
-if [ -z "$other_targets" ]; then
-	cleanup 0 EXIT
-fi
