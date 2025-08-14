@@ -46,7 +46,7 @@ set-env:
 
 .PHONY: check-deps
 check-deps:
-	@sh scripts/check_deps.sh
+	@sh scripts/check_deps.sh "$(MAKECMDGOALS)"
 .PHONY: clean
 clean:
 	@sh scripts/clean.sh
