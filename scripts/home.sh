@@ -45,12 +45,18 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
-trap '
-  [ "${IS_FINAL_GOAL:-0}" -eq 1 ] && cleanup "$?" EXIT
-' EXIT
+cleanup_on_exit() {
+  status=$?
+  if [ "$status" -ne 0 ] && [ "${IS_FINAL_GOAL:-0}" -eq 1 ]; then
+    cleanup "$status" ERROR
+  fi
+  exit "$status"
+}
+
+trap cleanup_on_exit 
 
 trap '
-  cleanup 130 SIGNAL
+  [ "${IS_FINAL_GOAL:-0}" -eq 1 ] && cleanup 130 SIGNAL
   exit 130
 ' INT TERM QUIT
 
@@ -124,7 +130,7 @@ build() {
 	rc=$(cat "$rcfile")
 	rm -f "$rcfile"
 	if ! [ "$rc" -eq 0 ]; then
-		logf "\n%berror:%b home configuraiton build failed. Halting make-nix.\n"
+		logf "\n%berror:%b home configuraiton build failed. Halting make-nix.\n" "$RED" "$RESET"
 		exit "$rc"
 	else
 		return 0
@@ -159,7 +165,7 @@ activate() {
 	rc=$(cat "$rcfile")
 	rm -f "$rcfile"
 	if ! [ "$rc" -eq 0 ]; then
-		logf "\n%berror:%b home configuraiton build failed. Halting make-nix.\n"
+		logf "\n%berror:%b home configuraiton activation failed. Halting make-nix.\n" "$RED" "$RESET"
 		exit "$rc"
 	else
 		return 0
