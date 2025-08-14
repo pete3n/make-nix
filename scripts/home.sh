@@ -123,7 +123,12 @@ build() {
 
 	rc=$(cat "$rcfile")
 	rm -f "$rcfile"
-	return "$rc"
+	if ! [ "$rc" -eq 0 ]; then
+		logf "\n%berror:%b home configuraiton build failed. Halting make-nix.\n"
+		exit "$rc"
+	else
+		return 0
+	fi
 }
 
 activate() {
@@ -153,7 +158,12 @@ activate() {
 	
 	rc=$(cat "$rcfile")
 	rm -f "$rcfile"
-	return "$rc"
+	if ! [ "$rc" -eq 0 ]; then
+		logf "\n%berror:%b home configuraiton build failed. Halting make-nix.\n"
+		exit "$rc"
+	else
+		return 0
+	fi
 }
 
 if [ "$mode" = "build" ]; then
