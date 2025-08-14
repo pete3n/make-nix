@@ -24,13 +24,20 @@ csv_to_space() {
 	printf "%s" "$1" | tr ',' ' '
 }
 
-# Paths
-user_nix_conf="$HOME/.config/nix/nix.conf"
 nix_conf="/etc/nix/nix.conf"
 
-# Ensure files exist
-mkdir -p "$(dirname "$user_nix_conf")"
-[ -f "$user_nix_conf" ] || touch "$user_nix_conf"
+# If the config is managed by Nix, then we shouldn't modify it.
+if ! is_deadlink $nix_conf; then
+	logf "\n%b⚠️warning:%b %b%s%b appears to be managed by Nix already. Cannot edit.\n" \
+		"$BLUE" "$RESET" "$MAGENTA" "$nix_conf" "$RESET"
+	exit 0
+fi
+
+if ! is_deadlink $nix_conf; then
+	logf "\n%b⚠️warning:%b %b%s%b appears to be managed by Nix already. Cannot edit.\n" \
+		"$BLUE" "$RESET" "$MAGENTA" "$nix_conf" "$RESET"
+	exit 0
+fi
 
 sudo mkdir -p "$(dirname "$nix_conf")"
 [ -f "$nix_conf" ] || sudo touch "$nix_conf"
@@ -75,11 +82,6 @@ if ! grep -q '^download-buffer-size[[:space:]]*=' "$nix_conf"; then
 else
 	logf "\n%binfo:%b download-buffer-size already set in %s, not modifying.\n" "$BLUE" "$RESET" "$nix_conf"
 fi
-
-# substituters in user config
-logf "\n%binfo:%b setting %bsubstituters%b = %s \nin %b%s%b\n" \
-	"$BLUE" "$RESET" "$CYAN" "$RESET" "$cache_urls" "$MAGENTA" "$user_nix_conf" "$RESET"
-set_conf_value "$user_nix_conf" "substituters" "$cache_urls"
 
 # Restart daemon
 logf "%b>>> Restarting Nix daemon to apply changes...%b\n" "$BLUE" "$RESET"
