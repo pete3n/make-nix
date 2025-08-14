@@ -20,7 +20,7 @@ has_cmd() {
 
 # Dependency groups
 common_deps="cat dirname grep pgrep printf pwd rm tee"
-install_deps="chmod curl cut hostname mkdir shasum"
+install_deps="chmod curl cut hostname mkdir sed shasum tr"
 if [ "${UNAME_S:-}" = "Linux" ]; then 
 	uninstall_deps="cp cmp diff grep groupdel read rm sed seq sudo tee userdel"
 else

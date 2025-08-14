@@ -4,8 +4,25 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
-trap 'cleanup $? EXIT' EXIT
-trap 'cleanup 130 SIGNAL' INT TERM QUIT   # one generic non-zero code for signals
+# system can one of multiple targets, if it is the last target, then we
+# want to cleanup the environment artifacts, otherwise we need to preserve them.
+CURRENT_TARGET="${CURRENT_TARGET:-system}"
+others=$(
+  printf '%s\n' "${MAKE_GOALS:-}" \
+  | tr ' ' '\n' \
+  | grep -v -x "$CURRENT_TARGET" \
+  | sed '/^$/d'
+)
+IS_FINAL_GOAL=0
+[ -z "$others" ] && IS_FINAL_GOAL=1
+
+trap '
+  [ "${IS_FINAL_GOAL:-0}" -eq 1 ] && cleanup "$?" EXIT
+' EXIT
+trap '
+  cleanup 130 SIGNAL
+  exit 130
+' INT TERM QUIT
 
 if ! has_nix; then
 	source_nix

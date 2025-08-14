@@ -4,10 +4,25 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
-trap 'cleanup $? EXIT' EXIT
-trap 'cleanup 130 SIGNAL' INT TERM QUIT   # one generic non-zero code for signals
-
 MAKE_GOALS="${1:-install}" # default to "install" if nothing is passed
+CURRENT_TARGET="${CURRENT_TARGET:-install}"
+
+# install can be one of multiple targets, if it is the last target, then we
+# want to cleanup the environment artifacts, otherwise we need to preserve them.
+others=$(
+	printf '%s\n' "$MAKE_GOALS" |
+		tr ' ' '\n' |
+		grep -v -x "$CURRENT_TARGET" |
+		sed '/^$/d'
+)
+IS_FINAL_GOAL=false
+[ -z "$others" ] && IS_FINAL_GOAL=true
+export IS_FINAL_GOAL
+
+trap '
+  [ "${IS_FINAL_GOAL:-0}" -eq 1 ] && cleanup "$?" EXIT
+' EXIT
+trap 'cleanup 130 SIGNAL' INT TERM QUIT # one generic non-zero code for signals
 
 check_integrity() {
 	URL=$1
@@ -103,14 +118,6 @@ else
 	fi
 fi
 
-ca_certs="/etc/ssl/certs/ca-certificates.crt"
-if is_deadlink ca_certs; then
-	sudo rm "$ca_certs"
-	if [ -f "/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt" ]; then
-		sudo ln -s /nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt "$ca_certs"
-	fi
-fi
-
 # Enabled flakes (Required before Nix-Darwin install)
 nix_conf="$HOME/.config/nix/nix.conf"
 features="experimental-features = nix-command flakes"
@@ -166,7 +173,7 @@ if is_truthy "${NIX_DARWIN:-}"; then
 fi
 
 if has_goal install && has_goal home && has_tag hyprland; then
-	printf "HYPRLAND_SETUP=true\n" >> "$MAKE_NIX_ENV"
+	printf "HYPRLAND_SETUP=true\n" >>"$MAKE_NIX_ENV"
 fi
 
 other_targets=$(printf "%s\n" "$MAKE_GOALS" | tr ' ' '\n' | grep -v '^install$')
