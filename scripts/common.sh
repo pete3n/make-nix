@@ -46,18 +46,30 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 	}
 
 	has_nix() {
-		if command -v nix >/dev/null 2>&1; then
-			return 0
-		else
-			return 1
-		fi
+		command -v nix >/dev/null 2>&1
 	}
 
-	source_nix() {
-		if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
-			# shellcheck disable=SC1091
-			. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-		fi
+	has_nix_daemon() {
+		case "$UNAME_S" in
+		Darwin)
+			sudo launchctl print system/org.nixos.nix-daemon >/dev/null 2>&1
+			;;
+		Linux)
+			if command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ]; then
+				systemctl is-active --quiet nix-daemon
+			else
+				# Fallback for non-systemd Linux
+				pgrep -x nix-daemon >/dev/null 2>&1
+			fi
+			;;
+		*)
+			return 1
+			;;
+		esac
+	}
+
+	nix_daemon_socket_up() {
+		[ -S /nix/var/nix/daemon-socket/socket ]
 	}
 
 	has_nixos() {
@@ -69,10 +81,16 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 	}
 
 	has_nix_darwin() {
-		if command -v darwin-rebuild >/dev/null 2>&1; then
-			return 0
-		else
-			return 1
+		[ "$UNAME_S" = "Darwin" ] || return 1
+		# Activated system export OR tool still on PATH
+		[ -x /run/current-system/sw/bin/darwin-rebuild ] || command -v darwin-rebuild >/dev/null 2>&1
+	}
+
+
+	source_nix() {
+		if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
+			# shellcheck disable=SC1091
+			. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
 		fi
 	}
 
