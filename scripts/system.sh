@@ -40,7 +40,7 @@ clobber_list="zshenv zshrc bashrc"
 backup_files() {
 	for file in $clobber_list; do
 		if [ -e "/etc/${file}" ]; then
-			logf "%binfo:%b backing up /etc/%s\n" "$BLUE" "$RESET" "$file"
+			logf "%binfo:%b backing up %b/etc/%s%b\n" "$BLUE" "$RESET" "$MAGENTA" "$file" "$RESET"
 			sudo mv "/etc/$file" "/etc/${file}.before_darwin"
 		fi
 	done

@@ -32,7 +32,8 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 
 		status=${1:-0}
 		reason=${2:-EXIT}
-
+    printf '\n[cleanup] script=%s reason=%s exit_code=%s\n' \
+        "${0##*/}" "$reason" "$status" >&2
 		if ! is_truthy "${KEEP_LOGS:-}"; then
 			dir=${MAKE_NIX_TMPDIR:-}
 			if [ -n "$dir" ] && [ -d "$dir" ]; then
