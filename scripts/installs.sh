@@ -167,6 +167,6 @@ if is_truthy "${NIX_DARWIN:-}"; then
 	fi
 fi
 
-if has_tag hyprland && is_truthy "${HOME_ALONE:-}"; then
+if has_tag hyprland && is_truthy "${HOME_ALONE:-}" && is_truthy "${IS_LINUX}"; then
 	printf "HYPRLAND_SETUP=true\n" >>"$MAKE_NIX_ENV"
 fi
