@@ -11,7 +11,14 @@ while getopts ':F:' opt; do
         *) printf '%s: invalid -F value: %s (expected 0 or 1)\n' "${0##*/}" "$OPTARG" >&2; exit 2 ;;
       esac
       ;;
-    \?) printf '%s: invalid option -- %s\n' "${0##*/}" "$OPTARG" >&2
+    :)
+      printf '%s: option -%s requires an argument\n' "${0##*/}" "$OPTARG" >&2
+      exit 2
+      ;;
+    \?)
+      printf '%s: invalid option -- %s\n' "${0##*/}" "$OPTARG" >&2
+      exit 2
+      ;;
   esac
 done
 shift $((OPTIND - 1))
