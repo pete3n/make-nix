@@ -1,24 +1,29 @@
 #!/usr/bin/env sh
 set -eu
+
+IS_FINAL_GOAL=0
+
+while getopts ':F:' opt; do
+  case "$opt" in
+    F)
+      case "$OPTARG" in
+        0|1) IS_FINAL_GOAL=$OPTARG ;;
+        *) printf '%s: invalid -F value: %s (expected 0 or 1)\n' "${0##*/}" "$OPTARG" >&2; exit 2 ;;
+      esac
+      ;;
+    \?) printf '%s: invalid option -- %s\n' "${0##*/}" "$OPTARG" >&2
+  esac
+done
+shift $((OPTIND - 1))
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
-# system can one of multiple targets, if it is the last target, then we
-# want to cleanup the environment artifacts, otherwise we need to preserve them.
-CURRENT_TARGET="${CURRENT_TARGET:-system}"
-others=$(
-  printf '%s\n' "${MAKE_GOALS:-}" \
-  | tr ' ' '\n' \
-  | grep -v -x "$CURRENT_TARGET" \
-  | sed '/^$/d'
-)
-IS_FINAL_GOAL=0
-[ -z "$others" ] && IS_FINAL_GOAL=1
-
 trap '
   [ "${IS_FINAL_GOAL:-0}" -eq 1 ] && cleanup "$?" EXIT
 ' EXIT
+
 trap '
   cleanup 130 SIGNAL
   exit 130
@@ -53,7 +58,7 @@ if [ -z "$mode" ]; then
 fi
 
 base_darwin_build_cmd="nix build .#darwinConfigurations.${user}@${host}.system"
-base_darwin_build_print_cmd="nix build .#darwinConfigurations.${CYAN}${user}${RESET}@${CYAN}{host}${RESET}.system"
+base_darwin_build_print_cmd="nix build .#darwinConfigurations.${CYAN}${user}${RESET}@${CYAN}${host}${RESET}.system"
 base_darwin_activate_cmd="sudo ./result/sw/bin/darwin-rebuild switch --flake .#${user}@${host}"
 base_darwin_activate_print_cmd="sudo ./result/sw/bin/darwin-rebuild switch --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
 
