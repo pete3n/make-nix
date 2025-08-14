@@ -78,6 +78,11 @@ fi
 
 ensure_nix_daemon
 
+if has_nix_darwin; then
+	logf "\n%binfo:%b Nix-Darwin already appears to be installed. Skipping installation...\n" "$BLUE" "$RESET"
+	exit 0
+fi
+
 logf "\n%binfo:%b building Nix-Darwin with command:\n" "$BLUE" "$RESET"
 logf "nix build --option experimental-features \"nix-command flakes\" .#darwinConfigurations.%b%s%b@%b%s%b.system\n" \
 	"$CYAN" "$TGT_USER" "$RESET" "$CYAN" "$TGT_HOST" "$RESET"
