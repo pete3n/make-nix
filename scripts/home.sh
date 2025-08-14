@@ -16,10 +16,10 @@ while [ $# -gt 0 ]; do
       shift
       ;;
     --build)
-      mode=build; shift
+      mode="build"; shift
       ;;
     --activate)
-      mode=activate; shift
+      mode="activate"; shift
       ;;
     --) shift; break ;;
     -*) printf '%s: invalid option: %s\n' "${0##*/}" "$1" >&2; exit 2 ;;
