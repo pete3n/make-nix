@@ -68,10 +68,10 @@
       # own outputs in our outputs
 
       # Home-manager users that have a NixOS/Nix-Darwin system config
-      hmUsers = makeNix.getHomeAttrs { dir = ./make-attrs/system; };
       linuxUsers = nixpkgs.lib.filterAttrs (_: sa: makeNix.isLinux sa.system) hmUsers;
       darwinUsers = nixpkgs.lib.filterAttrs (_: sa: makeNix.isDarwin sa.system) hmUsers;
 
+      hmUsers = makeNix.getHomeAttrs { dir = ./make-attrs/system; };
       hmConfigs = builtins.mapAttrs (
         _key: sa:
         let
@@ -107,7 +107,6 @@
       ) hmUsers;
 
       hmAloneUsers = makeNix.getHomeAttrs { dir = ./make-attrs/home-alone; };
-
       hmAloneConfigs = builtins.mapAttrs (
         _key: ua:
         let
