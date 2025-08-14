@@ -86,19 +86,11 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		[ -x /run/current-system/sw/bin/darwin-rebuild ] || command -v darwin-rebuild >/dev/null 2>&1
 	}
 
-
 	source_nix() {
 		if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
 			# shellcheck disable=SC1091
 			. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
 		fi
-	}
-
-	has_goal() {
-		case " $MAKE_GOALS " in
-		*" $1 "*) return 0 ;;
-		*) return 1 ;;
-		esac
 	}
 
 	has_tag() {
