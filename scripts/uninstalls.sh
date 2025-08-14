@@ -337,55 +337,48 @@ try_installer_uninstall() {
 	fi
 }
 
-# SSL cert bug:
-remove_bad_ssl() {
-	:
-}
-
 if [ "${UNAME_S}" = "Darwin" ]; then
 	# Check for Nix-Darwin first because we need to remove it before removing Nix.
 	if has_nix_darwin || is_truthy "${NIX_DARWIN:-}"; then
-		if command -v darwin-uninstaller >/dev/null 2>&1 && sudo darwin-uninstaller ||
+		# Try provided uninstaller first if it is available
+		if { command -v darwin-uninstaller >/dev/null 2>&1 && sudo darwin-uninstaller; } ||
 			sudo nix --extra-experimental-features "nix-command flakes" run nix-darwin#darwin-uninstaller; then
-			logf "\n%b✅ success:%b uninstall complete.\n" "$GREEN" "$RESET"
+			logf "\n%b✅ success:%b nix-darwin uninstall complete.\n" "$GREEN" "$RESET"
 		else
-			logf "\n%berror:%b failed to uninstall Nix-Darwin.\n" "$RED" "$RESET"
+			logf "\n%berror:%b failed to uninstall nix-darwin.\n" "$RED" "$RESET"
 			exit 1
 		fi
 	fi
 
-	# Check for daemon for multi-user install
-	if launchctl list | grep -q '^org.nixos.nix-daemon$'; then
-		logf "\n%binfo:%b nix-daemon detected.\n" "$BLUE" "$RESET"
-		# Prefer to use uninstallaer if available
+	if has_nix_daemon || nix_daemon_socket_up; then
+		logf "\n%binfo:%b nix-daemon (multi-user) detected.\n" "$BLUE" "$RESET"
 		try_installer_uninstall
 		nix_multi_user_uninstall_darwin && cleanup_nix_files
 		exit $?
-
 	elif has_nix; then
-		logf "\n%binfo:%b nix detected.\n" "$BLUE" "$RESET"
-		# Prefer to use uninstallaer if available
+		logf "\n%binfo:%b nix CLI detected (likely single-user).\n" "$BLUE" "$RESET"
 		try_installer_uninstall
 		nix_single_user_uninstall && cleanup_nix_files
 		exit $?
+	else
+		logf "\n%binfo:%b Nix not detected; nothing to uninstall.\n" "$BLUE" "$RESET"
+		exit 0
 	fi
 fi
 
-if [ "${UNAME_S}" = "Linux" ]; then
-	if systemctl status nix-daemon.service >/dev/null 2>&1; then
-		# Prefer to use uninstallaer if available
-		try_installer_uninstall
-		logf "\n%binfo:%b nix-daemon detected.\n" "$BLUE" "$RESET"
-		nix_multi_user_uninstall_linux && cleanup_nix_files
-		exit $?
-
-	elif has_nix; then
-		logf "\n%binfo:%b nix detected.\n" "$BLUE" "$RESET"
-		# Prefer to use uninstallaer if available
-		try_installer_uninstall
-		nix_single_user_uninstall && cleanup_nix_files
-		exit $?
-	fi
+if [ "$UNAME_S" = "Linux" ]; then
+  if has_nix_daemon || nix_daemon_socket_up; then
+    logf "\n%binfo:%b nix-daemon (multi-user) detected.\n" "$BLUE" "$RESET"
+    nix_multi_user_uninstall_linux && cleanup_nix_files
+    exit $?
+  elif has_nix; then
+    logf "\n%binfo:%b nix CLI detected (likely single-user).\n" "$BLUE" "$RESET"
+    nix_single_user_uninstall && cleanup_nix_files
+    exit $?
+  else
+    logf "\n%binfo:%b Nix not detected; nothing to uninstall.\n" "$BLUE" "$RESET"
+    exit 0
+  fi
 fi
 
 cleanup_nix_files
