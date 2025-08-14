@@ -182,11 +182,11 @@ if is_truthy "${IS_LINUX:-}"; then
 		logf "\n%berror:%b Neither --build nor --activate was called for.\n" "$RED" "$RESET"
 	fi
 else
-	if [ "$mode" = "--build" ]; then
+	if [ "$mode" = "build" ]; then
 		build "$base_darwin_build_cmd" "$base_darwin_build_print_cmd" \
 			"${dry_switch} ${nix_cmd_switch} ${flake_switch}" \
 			"${dry_print_switch} ${nix_cmd_switch} ${flake_switch}"
-	elif [ "$mode" = "--activate" ]; then
+	elif [ "$mode" = "activate" ]; then
 		if [ "$dry_switch" = "--dry-run" ]; then
 			logf "\n%bDRY_RUN%b %btrue%b: skipping system activation...\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
 			exit 0
