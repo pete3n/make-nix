@@ -36,6 +36,27 @@ trap '
   exit 130
 ' INT TERM QUIT
 
+check_integrity() {
+	URL=$1
+	EXPECTED_HASH=$2
+
+	curl -Ls "$URL" >"$MAKE_NIX_INSTALLER"
+	# shellcheck disable=SC2002
+	ACTUAL_HASH=$(cat "$MAKE_NIX_INSTALLER" | shasum | cut -d ' ' -f 1)
+
+	if [ "$ACTUAL_HASH" != "$EXPECTED_HASH" ]; then
+		logf "\n%bIntegrity check failed!%b\n" "$YELLOW" "$RESET"
+		logf "Expected: %b" "$EXPECTED_HASH\n"
+		logf "Actual:   %b" "$RED$ACTUAL_HASH$RESET\n"
+		logf "%bCheck%b the URL and HASH values in your make.env file.\n" "$BLUE" "$RESET"
+		rm "$MAKE_NIX_INSTALLER"
+		exit 1
+	else
+		logf "\n%b✅Integrity check passed.%b\n" "$GREEN" "$RESET"
+		chmod +x "$MAKE_NIX_INSTALLER"
+	fi
+}
+
 # Only the determinate installer works with SELinux
 if [ -z "${DETERMINATE:-}" ]; then
 	if command -v getenforce >/dev/null 2>&1; then
