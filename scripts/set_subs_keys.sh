@@ -16,7 +16,7 @@ logf "\n%b>>> Cache configuration started...%b\n" "$BLUE" "$RESET"
 
 # Sanity check
 if [ -z "${NIX_CACHE_URLS:-}" ]; then
-	logf "\n%b⚠️warning:%b %bUSE_CACHE%b was enabled but no NIX_CACHE_URLS were set.\nCheck your make.env file.\n" "$YELLOW" "$RESET" "$BLUE" "$RESET"
+	logf "\n%b ⚠️warning:%b %bUSE_CACHE%b was enabled but no NIX_CACHE_URLS were set.\nCheck your make.env file.\n" "$YELLOW" "$RESET" "$BLUE" "$RESET"
 	exit 1
 fi
 
@@ -28,13 +28,7 @@ nix_conf="/etc/nix/nix.conf"
 
 # If the config is managed by Nix, then we shouldn't modify it.
 if ! is_deadlink $nix_conf; then
-	logf "\n%b⚠️warning:%b %b%s%b appears to be managed by Nix already. Cannot edit.\n" \
-		"$BLUE" "$RESET" "$MAGENTA" "$nix_conf" "$RESET"
-	exit 0
-fi
-
-if ! is_deadlink $nix_conf; then
-	logf "\n%b⚠️warning:%b %b%s%b appears to be managed by Nix already. Cannot edit.\n" \
+	logf "\n%b ⚠️warning:%b %b%s%b appears to be managed by Nix already. Cannot edit.\n" \
 		"$BLUE" "$RESET" "$MAGENTA" "$nix_conf" "$RESET"
 	exit 0
 fi
