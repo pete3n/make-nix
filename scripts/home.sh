@@ -53,7 +53,7 @@ cleanup_on_exit() {
   exit "$status"
 }
 
-trap cleanup_on_exit 
+trap 'cleanup_on_exit' 0
 
 trap '
   [ "${IS_FINAL_GOAL:-0}" -eq 1 ] && cleanup 130 SIGNAL
