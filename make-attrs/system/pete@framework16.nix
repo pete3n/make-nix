@@ -8,5 +8,5 @@
   useCache = false;
   useKeys = false;
   tags = [ "poweruser" ];
-  specialisations = [ "hyprland" ];
+  specialisations = [ "wayland" ];
 }
