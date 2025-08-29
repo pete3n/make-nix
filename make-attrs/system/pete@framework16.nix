@@ -7,6 +7,6 @@
   useHomebrew = false;
   useCache = true;
   useKeys = true;
-  tags = [ "poweruser" ];
+  tags = [ "hyprland" "poweruser" ];
   specialisations = [ "wayland" "wayland_egpu" ];
 }
