@@ -70,15 +70,15 @@ in
 
     userDirs = {
       enable = true;
-      documents = homeDirectory/documents;
-      download = homeDirectory/downloads;
-      music = homeDirectory/music;
-      pictures = homeDirectory/pictures;
-      publicShare = homeDirectory/public;
-      templates = homeDirectory/template;
-      videos = homeDirectory/videos;
+      documents = "/home/${makeNixAttrs.user}/documents";
+      download = "/home/${makeNixAttrs.user}/downloads";
+      music = "/home/${makeNixAttrs.user}/music";
+      pictures = "/home/${makeNixAttrs.user}/pictures";
+      publicShare = "/home/${makeNixAttrs.user}/public";
+      templates = "/home/${makeNixAttrs.user}/template";
+      videos = "/home/${makeNixAttrs.user}/videos";
       extraConfig = {
-        XDG_PROJECT_DIR = homeDirectory/projects;
+        XDG_PROJECT_DIR = "/home/${makeNixAttrs.user}/projects";
       };
     };
   };
@@ -86,13 +86,13 @@ in
   home = {
     # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
     stateVersion = "24.05";
-    username = "pete";
-    homeDirectory = "/home/pete";
+    username = "${makeNixAttrs.user}";
+    homeDirectory = "/home/${makeNixAttrs.user}";
 
     packages =
-			# Build the default Nixvim package for the system architecture
+      # Build the default Nixvim package for the system architecture
       [ inputs.nixvim.packages.${makeNixAttrs.system}.default ]
-			# non-NixOS systems get 
+      # non-NixOS systems get
       ++ lib.optionals makeNixAttrs.isHomeAlone [
         pkgs.nixgl.nixGLIntel
         pkgs.nixgl.nixVulkanIntel
