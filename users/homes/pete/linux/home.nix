@@ -105,6 +105,7 @@ in
         unstable.cryptomator
         fdupes # Duplicate file finder
         heroic # Heroic game launcher
+        kdePackages.okular # PDF viewer
         litemdview # Simple markdown viewer
         mod._86Box
         mosh # Mobile-shell SSH replacement
@@ -212,6 +213,7 @@ in
     };
 
     clip58.enable = true;
+    quickNotes.enable = true;
 
     lazydocker = {
       enable = true;
