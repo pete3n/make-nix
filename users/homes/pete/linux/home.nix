@@ -2,8 +2,8 @@
   inputs,
   lib,
   pkgs,
-	makeNixAttrs,
-	homeModules,
+  makeNixAttrs,
+  homeModules,
   ...
 }:
 
@@ -28,6 +28,7 @@ let
   };
 
   tagImports = lib.flatten (builtins.map (tag: tagImportMap.${tag}) availableTags);
+
 in
 {
   imports =
