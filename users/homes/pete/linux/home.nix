@@ -236,6 +236,7 @@ in
     };
 
     clip58.enable = true;
+    quickNotes.enable = true;
 
     lazydocker = {
       enable = true;
