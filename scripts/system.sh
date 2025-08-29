@@ -102,8 +102,8 @@ base_darwin_activate_print_cmd="sudo ./result/sw/bin/darwin-rebuild switch --fla
 
 base_linux_build_cmd="nix build .#nixosConfigurations.${user}@${host}.config.system.build.toplevel"
 base_linux_build_print_cmd="nix build .#nixosConfigurations.${CYAN}${user}@${host}${RESET}.config.system.build.toplevel"
-base_linux_activate_cmd="sudo ./result/sw/bin/nixos-rebuild switch --flake .#${host}"
-base_linux_activate_print_cmd="sudo ./result/sw/bin/nixos-rebuild switch --flake .#${CYAN}${host}${RESET}"
+base_linux_activate_cmd="sudo ./result/sw/bin/nixos-rebuild switch --flake .#${user}@${host}"
+base_linux_activate_print_cmd="sudo ./result/sw/bin/nixos-rebuild switch --flake .#${CYAN}${user}@${host}${RESET}"
 
 nix_cmd_switch="--extra-experimental-features nix-command"
 flake_switch="--extra-experimental-features flakes"
