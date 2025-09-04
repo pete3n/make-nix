@@ -8,5 +8,5 @@
   useCache = true;
   useKeys = true;
   tags = [ "poweruser" ];
-  specialisations = [ "wayland" "wayland_egpu" ];
+  specialisations = [ ];
 }
