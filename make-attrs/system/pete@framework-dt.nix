@@ -5,8 +5,8 @@
   system = "x86_64-linux";
   isHomeAlone = false;
   useHomebrew = false;
-  useCache = true;
-  useKeys = true;
+  useCache = false;
+  useKeys = false;
   tags = [ "poweruser" "hyprland" ];
   specialisations = [ "wayland" "wayland_egpu" ];
 }
