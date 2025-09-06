@@ -29,7 +29,7 @@ fi
 config_common_deps="git hostname uname whoami"
 config_system_deps="sudo"
 
-spec_boot_opt_deps="cut xargs"
+spec_boot_opt_deps="cut test xargs"
 set_spec_boot_opt_deps="sudo"
 use_cache_opt_deps="cut mkdir read sudo"
 nix_darwin_opt_deps="sudo"
