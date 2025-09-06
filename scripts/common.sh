@@ -25,6 +25,15 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		fi
 	}
 
+	# run a command as root (uses sudo unless already root)
+	as_root() {
+		if [ "$(id -u)" -eq 0 ]; then
+			"$@"
+		else
+			sudo "$@"
+		fi
+	}
+
 	_CLEANED=0
 	cleanup() {
 		[ "$_CLEANED" -eq 1 ] && return
