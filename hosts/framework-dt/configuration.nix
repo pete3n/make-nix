@@ -1,7 +1,6 @@
 {
   pkgs,
   outputs,
-  makeNixAttrs,
   ...
 }:
 {
@@ -16,10 +15,10 @@
     # but implemented prior to booting Linux, such as an external GPU
     ./specialisations.nix
 
-		# Infrastructure configuration for caching build systems.
-		../infrax.nix
+    # Infrastructure configuration for caching build systems.
+    ../infrax.nix
 
-    ../shared-imports/iptables-services.nix # Override NixOS firewall rules
+    ./iptables-services.nix # Override NixOS firewall rules
     # and use custom iptables based ruleset
 
     ../shared-imports/p22-pki.nix
@@ -71,15 +70,17 @@
 
   ### NETWORK CONFIG ###
   networking = {
-interfaces = {
-enp191s0.ipv4.addresses = [{
-address = "192.168.1.8";
-prefixLength = 24;
-}];
-};
+    interfaces = {
+      enp191s0.ipv4.addresses = [
+        {
+          address = "192.168.1.8";
+          prefixLength = 24;
+        }
+      ];
+    };
     hostName = "framework-dt";
     useDHCP = false; # Disable automatic DHCP; manually call: dhcpcd -B interface
-    nameservers = []; # Use resolved
+    nameservers = [ ]; # Use resolved
 
     # Disable all wireless by default (use wpa_supplicant manually)
     wireless.enable = false;
@@ -106,6 +107,19 @@ prefixLength = 24;
       "8.8.8.8"
     ];
   };
+
+	# SSH
+	services.openssh = {
+		enable = true;
+		ports = [ 22 ];
+		settings = {
+			PasswordAuthentication = true;
+			AllowUsers = [ "pete" ];
+			UseDns = true;
+			X11Forwarding = false;
+			PermitRootLogin = "prohibit-password";
+		};
+	};
 
   # Power, thermals
   services = {
