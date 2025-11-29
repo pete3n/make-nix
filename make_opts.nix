@@ -1,6 +1,6 @@
 { ... }:
 {
-  user = "pete";
+  user = "root";
   host = "framework16";
   system = "x86_64-linux";
   isLinux = true;
@@ -9,5 +9,5 @@
   useCache = true;
   useKeys = true;
   tags = [ "hyprland" "poweruser" ];
-  specialisations = [ ];
+  specialisations = [ "wayland" ];
 }
