@@ -67,6 +67,7 @@ in
       home-manager-rollback = "home-manager generations | fzf | awk -F '-> ' '{print \$2 \"/activate\"}'";
       screenshot = "grim";
       lsc = "lsd --classic";
+			y = "yazi";
     };
     initExtra = # sh
       ''
