@@ -54,13 +54,14 @@
 
   # All Wayland/Hyprland dependent packages
   home.packages = with pkgs; [
-    wdisplays # Graphical display layout for wayland
-    wl-clipboard # Wayland clipboard
     cliphist # Clipboard manager for wayland with text and image support
     grim # Screecap
+		hyprshot # Easy screenshot tool
     slurp # Compositor screen selection tool
-    wev # Wayland environment diagnostics
     swww # Wallpaper switcher
+    wdisplays # Graphical display layout for wayland
+    wev # Wayland environment diagnostics
+    wl-clipboard # Wayland clipboard
   ];
 
   wayland.windowManager.hyprland = {
@@ -221,7 +222,6 @@
         "$mainMod, P, pseudo, # dwindle"
         "$mainMod, T, togglesplit, # dwindle"
         "$mainMod, W, exec, pkill -SIGUSR1 waybar" # Toggle waybar visibility
-        "$mainMod, D, focuswindow, title:^(Nuc)$" # Focus on NUC RDP window
 
         # Move focus with mainMod + arrow keys
         "$mainMod, left, movefocus, l"
@@ -271,6 +271,11 @@
 
         # Toggle fullscreen
         "$mainMod, F, fullscreen, 1"
+
+				# Screenshots
+				"$mainMod, PRINT, exec, hyprshot -m window" # Window
+				", PRINT, exec, hyprshot -m output" # Monitor output
+				"$shiftMod, PRINT, exec, hyprshot -m region" # Select region
 
         # Scroll through existing workspaces with mainMod + scroll
         "$mainMod, mouse_down, workspace, e+1"
