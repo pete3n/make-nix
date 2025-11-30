@@ -33,54 +33,46 @@ in
   programs.yazi = {
     enable = true;
 
-    # Inialize lua plugins
-    initLua = # lua
-      ''
-        require("git"):setup()
-      '';
+    keymap = {
+      mgr = {
+        prepend_keymap = [
+          {
+            # g > i
+            on = [
+              "g"
+              "i"
+            ];
+            run = "plugin lazygit";
+            desc = "run lazygit";
+          }
 
-    flavors = {
-      tokyo-night = yaziTokyoNight;
-    };
+          {
+            # g > p
+            on = [
+              "g"
+              "p"
+            ];
+            run = "cd ~/Projects";
+            desc = "go ~/Projects";
+          }
 
-    theme = {
-      flavor = {
-        use = "tokyo-night";
-        dark = "tokyo-night";
+        ];
       };
     };
 
     plugins = {
-      office = yaziOffice;
-      git = pkgs.yaziPlugins.git;
+      "office" = yaziOffice;
+			"ouch" = pkgs.yaziPlugins.ouch;
+			"lazygit" = pkgs.yaziPlugins.lazygit;
     };
 
     settings = {
-      keymap = {
-        mgr = {
-          mg = "linemode git";
-        };
-      };
-
       mgr = {
         linemode = "size";
       };
 
       plugin = {
-        # git configuration
-        prepend_fetchers = [
-          {
-            id = "git";
-            name = "*";
-            run = "git";
-          }
 
-          {
-            id = "git";
-            name = "*/";
-            run = "git";
-          }
-        ];
         # Office.yazi configuration
         prepend_preloaders = [
           # Office Documents
@@ -131,6 +123,16 @@ in
         ];
       };
 
+      flavors = {
+        tokyo-night = yaziTokyoNight;
+      };
+
+      theme = {
+        flavor = {
+          use = "tokyo-night";
+          dark = "tokyo-night";
+        };
+      };
     };
 
   } // shellIntegration;
