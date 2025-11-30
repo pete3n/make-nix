@@ -72,6 +72,7 @@ in
     yazi = {
       enable = true;
     } // shellIntegration;
+
     # Zathura PDF viewer with VIM motions
     zathura = {
       enable = true;
@@ -81,4 +82,13 @@ in
       enable = true;
     } // shellIntegration;
   };
+
+	# Extra packages for media in CLI
+  home.packages = with pkgs; [
+    ueberzugpp # image overlay
+    chafa # ASCII fallback
+    imagemagick # Image decoding
+    ffmpegthumbnailer
+    poppler-utils # PDF Preview
+  ];
 }
