@@ -222,6 +222,7 @@
         "$mainMod, P, pseudo, # dwindle"
         "$mainMod, T, togglesplit, # dwindle"
         "$mainMod, W, exec, pkill -SIGUSR1 waybar" # Toggle waybar visibility
+        "$mainMod, Y, exec, alacritty -e yazi" # Launch yazi file manager
 
         # Move focus with mainMod + arrow keys
         "$mainMod, left, movefocus, l"
