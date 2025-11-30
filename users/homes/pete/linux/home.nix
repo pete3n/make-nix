@@ -75,15 +75,15 @@ in
 
     userDirs = {
       enable = true;
-      documents = homeDirectory/documents;
-      download = homeDirectory/downloads;
-      music = homeDirectory/music;
-      pictures = homeDirectory/pictures;
-      publicShare = homeDirectory/public;
-      templates = homeDirectory/template;
-      videos = homeDirectory/videos;
+      documents = homeDirectory/Documents;
+      download = homeDirectory/Downloads;
+      music = homeDirectory/Music;
+      pictures = homeDirectory/Pictures;
+      publicShare = homeDirectory/Public;
+      templates = homeDirectory/Templates;
+      videos = homeDirectory/Videos;
       extraConfig = {
-        XDG_PROJECT_DIR = homeDirectory/projects;
+        XDG_PROJECT_DIR = homeDirectory/Projects;
       };
     };
   };
