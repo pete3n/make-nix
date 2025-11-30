@@ -107,16 +107,17 @@ in
 
         # Misc
         bottles # Wine container manager
+        borgbackup
         browsh # Terminal browser
         unstable.cryptomator
         fdupes # Duplicate file finder
         heroic # Heroic game launcher
+        libreoffice
         litemdview # Simple markdown viewer
         mod._86Box
         mosh # Mobile-shell SSH replacement
         nextcloud-client
         onlyoffice-bin
-        pika-backup
         protonmail-bridge
         remmina
         unstable.standardnotes

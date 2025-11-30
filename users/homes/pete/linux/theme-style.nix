@@ -3,6 +3,7 @@
   home = {
     packages = with pkgs; [
       dconf # Needed by gtk
+			corefonts
       gnome-tweaks
       themechanger
       nerd-fonts.jetbrains-mono
