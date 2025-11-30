@@ -217,8 +217,9 @@
         "$mainMod, R, exec, rofi -show-icons -combi-modi drun,run -show combi"
         "$mainMod, M, exec, rofi -show-icons -combi-modi drun,run -show calc"
         "$mainMod, E, exec, rofi -show-icons -combi-modi drun,run -show emoji"
+        "$mainMod, V, exec, cliphist list | rofi -dmenu -display-columns 2 | cliphist decode | wl-copy"
         "$mainMod, P, pseudo, # dwindle"
-        "$mainMod, V, togglesplit, # dwindle"
+        "$mainMod, T, togglesplit, # dwindle"
         "$mainMod, W, exec, pkill -SIGUSR1 waybar" # Toggle waybar visibility
         "$mainMod, D, focuswindow, title:^(Nuc)$" # Focus on NUC RDP window
 
