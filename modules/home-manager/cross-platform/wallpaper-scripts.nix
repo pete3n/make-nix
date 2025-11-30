@@ -132,12 +132,13 @@ in
     };
   };
 
+	# TODO: Implement XDG paths
   config = lib.mkIf cfg.enable {
     programs.wallpaper-scripts.wallpaperPath = lib.mkDefault (
       if config.programs.wallpaper-scripts.os == "darwin" then
-        "/Users/${make_opts.user}/wallpapers/default_background.png"
+        "/Users/${make_opts.user}/Pictures/wallpapers/default_background.png"
       else
-        "/home/${make_opts.user}/wallpapers/default_background.png"
+        "/home/${make_opts.user}/Pictures/wallpapers/default_background.png"
     );
     home.packages = [
       wallpaperSetScript
