@@ -12,6 +12,7 @@ let
     "x11_egpu"
     "wayland"
     "wayland_egpu"
+		"wayland_pwr_save"
   ];
 
   availableSpecs = builtins.filter (
@@ -23,6 +24,7 @@ let
     x11_egpu = import ./specialisations/x11_egpu.nix { inherit lib pkgs outputs; };
     wayland = import ./specialisations/wayland.nix { inherit lib pkgs outputs; };
     wayland_egpu = import ./specialisations/wayland_egpu.nix { inherit lib pkgs outputs; };
+		wayland_pwr_save = import ./specialisations/wayland_pwr_save.nix { inherit lib pkgs outputs; };
   };
 
 in
