@@ -4,7 +4,7 @@
   ...
 }: {
   options = {
-    backup = {
+    services.backup = {
       enable = lib.mkEnableOption "enable automatic backups";
       local.destination = lib.mkOption {
         type = lib.types.str;
@@ -36,21 +36,21 @@
     };
   };
 
-  config = lib.mkIf config.backup.enable {
+  config = lib.mkIf config.services.backup.enable {
     services.borgmatic = {
       enable = true;
 
-      inherit (config.backup) frequency;
+      inherit (config.services.backup) frequency;
     };
 
     programs.borgmatic = {
       enable = true;
 
       backups = {
-        local = lib.mkIf (config.backup.local.destination != "") {
+        local = lib.mkIf (config.services.backup.local.destination != "") {
           location = {
-            repositories = [config.backup.local.destination];
-            inherit (config.backup) patterns;
+            repositories = [config.services.backup.local.destination];
+            inherit (config.services.backup) patterns;
           };
 
           retention = {
@@ -61,13 +61,13 @@
           };
         };
 
-        remote = lib.mkIf (config.backup.remote.ssh_name != "") {
+        remote = lib.mkIf (config.services.backup.remote.ssh_name != "") {
           location = {
-            repositories = ["ssh://${config.backup.remote.ssh_name}/./Borg"];
-            inherit (config.backup) patterns;
+            repositories = ["ssh://${config.services.backup.remote.ssh_name}/./Borg"];
+            inherit (config.services.backup) patterns;
           };
 
-          storage.encryptionPasscommand = "cat ${config.backup.remote.password_path}";
+          storage.encryptionPasscommand = "cat ${config.services.backup.remote.password_path}";
 
           retention = {
             keepDaily = 60;
