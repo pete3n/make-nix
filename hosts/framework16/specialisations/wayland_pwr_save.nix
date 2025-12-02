@@ -1,46 +1,39 @@
 { pkgs, lib, ... }:
 {
-	inheritParentConfig = true;
+  inheritParentConfig = true;
   configuration = {
     system.nixos.tags = [
-			"power_saver"
+      "power_saver"
       "wayland"
       "amd"
       "iGPU"
     ];
 
-		boot.kernelParams = [
-			# Let cpufreq governors manage amd_pstate
-			"amd_pstate=passive"
+    boot.kernelParams = [
+      # Let cpufreq governors manage amd_pstate
+      "amd_pstate=passive"
 
-			# Aggressive power saving for NVMe + PCIe
-			"pcie_aspm=force"
-			"nvme_core.default_ps_max_latency_us=55000"
-		];
+      # Aggressive power saving for NVMe + PCIe
+      "pcie_aspm=force"
+      "nvme_core.default_ps_max_latency_us=55000"
+    ];
 
-		powerManagement = {
-			enable = true;
-			cpuFreqGovernor = "powersave";
-		};
+    powerManagement = {
+      enable = true;
+      cpuFreqGovernor = "schedutil";
+      cpufreq.min = 800000; # 800 MHz
+      cpufreq.max = 2400000; # 2.4 GHz
+      scsiLinkPolicy = "min_power";
+      powertop.enable = true;
+      powerUpCommands = ''
+				${pkgs.brightnessctl}/bin/brightnessctl set 25%
+			'';
+    };
 
-		environment.systemPackages = with pkgs; [
-			linuxPackages.cpupower
-			ryzenadj # Ryzen power tweaks
-		];
-
-		systemd.services.cpu-cap = {
-			description = "Limit CPU freq. for battery saver mode";
-			wantedBy = [ "multi-user.target" ];
-			after = [ "multi-user.target" ];
-			serviceConfig = {
-				Type = "oneshot";
-				ExecStart = ''
-					${pkgs.linuxPackages.cpupower}/bin/cpupower frequency-set -u 1.6GHz -d 800MHz
-				'';
-			};
-		};
-
-		services.powertop.enable = true;
+    environment.systemPackages = with pkgs; [
+      linuxPackages.cpupower
+      ryzenadj # Ryzen power tweaks
+    ];
 
     hardware = {
       graphics = {
