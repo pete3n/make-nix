@@ -6,8 +6,8 @@
   isLinux = true;
   isHomeAlone = false;
   useHomebrew = false;
-  useCache = true;
-  useKeys = true;
+  useCache = false;
+  useKeys = false;
   tags = [ "hyprland" "poweruser" ];
   specialisations = [ "wayland" ];
 }
