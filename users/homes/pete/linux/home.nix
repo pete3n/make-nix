@@ -210,17 +210,23 @@ in
       ]);
   };
 
-	# Backup module configuraiton
-	backup = { 
-		enable = true;
-		# TODO: Configure dynamically
-		local.destination = "/mnt/nfs/share/backups/fw16-pete";
-		patterns = [
-			"R /home/${make_opts.user}"
-			"- /home/${make_opts.user}/.cache"
-			"- /home/${make_opts.user}/Downloads"
-		];
-	};
+  # systemd --user services
+  services = {
+    backup = {
+      enable = true;
+      # TODO: Configure dynamically
+      local.destination = "/mnt/nfs/share/backups/fw16-pete";
+      patterns = [
+        "R /home/${make_opts.user}"
+        "- /home/${make_opts.user}/.cache"
+        "- /home/${make_opts.user}/Downloads"
+      ];
+    };
+
+    services.batteryMinder = {
+      enable = true;
+    };
+  };
 
   # Modules with additional program configuration
   programs = {
