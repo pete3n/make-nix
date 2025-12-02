@@ -15,8 +15,8 @@
     # but implemented prior to booting Linux, such as an external GPU
     ./specialisations.nix
 
-		# Infrastructure configuration for caching build systems.
-		../infrax.nix
+    # Infrastructure configuration for caching build systems.
+    ../infrax.nix
 
     ../shared-imports/iptables-services.nix # Override NixOS firewall rules
     # and use custom iptables based ruleset
@@ -33,6 +33,9 @@
     ../shared-imports/usrp-sdr.nix
   ];
   boot = {
+    kernelParams = [
+      "nvme_core.default_ps_max_latency_us=0"
+    ];
     kernelPackages = pkgs.linuxPackages_6_12;
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
@@ -77,7 +80,7 @@
   networking = {
     hostName = "framework16";
     useDHCP = false; # Disable automatic DHCP; manually call: dhcpcd -B interface
-    nameservers = []; # Use resolved
+    nameservers = [ ]; # Use resolved
 
     # Disable all wireless by default (use wpa_supplicant manually)
     wireless.enable = false;
