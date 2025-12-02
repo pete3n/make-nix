@@ -9,5 +9,5 @@
   useCache = true;
   useKeys = true;
   tags = [ "hyprland" "poweruser" ];
-  specialisations = [ "wayland_pwr_save" ];
+  specialisations = [ "wayland" ];
 }
