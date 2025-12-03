@@ -28,64 +28,64 @@ let
   power-profile-switcher =
     pkgs.writeShellScriptBin "power-profile-switcher" # sh
       ''
-        #!/usr/bin/env bash
-        
-        ON_BATTERY_BRIGHTNESS=${toString cfg.on_battery_brightness}
-        ON_AC_BRIGHTNESS=${toString cfg.on_ac_brightness}
-        ON_BATTERY_PROFILE=${toString cfg.on_battery_profile}
-        ON_AC_PROFILE=${toString cfg.on_ac_profile}
-        
-        BATTERY=$(upower -e | grep -m1 'BAT')
-        [ -z "''${BATTERY}" ] && exit 0
-        
-        get_state() {
-        	upower -i "''${BATTERY}" | ${pkgs.awk}/bin/awk '/state:/ {print $2; exit}'
-        }
-        
-        get_brightness_percent() {
-        	local cur max
-        	cur=$(${pkgs.brightnessctl}/bin/brightnessctl g)
-        	max=$(${pkgs.brightnessctl}/bin/brightnessctl m)
-        	echo $(( cur * 100 / max ))
-        }
-        
-        discharging_actions() {
-        	local cur_percent
-        	cur_percent=$(get_brightness_percent)
-        	if [ "$cur_percent" -gt "''${ON_BATTERY_BRIGHTNESS}" ]; then 
-        		powerprofilesctl set "''${ON_BATTERY_PROFILE}"
-        		${pkgs.brightnessctl}/bin/brightnessctl s "''${ON_BATTERY_BRIGHTNESS}"
-        	fi
-        }
-        
-        charging_actions() {
-        	powerprofilesctl set "''${ON_AC_PROFILE}"
-        	${pkgs.brightnessctl}/bin/brightnessctl s "''${ON_AC_BRIGHTNESS}"
-        }
-        
-        current_state=$(get_state)
-        
-        if [ "$current_state" = "discharging" ]; then
-        	discharging_actions
-        elif [ "$current_state" = "charging" ]; then
-        	charging_actions
-        fi
-        
-        upower --monitor-detail | while read -r line; do
-        	case "$line" in
-        		*"state:"*)
-        			new_state=$(${pkgs.awk}/bin/awk '{print $2}' <<< "$line")
-        			[ "$new_state" = "$current_state" ] && continue
-        			current_state="$new_state"
-        
-        			if [ "$new_state" = "discharging" ]; then
-        				discharging_actions
-        			elif [ "$new_state" = "charging" ]; then
-        				charging_actions
-        			fi
-        		;;
-        	esac
-        done
+		#!/usr/bin/env bash
+		
+		ON_BATTERY_BRIGHTNESS=${toString cfg.on_battery_brightness}
+		ON_AC_BRIGHTNESS=${toString cfg.on_ac_brightness}
+		ON_BATTERY_PROFILE=${toString cfg.on_battery_profile}
+		ON_AC_PROFILE=${toString cfg.on_ac_profile}
+		
+		BATTERY=$(${pkgs.upower}/bin/upower -e | grep -m1 'BAT')
+		[ -z "''${BATTERY}" ] && exit 0
+		
+		get_state() {
+			${pkgs.upower}/bin/upower -i "''${BATTERY}" | ${pkgs.gawk}/bin/awk '/state:/ {print $2; exit}'
+		}
+		
+		get_brightness_percent() {
+			local cur max
+			cur=$(${pkgs.brightnessctl}/bin/brightnessctl g)
+			max=$(${pkgs.brightnessctl}/bin/brightnessctl m)
+			echo $(( cur * 100 / max ))
+		}
+
+		discharging_actions() {
+			local cur_percent
+			cur_percent=$(get_brightness_percent)
+			if [ "$cur_percent" -gt "''${ON_BATTERY_BRIGHTNESS}" ]; then 
+				${pkgs.power-profiles-daemon}/bin/powerprofilesctl set "''${ON_BATTERY_PROFILE}"
+				${pkgs.brightnessctl}/bin/brightnessctl s "''${ON_BATTERY_BRIGHTNESS}%"
+			fi
+		}
+	
+		charging_actions() {
+			${pkgs.power-profiles-daemon}/bin/powerprofilesctl set "''${ON_AC_PROFILE}"
+			${pkgs.brightnessctl}/bin/brightnessctl s "''${ON_AC_BRIGHTNESS}%"
+		}
+		
+		current_state=$(get_state)
+		
+		if [ "$current_state" = "discharging" ]; then
+			discharging_actions
+		elif [ "$current_state" = "charging" ]; then
+			charging_actions
+		fi
+		
+		${pkgs.upower}/bin/upower --monitor-detail | while read -r line; do
+			case "$line" in
+				*"state:"*)
+					new_state=$(${pkgs.gawk}/bin/awk '{print $2}' <<< "$line")
+					[ "$new_state" = "$current_state" ] && continue
+					current_state="$new_state"
+		
+					if [ "$new_state" = "discharging" ]; then
+						discharging_actions
+					elif [ "$new_state" = "charging" ]; then
+						charging_actions
+					fi
+				;;
+			esac
+		done
       '';
 in
 {
@@ -165,6 +165,9 @@ in
 
     home.packages = [
       power-profile-switcher
+      pkgs.upower
+      pkgs.power-profiles-daemon
+      pkgs.brightnessctl
     ];
 
     systemd.user.services."power-profile-switcher" = {

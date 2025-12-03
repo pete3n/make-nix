@@ -4,4 +4,5 @@
   clip58 = import ./cross-platform/clip58.nix;
 	backup = import ./cross-platform/backup.nix;
 	battery-minder = import ./linux/battery-minder.nix;
+	power-profile-switcher = import ./linux/power-profile-switcher.nix;
 }

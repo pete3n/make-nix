@@ -223,9 +223,13 @@ in
       ];
     };
 
-    services.batteryMinder = {
+    battery-minder = {
       enable = true;
     };
+
+		power-profile-switcher = {
+			enable = true;
+		};
   };
 
   # Modules with additional program configuration

@@ -13,9 +13,9 @@ let
     escapeShellArg
     ;
 
-  cfg = config.services.batteryMinder;
+  cfg = config.services.battery-minder;
 
-  batteryMinder =
+  battery-minder =
     pkgs.writeShellScriptBin "battery-minder" # sh
       ''
         #!/usr/bin/env bash
@@ -43,6 +43,9 @@ let
 
 				if [ "''${STATUS}" = "Charging" ] || [ "''${STATUS}" = "Full" ]; then
 					echo 101 > "''${STATE_FILE}"
+					exit 0
+				else
+					echo "''${CAPACITY}" > "''${STATE_FILE}"
 					exit 0
 				fi
 
@@ -92,11 +95,11 @@ let
       '';
 in
 {
-  options.services.batteryMinder = {
+  options.services.battery-minder = {
     enable = mkEnableOption "Battery monitering service with warning + suspend/hibernate/shutdown actions";
 
     warn_first_percent = mkOption {
-      type = types.int;
+      type = types.ints.between 0 100;
       default = 20;
       description = ''
         			Battery percentage at or below which the first warning is given.
@@ -111,8 +114,8 @@ in
     };
 
     warn_below_percent = mkOption {
-      type = types.int;
-      default = 10;
+      type = types.ints.between 0 100;
+      default = 15;
       description = ''
         			Battery percentage at or below continuos warnings are given.
         			Set to 0 to disable repeat warnings.
@@ -126,8 +129,8 @@ in
     };
 
     suspend_percent = mkOption {
-      type = types.int;
-      default = 4;
+      type = types.ints.between 0 100;
+      default = 10;
       description = ''
         			Battery percentage at or below which the system will suspend.
         			Triggers once per discharge cycle when crossing this threshold.
@@ -142,7 +145,7 @@ in
     };
 
     hibernate_percent = mkOption {
-      type = types.int;
+      type = types.ints.between 0 100;
       default = 0;
       description = ''
         			Battery percentage at or below which the system will hibernate.
@@ -159,7 +162,7 @@ in
     };
 
     shutdown_percent = mkOption {
-      type = types.int;
+      type = types.ints.between 0 100;
       default = 1;
       description = ''
         			Battery percentage at which the system will shutdown.
@@ -175,15 +178,15 @@ in
     };
 
     batteryInterval = mkOption {
-      type = types.int;
-      default = 60;
+      type = types.ints.positive;
+      default = 30;
       description = "How often (in seconds) to check the battery status.";
     };
   };
 
   config = mkIf cfg.enable {
     home.packages = [
-      batteryMinder
+      battery-minder
       pkgs.libnotify
     ];
 
@@ -194,7 +197,7 @@ in
 
       Service = {
         Type = "oneshot";
-        ExecStart = "${batteryMinder}/bin/battery-minder";
+        ExecStart = "${battery-minder}/bin/battery-minder";
       };
       Install = {
         WantedBy = [ "default.target" ];

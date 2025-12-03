@@ -91,51 +91,52 @@
     # proxy.noProxy = "127.0.0.1,localhost,internal.domain";
   };
 
-  # Enable resolvctl for DNS changes
-  services.resolved = {
-    enable = true;
-    dnssec = "allow-downgrade";
-    dnsovertls = "opportunistic";
-
-    extraConfig = ''
-      DNS=192.168.1.1
-      Domains=~p22
-    '';
-
-    fallbackDns = [
-      "1.1.1.1"
-      "8.8.8.8"
-    ];
-  };
-
-  # Power, thermals
+  # System services
   services = {
+
+    resolved = {
+      enable = true;
+      dnssec = "allow-downgrade";
+      dnsovertls = "opportunistic";
+
+      extraConfig = ''
+        DNS=192.168.1.1
+        Domains=~p22
+      '';
+
+      fallbackDns = [
+        "1.1.1.1"
+        "8.8.8.8"
+      ];
+    };
+
+    # Power and thermal management
     thermald.enable = true;
+    upower.enable = true;
     power-profiles-daemon.enable = true;
+
+    # Audio
+    pipewire = {
+      enable = true;
+      alsa.enable = true;
+      alsa.support32Bit = true;
+      pulse.enable = true;
+      wireplumber.enable = true;
+    };
+
+    # Firmware update
+    fwupd.enable = true;
+
+    # Udev rules for Android device media transfer
+    udev.packages = [ pkgs.android-udev-rules ];
+
+    # See: https://wiki.hyprland.org/Nix
+    hardware.bolt.enable = true; # boltctl
+
+    # TODO: Check out flatpaks for home-manager with nix-flatpak
+    flatpak.enable = true;
+
   };
-
-  # Audio
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-    wireplumber.enable = true;
-  };
-
-  # Firmware update
-  services.fwupd.enable = true;
-
-  # Udev rules
-  services.udev.packages = [ pkgs.android-udev-rules ];
-
-  ### Fonts and Locale ###
-  i18n.defaultLocale = "en_US.UTF-8";
-  time.timeZone = "America/New_York";
-  #fonts.packages = with pkgs; [ (nerdfonts.override { fonts = [ "JetBrainsMono" ]; }) ];
-
-  # See: https://wiki.hyprland.org/Nix
-  services.hardware.bolt.enable = true; # boltctl
 
   # Portals must be enable system wide for Flatpak support
   xdg.portal = {
@@ -148,10 +149,11 @@
     };
   };
 
-  # TODO: Check out flatpaks for home-manager with nix-flatpak
-  services.flatpak.enable = true;
+  ### Fonts and Locale ###
+  i18n.defaultLocale = "en_US.UTF-8";
+  time.timeZone = "America/New_York";
 
-  # Enable Docker - note: This requires iptables
+  # Enable Docker - NOTE: This requires iptables
   virtualisation.docker.enable = true;
 
   nixpkgs.config = {
