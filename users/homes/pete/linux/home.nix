@@ -112,6 +112,7 @@ in
         unstable.cryptomator
         fdupes # Duplicate file finder
         heroic # Heroic game launcher
+				kdePackages.okular # Okular PDF viewer
         libreoffice
         litemdview # Simple markdown viewer
         mod._86Box
@@ -239,6 +240,10 @@ in
     firefox = {
       enable = true;
     };
+
+		librewolf = {
+			enable = true;
+		};
 
     clip58.enable = true;
 
