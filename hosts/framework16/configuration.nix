@@ -127,9 +127,6 @@
     # Firmware update
     fwupd.enable = true;
 
-    # Udev rules for Android device media transfer
-    udev.packages = [ pkgs.android-udev-rules ];
-
     # See: https://wiki.hyprland.org/Nix
     hardware.bolt.enable = true; # boltctl
 
