@@ -5,6 +5,7 @@
     pam_u2f
     pamtester
     pinentry
+    pinentry-curses
     yubico-pam
     yubikey-manager
     yubioath-flutter
