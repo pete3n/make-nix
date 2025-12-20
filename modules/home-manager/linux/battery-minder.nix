@@ -20,8 +20,6 @@ let
       ''
         #!/usr/bin/env bash
 
-				WARN_FIRST_PERCENT=${toString cfg.warn_first_percent}
-				WARN_FIRST_MSG=${escapeShellArg cfg.warn_first_msg}
 				WARN_BELOW_PERCENT=${toString cfg.warn_below_percent}
 				WARN_BELOW_MSG=${escapeShellArg cfg.warn_below_msg}
 				SUSPEND_PERCENT=${toString cfg.suspend_percent}
@@ -81,12 +79,6 @@ let
 					exit 0
 				fi
 
-				if [ "''${WARN_FIRST_PERCENT}" -gt 0 ] && [ "''${CAPACITY}" -le "''${WARN_FIRST_PERCENT}" ] && [ "''${LAST}" -gt "''${WARN_FIRST_PERCENT}" ]; then
-					${pkgs.libnotify}/bin/notify-send -u normal "Battery ''${CAPACITY}%" "''${WARN_FIRST_MSG}" 
-					update_last
-					exit 0
-				fi
-
 				if [ "''${WARN_BELOW_PERCENT}" -gt 0 ] && [ "''${CAPACITY}" -lt "''${WARN_BELOW_PERCENT}" ] && [ "''${CAPACITY}" -lt "''${LAST}" ]; then
 					${pkgs.libnotify}/bin/notify-send -u critical "Battery ''${CAPACITY}%" "''${WARN_BELOW_MSG}" 
 					update_last
@@ -97,21 +89,6 @@ in
 {
   options.services.battery-minder = {
     enable = mkEnableOption "Battery monitering service with warning + suspend/hibernate/shutdown actions";
-
-    warn_first_percent = mkOption {
-      type = types.ints.between 0 100;
-      default = 20;
-      description = ''
-        			Battery percentage at or below which the first warning is given.
-        			Set to 0 to disable.
-        		'';
-    };
-
-    warn_first_msg = mkOption {
-      type = types.str;
-      default = "🪫⚠️ Battery is low.";
-      description = "First warning message to show for a low battery.";
-    };
 
     warn_below_percent = mkOption {
       type = types.ints.between 0 100;
