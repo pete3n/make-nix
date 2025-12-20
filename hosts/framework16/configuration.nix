@@ -91,20 +91,6 @@
     # proxy.noProxy = "127.0.0.1,localhost,internal.domain";
   };
 
-  # Enable resolvctl for DNS changes
-  services.resolved = {
-    enable = true;
-    dnssec = "allow-downgrade";
-    dnsovertls = "opportunistic";
-
-		extraConfig = ''
-			FallbackDNS=1.1.1.1#cloudflare-dns.com 1.0.0.1#cloudflare-dns.com 8.8.8.8#dns.google 8.8.4.4#dns.google
-    '';
-
-    fallbackDns = lib.mkForce [ ];
-  };
-
-  # Power, thermals
   services = {
 
     resolved = {
