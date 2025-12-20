@@ -2,19 +2,19 @@
   description = "Multi-platform Nix flake";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
-    nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.05";
+    nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.05";
+      url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     home-manager-darwin = {
-      url = "github:nix-community/home-manager/release-25.05";
+      url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -38,7 +38,7 @@
 
     nixgl.url = "github:nix-community/nixGL";
     hyprcursor.url = "github:hyprwm/hyprcursor";
-    nixvim.url = "github:pete3n/nixvim-flake?ref=nixos-25.05";
+    nixvim.url = "github:pete3n/nixvim-flake?ref=nixos-25.11";
     deploy-rs.url = "github:serokell/deploy-rs";
   };
 
