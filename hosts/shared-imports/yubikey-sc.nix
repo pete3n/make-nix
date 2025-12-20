@@ -4,13 +4,11 @@
     opensc
     pam_u2f
     pamtester
-    pinentry
     pinentry-curses
     yubico-pam
     yubikey-manager
     yubioath-flutter
     yubikey-personalization
-    yubikey-personalization-gui
   ];
   services = {
     pcscd.enable = true; # Enable smart card daemon
