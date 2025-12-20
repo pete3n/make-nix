@@ -4,7 +4,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 #
-trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
+
+trap 'cleanup $? EXIT' EXIT
+trap 'cleanup 130 SIGNAL' INT TERM QUIT   # one generic non-zero code for signals
 
 logf "\n%b>>> Running Hyprland setup for display manager...%b\n" "$BLUE" "$RESET"
 # Ensure GDM isn’t forcing Xorg (WaylandEnable=false)
@@ -18,7 +20,7 @@ else
 fi
 
 WRAPPER=/usr/local/bin/hyprland-dm-session
-logf "%binfo:%b Writing wrapper: %b%s%b\n" "${BLUE:-}" "${RESET:-}" "${MAGENTA:-}" "$WRAPPER" "${RESET:-}"
+logf "%binfo:%b writing wrapper: %b%s%b\n" "${BLUE:-}" "${RESET:-}" "${MAGENTA:-}" "$WRAPPER" "${RESET:-}"
 sudo install -D -m 0755 /dev/stdin "$WRAPPER" <<'EOF'
 #!/bin/sh
 set -eu
@@ -49,7 +51,7 @@ fi
 EOF
 
 DESKTOP=/usr/share/wayland-sessions/hyprland.desktop
-logf "%binfo:%b Writing desktop entry: %b%s%b\n" "${BLUE:-}" "${RESET:-}" "${MAGENTA:-}" "$DESKTOP" "${RESET:-}"
+logf "%binfo:%b writing desktop entry: %b%s%b\n" "${BLUE:-}" "${RESET:-}" "${MAGENTA:-}" "$DESKTOP" "${RESET:-}"
 sudo install -D -m 0644 /dev/stdin "$DESKTOP" <<EOF
 [Desktop Entry]
 Name=Hyprland

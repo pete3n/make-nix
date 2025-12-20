@@ -1,10 +1,72 @@
 #!/usr/bin/env sh
 set -eu
+
+IS_FINAL_GOAL=0
+mode=""  # "build" or "activate"
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -F)
+      [ $# -ge 2 ] || { printf '%s: -F requires an argument\n' "${0##*/}" >&2; exit 2; }
+      case "$2" in 0|1) IS_FINAL_GOAL=$2 ;; *) printf '%s: invalid -F value: %s\n' "${0##*/}" "$2" >&2; exit 2 ;; esac
+      shift 2
+      ;;
+    -F[01])
+      IS_FINAL_GOAL=${1#-F}
+      shift
+      ;;
+    --build)
+      [ -z "$mode" ] || { printf '%s: duplicate mode (--build/--activate)\n' "${0##*/}" >&2; exit 2; }
+      mode="build"; shift
+      ;;
+    --activate)
+      [ -z "$mode" ] || { printf '%s: duplicate mode (--build/--activate)\n' "${0##*/}" >&2; exit 2; }
+      mode="activate"; shift
+      ;;
+    --) shift; break ;;
+    -*) printf '%s: invalid option: %s\n' "${0##*/}" "$1" >&2; exit 2 ;;
+    *)  break ;;
+  esac
+done
+
+[ "$#" -eq 0 ] || { printf '%s: unexpected argument: %s\n' "${0##*/}" "$1" >&2; exit 2; }
+
+if [ -z "$mode" ]; then
+  printf '%s: error: no mode specified; use --build or --activate\n' "${0##*/}" >&2
+  exit 1
+fi
+
+clobber_list="zshenv zshrc bashrc"
+backup_files() {
+	for file in $clobber_list; do
+		if [ -e "/etc/${file}" ]; then
+			logf "%binfo:%b backing up %b/etc/%s%b\n" "$BLUE" "$RESET" "$MAGENTA" "$file" "$RESET"
+			sudo mv "/etc/$file" "/etc/${file}.before_darwin"
+		fi
+	done
+	if [ -f /etc/nix/nix.conf ]; then
+		sudo mv /etc/nix/nix.conf /etc/nix/nix.conf.before_darwin
+	fi
+}
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
-trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
+cleanup_on_exit() {
+  status=$?
+  if [ "$status" -ne 0 ] && [ "${IS_FINAL_GOAL:-0}" -eq 1 ]; then
+    cleanup "$status" ERROR
+  fi
+  exit "$status"
+}
+
+trap 'cleanup_on_exit' 0
+
+trap '
+  [ "${IS_FINAL_GOAL:-0}" -eq 1 ] && cleanup 130 SIGNAL
+  exit 130
+' INT TERM QUIT
 
 if ! has_nix; then
 	source_nix
@@ -24,24 +86,24 @@ if [ -z "${IS_LINUX:-}" ]; then
 	exit 1
 fi
 
+user="${TGT_USER:? error: user must be set.}"
 host="${TGT_HOST:? error: host must be set.}"
 : "${USE_SCRIPT:=false}"
 
-mode="${1:-}"
 if [ -z "$mode" ]; then
 	logf "\n%berror:%b No mode was passed. Use --build or --activate.\n" "$RED" "$RESET"
 	exit 1
 fi
 
-base_darwin_build_cmd="nix build .#darwinConfigurations.${host}.system"
-base_darwin_build_print_cmd="nix build .#darwinConfigurations.${CYAN}${host}${RESET}.system"
-base_darwin_activate_cmd="sudo ./result/sw/bin/darwin-rebuild switch --flake .#${host}"
-base_darwin_activate_print_cmd="sudo ./result/sw/bin/darwin-rebuild switch --flake .#${CYAN}${host}${RESET}"
+base_darwin_build_cmd="nix build .#darwinConfigurations.${user}@${host}.system"
+base_darwin_build_print_cmd="nix build .#darwinConfigurations.${CYAN}${user}${RESET}@${CYAN}${host}${RESET}.system"
+base_darwin_activate_cmd="sudo ./result/sw/bin/darwin-rebuild switch --flake .#${user}@${host}"
+base_darwin_activate_print_cmd="sudo ./result/sw/bin/darwin-rebuild switch --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
 
-base_linux_build_cmd="nix build .#nixosConfigurations.${host}.config.system.build.toplevel"
-base_linux_build_print_cmd="nix build .#nixosConfigurations.${CYAN}${host}${RESET}.config.system.build.toplevel"
-base_linux_activate_cmd="sudo ./result/sw/bin/nixos-rebuild switch --flake .#${host}"
-base_linux_activate_print_cmd="sudo ./result/sw/bin/nixos-rebuild switch --flake .#${CYAN}${host}${RESET}"
+base_linux_build_cmd="nix build .#nixosConfigurations.${user}@${host}.config.system.build.toplevel"
+base_linux_build_print_cmd="nix build .#nixosConfigurations.${CYAN}${user}@${host}${RESET}.config.system.build.toplevel"
+base_linux_activate_cmd="sudo ./result/sw/bin/nixos-rebuild switch --flake .#${user}@${host}"
+base_linux_activate_print_cmd="sudo ./result/sw/bin/nixos-rebuild switch --flake .#${CYAN}${user}@${host}${RESET}"
 
 nix_cmd_switch="--extra-experimental-features nix-command"
 flake_switch="--extra-experimental-features flakes"
@@ -72,7 +134,6 @@ build() {
 
 	if is_truthy "${USE_SCRIPT:-}"; then
 		script -a -q -c "$build_cmd; printf '%s\n' \$? > \"$rcfile\"" "$MAKE_NIX_LOG"
-		return $?
 	else
 		# Wrap in subshell to capture exit code to a file
 		(
@@ -83,7 +144,13 @@ build() {
 
 	rc=$(cat "$rcfile")
 	rm -f "$rcfile"
-	return "$rc"
+	if ! [ "$rc" -eq 0 ]; then
+		logf "\n%berror:%b system configuraiton build failed. Halting make-nix.\n" "$RED" "$RESET"
+		sh "$SCRIPT_DIR/check_dirty_warn.sh"
+		exit "$rc"
+	else
+		return 0
+	fi
 }
 
 activate() {
@@ -112,7 +179,6 @@ activate() {
 
 	if is_truthy "${USE_SCRIPT:-}"; then
 		script -a -q -c "$activate_cmd; printf '%s\n' \$? > \"$rcfile\"" "$MAKE_NIX_LOG"
-		return $?
 	else
 		# Wrap in subshell to capture exit code to a file
 		(
@@ -123,33 +189,40 @@ activate() {
 
 	rc=$(cat "$rcfile")
 	rm -f "$rcfile"
-	return "$rc"
+	if ! [ "$rc" -eq 0 ]; then
+		logf "\n%berror:%b system configuraiton activation failed. Halting make-nix.\n" "$RED" "$RESET"
+		exit "$rc"
+	else
+		return 0
+	fi
 }
 
 if is_truthy "${IS_LINUX:-}"; then
-	if [ "$mode" = "--build" ]; then
+	if [ "$mode" = "build" ]; then
 		build "$base_linux_build_cmd" "$base_linux_build_print_cmd" \
 			"${dry_switch} ${nix_cmd_switch} ${flake_switch}" \
 			"${dry_print_switch} ${nix_cmd_switch} ${flake_switch}"
-	elif [ "$mode" = "--activate" ]; then
+	elif [ "$mode" = "activate" ]; then
 		if [ "$dry_switch" = "--dry-run" ]; then
 			logf "\n%bDRY_RUN%b %btrue%b: skipping system activation...\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
 			exit 0
 		fi
+		backup_files
 		activate "$base_linux_activate_cmd" "$base_linux_activate_print_cmd"
 	else
 		logf "\n%berror:%b Neither --build nor --activate was called for.\n" "$RED" "$RESET"
 	fi
 else
-	if [ "$mode" = "--build" ]; then
+	if [ "$mode" = "build" ]; then
 		build "$base_darwin_build_cmd" "$base_darwin_build_print_cmd" \
 			"${dry_switch} ${nix_cmd_switch} ${flake_switch}" \
 			"${dry_print_switch} ${nix_cmd_switch} ${flake_switch}"
-	elif [ "$mode" = "--activate" ]; then
+	elif [ "$mode" = "activate" ]; then
 		if [ "$dry_switch" = "--dry-run" ]; then
 			logf "\n%bDRY_RUN%b %btrue%b: skipping system activation...\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
 			exit 0
 		fi
+		backup_files
 		activate "$base_darwin_activate_cmd" "$base_darwin_activate_print_cmd"
 	else
 		logf "\n%berror:%b Neither --build nor --activate was called for.\n" "$RED" "$RESET"

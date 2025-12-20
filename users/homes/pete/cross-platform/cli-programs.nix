@@ -1,9 +1,9 @@
-{ pkgs, make_opts, ... }:
+{ pkgs, makeNix, makeNixAttrs, ... }:
 let
   # Use Zsh integration for Darwin and Bash integration for Linux
   shellIntegration = {
-    enableBashIntegration = make_opts.isLinux;
-    enableZshIntegration = !make_opts.isLinux;
+    enableBashIntegration = makeNix.isLinux makeNixAttrs.system;
+    enableZshIntegration = makeNix.isDarwin makeNixAttrs.system;
   };
 in
 {
@@ -15,7 +15,7 @@ in
     # Local wallpaper-scripts module for changing wallpapers
     wallpaper-scripts = {
       enable = true;
-      os = if make_opts.isLinux then "linux" else "darwin";
+      os = if makeNix.isLinux makeNixAttrs.system then "linux" else "darwin";
     };
     # Better cat
     bat = {

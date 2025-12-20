@@ -5,6 +5,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
+trap 'cleanup 130 SIGNAL' INT TERM QUIT # one generic non-zero code for signals
+
 has_cmd() {
   search_path="$PATH"
 
@@ -17,8 +19,8 @@ has_cmd() {
 
 
 # Dependency groups
-common_deps="cat dirname grep printf pwd rm tee"
-install_deps="chmod curl cut hostname mkdir shasum"
+common_deps="cat dirname grep pgrep printf pwd rm tee"
+install_deps="chmod curl cut hostname mkdir sed shasum tr"
 if [ "${UNAME_S:-}" = "Linux" ]; then 
 	uninstall_deps="cp cmp diff grep groupdel read rm sed seq sudo tee userdel"
 else
@@ -27,7 +29,7 @@ fi
 config_common_deps="git hostname uname whoami"
 config_system_deps="sudo"
 
-spec_boot_opt_deps="cut xargs"
+spec_boot_opt_deps="cut test xargs"
 set_spec_boot_opt_deps="sudo"
 use_cache_opt_deps="cut mkdir read sudo"
 nix_darwin_opt_deps="sudo"

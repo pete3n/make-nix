@@ -18,36 +18,68 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 
 	# shellcheck disable=SC2059
 	logf() {
-		printf "$@" | tee -a "$MAKE_NIX_LOG"
+		if [ -n "${MAKE_NIX_LOG:-}" ]; then
+			printf "$@" | tee -a "$MAKE_NIX_LOG"
+		else
+			printf "$@"
+		fi
 	}
 
-	cleaned=false
-	cleanup_on_halt() {
-		$cleaned && return
-		status=$1
-		if [ "$status" -ne 0 ]; then
-			logf "\nCleaning up...\n"
-			SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-			# shellcheck disable=SC1091
-			sh "$SCRIPT_DIR/clean.sh"
-			cleaned=true
+	# run a command as root (uses sudo unless already root)
+	as_root() {
+		if [ "$(id -u)" -eq 0 ]; then
+			"$@"
+		else
+			sudo "$@"
 		fi
-		exit "$status"
+	}
+
+	_CLEANED=0
+	cleanup() {
+		[ "$_CLEANED" -eq 1 ] && return
+		_CLEANED=1
+
+		status=${1:-0}
+		reason=${2:-EXIT}
+		printf '\n[cleanup] script=%s reason=%s exit_code=%s\n' \
+			"${0##*/}" "$reason" "$status" >&2
+		if ! is_truthy "${KEEP_LOGS:-}"; then
+			dir=${MAKE_NIX_TMPDIR:-}
+			if [ -n "$dir" ] && [ -d "$dir" ]; then
+				# Prevent deleting root paths if $dir gets truncated somehow
+				case "$dir" in "" | / | /tmp | /var/tmp) : ;; *) rm -rf -- "$dir" ;; esac
+			fi
+		fi
+
+		# Do not 'exit' on EXIT trap; only exit on INT/TERM so the script stops.
+		[ "$reason" = EXIT ] || exit "$status"
 	}
 
 	has_nix() {
-		if command -v nix >/dev/null 2>&1; then
-			return 0
-		else
-			return 1
-		fi
+		command -v nix >/dev/null 2>&1
 	}
 
-	source_nix() {
-		if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
-			# shellcheck disable=SC1091
-			. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-		fi
+	has_nix_daemon() {
+		case "$UNAME_S" in
+		Darwin)
+			sudo launchctl print system/org.nixos.nix-daemon >/dev/null 2>&1
+			;;
+		Linux)
+			if command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ]; then
+				systemctl is-active --quiet nix-daemon
+			else
+				# Fallback for non-systemd Linux
+				pgrep -x nix-daemon >/dev/null 2>&1
+			fi
+			;;
+		*)
+			return 1
+			;;
+		esac
+	}
+
+	nix_daemon_socket_up() {
+		[ -S /nix/var/nix/daemon-socket/socket ]
 	}
 
 	has_nixos() {
@@ -59,18 +91,16 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 	}
 
 	has_nix_darwin() {
-		if command -v darwin-rebuild >/dev/null 2>&1; then
-			return 0
-		else
-			return 1
-		fi
+		[ "$UNAME_S" = "Darwin" ] || return 1
+		# Activated system export OR tool still on PATH
+		[ -x /run/current-system/sw/bin/darwin-rebuild ] || command -v darwin-rebuild >/dev/null 2>&1
 	}
 
-	has_goal() {
-		case " $MAKE_GOALS " in
-		*" $1 "*) return 0 ;;
-		*) return 1 ;;
-		esac
+	source_nix() {
+		if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
+			# shellcheck disable=SC1091
+			. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+		fi
 	}
 
 	has_tag() {
@@ -80,4 +110,18 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		esac
 	}
 
+	resolve_path() {
+		# $1 = file path (can be relative, with ../, etc.)
+		dir="$(cd "$(dirname "$1")" && pwd)"
+		base="$(basename "$1")"
+		printf '%s/%s\n' "$dir" "$base"
+	}
+
+	is_deadlink() {
+		if [ -L "$1" ] && [ ! -e "$1" ]; then
+			return 0
+		else
+			return 1
+		fi
+	}
 fi # _COMMON_SH_INCLUDED

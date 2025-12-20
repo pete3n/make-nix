@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
-trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
+trap 'cleanup 130 SIGNAL' INT TERM QUIT # one generic non-zero code for signals
 
 if ! has_nix && (source_nix && has_nix); then
 	printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
@@ -16,7 +16,7 @@ logf "\n%b>>> Cache configuration started...%b\n" "$BLUE" "$RESET"
 
 # Sanity check
 if [ -z "${NIX_CACHE_URLS:-}" ]; then
-	logf "\n%b⚠️warning:%b %bUSE_CACHE%b was enabled but no NIX_CACHE_URLS were set.\nCheck your make.env file.\n" "$YELLOW" "$RESET" "$BLUE" "$RESET"
+	logf "\n%b ⚠️warning:%b %bUSE_CACHE%b was enabled but no NIX_CACHE_URLS were set.\nCheck your make.env file.\n" "$YELLOW" "$RESET" "$BLUE" "$RESET"
 	exit 1
 fi
 
@@ -24,13 +24,14 @@ csv_to_space() {
 	printf "%s" "$1" | tr ',' ' '
 }
 
-# Paths
-user_nix_conf="$HOME/.config/nix/nix.conf"
 nix_conf="/etc/nix/nix.conf"
 
-# Ensure files exist
-mkdir -p "$(dirname "$user_nix_conf")"
-[ -f "$user_nix_conf" ] || touch "$user_nix_conf"
+# If the config is managed by Nix, then we shouldn't modify it.
+if ! is_deadlink $nix_conf; then
+	logf "\n%b ⚠️warning:%b %b%s%b appears to be managed by Nix already. Cannot edit.\n" \
+		"$BLUE" "$RESET" "$MAGENTA" "$nix_conf" "$RESET"
+	exit 0
+fi
 
 sudo mkdir -p "$(dirname "$nix_conf")"
 [ -f "$nix_conf" ] || sudo touch "$nix_conf"
@@ -76,14 +77,9 @@ else
 	logf "\n%binfo:%b download-buffer-size already set in %s, not modifying.\n" "$BLUE" "$RESET" "$nix_conf"
 fi
 
-# substituters in user config
-logf "\n%binfo:%b setting %bsubstituters%b = %s \nin %b%s%b\n" \
-	"$BLUE" "$RESET" "$CYAN" "$RESET" "$cache_urls" "$MAGENTA" "$user_nix_conf" "$RESET"
-set_conf_value "$user_nix_conf" "substituters" "$cache_urls"
-
 # Restart daemon
 logf "%b>>> Restarting Nix daemon to apply changes...%b\n" "$BLUE" "$RESET"
-case "$(uname)" in
+case "${UNAME_S:-}" in
 Darwin)
 	if sudo launchctl kickstart -k system/org.nixos.nix-daemon; then
 		logf "%b✓ nix-daemon restarted successfully on macOS.%b\n" "$GREEN" "$RESET"

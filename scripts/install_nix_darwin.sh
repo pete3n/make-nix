@@ -4,39 +4,77 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
-
-
-clobber_list="nix/nix.conf zshenv zshrc bashrc"
+clobber_list="zshenv zshrc bashrc"
 restored=false
 restoration_list=""
 
+backup_files() {
+	for file in $clobber_list; do
+		if [ -e "/etc/${file}" ]; then
+			logf "%binfo:%b backing up /etc/%s\n" "$BLUE" "$RESET" "$file"
+			sudo mv "/etc/$file" "/etc/${file}.before_darwin"
+		fi
+	done
+	if [ -f /etc/nix/nix.conf ]; then
+		sudo mv /etc/nix/nix.conf /etc/nix/nix.conf.before_darwin
+	fi
+}
+
 restore_clobbered_files() {
-  if [ "$restored" = false ] && [ -n "$restoration_list" ]; then
-    logf "\n%binfo:%b restoring original files after failed install...\n" "$BLUE" "$RESET"
-    for file in $restoration_list; do
-      if [ -e "/etc/${file}.before_darwin" ]; then
-        logf "  ↩️  restoring /etc/%s\n" "$file"
-        sudo mv "/etc/${file}.before_darwin" "/etc/$file"
-      fi
-    done
-    restored=true
-  fi
+	if [ "$restored" = false ] && [ -n "$restoration_list" ]; then
+		logf "\n%binfo:%b restoring original files after failed install...\n" "$BLUE" "$RESET"
+		for file in $restoration_list; do
+			if [ -e "/etc/${file}.before_darwin" ]; then
+				logf "  ↩️  restoring /etc/%s\n" "$file"
+				if sudo cp "/etc/${file}.before_darwin" "/etc/$file"; then
+					sudo rm -f "/etc/${file}.before_darwin"
+				fi
+			fi
+		done
+		restored=true
+	fi
 }
 
 trap 'restore_clobbered_files' EXIT INT TERM QUIT
+trap 'cleanup 130 SIGNAL' INT TERM QUIT # one generic non-zero code for signals
+
+ensure_nix_daemon() {
+	if ! [ -x /nix/var/nix/profiles/default/bin/nix-daemon ]; then
+		logf "\n%berror:%b nix-daemon binary missing in default profile\n" "$RED" "$RESET"
+		exit 1
+	fi
+
+	sudo launchctl enable system/org.nixos.nix-daemon || true
+	sudo launchctl bootstrap system /Library/LaunchDaemons/org.nixos.nix-daemon.plist 2>/dev/null || true
+	sudo launchctl kickstart -k system/org.nixos.nix-daemon || true
+
+	# Wait for the socket
+	i=1
+	while [ $i -lt 20 ] && ! [ -S /nix/var/nix/daemon-socket/socket ]; do
+		i=$((i + 1))
+		sleep 0.1
+	done
+
+	if ! [ -S /nix/var/nix/daemon-socket/socket ]; then
+		logf "\n%berror:%b nix-daemon socket missing after bootstrap/kickstart\n" "$RED" "$RESET"
+		sudo launchctl print system/org.nixos.nix-daemon | sed -n '1,120p' >&2 || true
+		exit 1
+	fi
+}
 
 logf "\n%binfo:%b backing up files before Nix-Darwin install...\n" "$BLUE" "$RESET"
 for file in $clobber_list; do
-  if [ -e "/etc/$file" ]; then
-    logf "%b🗂  moving%b %b/etc/%s%b → %b/etc/%s.before_darwin%b\n" "$BLUE" "$RESET" \
+	if [ -e "/etc/$file" ]; then
+		logf "%b🗂  moving%b %b/etc/%s%b → %b/etc/%s.before_darwin%b\n" "$BLUE" "$RESET" \
 			"$MAGENTA" "$file" "$RESET" "$MAGENTA" "$file" "$RESET"
-    sudo mv "/etc/$file" "/etc/${file}.before_darwin"
-    restoration_list="$restoration_list $file"
-  fi
+		sudo mv "/etc/$file" "/etc/${file}.before_darwin"
+		restoration_list="$restoration_list $file"
+	fi
 done
 
-"$SCRIPT_DIR/write_make_opts.sh"
+"$SCRIPT_DIR/write_nix_attrs.sh"
 
+# Re-source env because write_nix_attrs could pupulate user, host, system etc.
 # shellcheck disable=SC1090
 . "$MAKE_NIX_ENV"
 
@@ -44,20 +82,40 @@ nix_conf_backup="/etc/nix/nix.conf.before_darwin"
 substituters=""
 
 if [ -f "$nix_conf_backup" ]; then
-  subs_line=$(grep '^trusted-substituters[[:space:]]*=' "$nix_conf_backup" || true)
-  if [ -n "$subs_line" ]; then
-    subs_values=$(printf "%s\n" "$subs_line" | cut -d'=' -f2- | sed 's/^ *//' | tr -s ' ')
-    substituters="$subs_values $substituters"
-  fi
+	subs_line=$(grep '^trusted-substituters[[:space:]]*=' "$nix_conf_backup" || true)
+	if [ -n "$subs_line" ]; then
+		subs_values=$(printf "%s\n" "$subs_line" | cut -d'=' -f2- | sed 's/^ *//' | tr -s ' ')
+		substituters="$subs_values $substituters"
+	fi
 fi
 
-logf "\n%binfo:%b installing Nix-Darwin with command:\n" "$BLUE" "$RESET"
-logf "sudo nix run --option experimental-features \"nix-command flakes\" --option trusted-substituters \"$substituters\" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .#%s\n" "$TGT_HOST" 
-if sudo nix run --option experimental-features "nix-command flakes" --option trusted-substituters "$substituters" nix-darwin/nix-darwin-25.05#darwin-rebuild -- switch --flake .#"${TGT_HOST}"; then
-  logf "\n%b✓ Nix-Darwin install succeeded.%b\n" "$GREEN" "$RESET"
-  # Prevent restoration on trap
-  restoration_list=""
+ensure_nix_daemon
+
+if has_nix_darwin; then
+	logf "\n%binfo:%b Nix-Darwin already appears to be installed. Skipping installation...\n" "$BLUE" "$RESET"
+	logf "If you want to re-install, please run 'make uninstall' first.\n"
+	exit 0
+fi
+
+logf "\n%binfo:%b building Nix-Darwin with command:\n" "$BLUE" "$RESET"
+logf "nix build --option experimental-features \"nix-command flakes\" .#darwinConfigurations.%b%s%b@%b%s%b.system\n" \
+	"$CYAN" "$TGT_USER" "$RESET" "$CYAN" "$TGT_HOST" "$RESET"
+if nix build --option experimental-features "nix-command flakes" .#darwinConfigurations."${TGT_USER}@${TGT_HOST}".system; then
+	logf "\n%b✓ Nix-Darwin build success.%b\n" "$GREEN" "$RESET"
 else
-  logf "\n%b❌%b Nix-Darwin install failed. Files will be restored.\n" "$RED" "$RESET"
-  exit 1
+	logf "\n%b❌%b Nix-Darwin build failed. Files will be restored.\n" "$RED" "$RESET"
+	exit 1
+fi
+
+backup_files
+
+logf "\n%binfo:%b activating Nix-Darwin with command:\n" "$BLUE" "$RESET"
+logf "sudo ./result/activate\n"
+if sudo ./result/activate; then
+	logf "\n%b✓ Nix-Darwin activation success.%b\n" "$GREEN" "$RESET"
+	# Prevent restoration on trap
+	restoration_list=""
+else
+	logf "\n%b❌%b Nix-Darwin activation failed. Files will be restored.\n" "$RED" "$RESET"
+	exit 1
 fi

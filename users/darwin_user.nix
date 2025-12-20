@@ -1,7 +1,7 @@
 {
   lib,
   pkgs,
-  make_opts,
+  makeNixAttrs,
   ...
 }:
 let
@@ -10,7 +10,7 @@ let
     "poweruser"
   ];
 
-  availableTags = builtins.filter (tag: builtins.elem tag userRoleTags) make_opts.tags;
+  availableTags = builtins.filter (tag: builtins.elem tag userRoleTags) makeNixAttrs.tags;
 
   tagDescriptionMap = {
     sudoer = "Has additional rights when connecting to the Nix daemon.";
@@ -19,8 +19,8 @@ let
 
   # Add user to trusted-users if they have the sudoer or poweruser tag
   trustedUsers = lib.optionals (
-    builtins.elem "sudoer" make_opts.tags || builtins.elem "poweruser" make_opts.tags
-  ) [ make_opts.user ];
+    builtins.elem "sudoer" makeNixAttrs.tags || builtins.elem "poweruser" makeNixAttrs.tags
+  ) [ makeNixAttrs.user ];
 
   tagRoleDescription = lib.concatStringsSep "; " (
     builtins.map (tag: tagDescriptionMap.${tag}) availableTags
@@ -28,8 +28,8 @@ let
 in
 {
   # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.${make_opts.user} = {
-    home = "/Users/${make_opts.user}";
+  users.users.${makeNixAttrs.user} = {
+    home = "/Users/${makeNixAttrs.user}";
     shell = pkgs.zsh;
     description = tagRoleDescription;
   };

@@ -1,9 +1,9 @@
 {
   inputs,
-  outputs,
   lib,
   pkgs,
-  make_opts,
+  makeNixAttrs,
+  homeModules,
   ...
 }:
 
@@ -18,7 +18,7 @@
 let
   linuxTags = [ "hyprland" ];
 
-  availableTags = builtins.filter (tag: builtins.elem tag linuxTags) make_opts.tags;
+  availableTags = builtins.filter (tag: builtins.elem tag linuxTags) makeNixAttrs.tags;
 
   tagImportMap = {
     hyprland = [
@@ -28,10 +28,11 @@ let
   };
 
   tagImports = lib.flatten (builtins.map (tag: tagImportMap.${tag}) availableTags);
+
 in
 {
   imports =
-    builtins.attrValues outputs.homeModules
+    builtins.attrValues homeModules
     ++ [
       ../cross-platform/alacritty-config.nix
       ../cross-platform/git-config.nix
@@ -47,12 +48,6 @@ in
     ++ tagImports;
 
   nixpkgs = {
-    overlays = [
-      outputs.overlays.unstable-packages
-      outputs.overlays.local-packages
-      outputs.overlays.mod-packages
-      outputs.overlays.nixgl
-    ];
     config = {
       allowUnfree = true;
       # Workaround for https://github.com/nix-community/home-manager/issues/2942
@@ -246,6 +241,7 @@ in
 		};
 
     clip58.enable = true;
+    quickNotes.enable = true;
 
     lazydocker = {
       enable = true;

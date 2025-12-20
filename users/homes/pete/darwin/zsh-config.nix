@@ -1,14 +1,14 @@
 {
   pkgs,
   lib,
-  make_opts,
+  makeNixAttrs,
   ...
 }:
 {
   programs.zsh =
     let
       tmux_preserve_path =
-        lib.optionalString make_opts.isHomeAlone # sh
+        lib.optionalString makeNixAttrs.isHomeAlone # sh
           ''
             # For non-NixOS or Nix-Darwin systems preserve PATH for tmux.
             # Determine path to store saved PATH

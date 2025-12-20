@@ -1,12 +1,46 @@
 #!/usr/bin/env sh
 set -eu
+
+IS_FINAL_GOAL=0
+
+while getopts ':F:' opt; do
+  case "$opt" in
+    F)
+      case "$OPTARG" in
+        0|1) IS_FINAL_GOAL=$OPTARG ;;
+        *) printf '%s: invalid -F value: %s (expected 0 or 1)\n' "${0##*/}" "$OPTARG" >&2; exit 2 ;;
+      esac
+      ;;
+    :)
+      printf '%s: option -%s requires an argument\n' "${0##*/}" "$OPTARG" >&2
+      exit 2
+      ;;
+    \?)
+      printf '%s: invalid option -- %s\n' "${0##*/}" "$OPTARG" >&2
+      exit 2
+      ;;
+  esac
+done
+shift $((OPTIND - 1))
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$SCRIPT_DIR/common.sh"
 
-trap 'cleanup_on_halt $?' EXIT INT TERM QUIT
+cleanup_on_exit() {
+  status=$?
+  if [ "$status" -ne 0 ] && [ "${IS_FINAL_GOAL:-0}" -eq 1 ]; then
+    cleanup "$status" ERROR
+  fi
+  exit "$status"
+}
 
-MAKE_GOALS="${1:-install}" # default to "install" if nothing is passed
+trap 'cleanup_on_exit' 0
+
+trap '
+  [ "${IS_FINAL_GOAL:-0}" -eq 1 ] && cleanup 130 SIGNAL
+  exit 130
+' INT TERM QUIT
 
 check_integrity() {
 	URL=$1
@@ -28,23 +62,6 @@ check_integrity() {
 		chmod +x "$MAKE_NIX_INSTALLER"
 	fi
 }
-
-if [ "${UNAME_S:-}" != "Linux" ] && [ "${UNAME_S:-}" != "Darwin" ]; then
-	printf "%binfo%b: unsupported OS: %s\n" "$BLUE" "$RESET" "${UNAME_S:-}"
-	exit 1
-fi
-
-if has_nixos; then
-	printf "%binfo:%b NixOS is installed. Installation aborted...\n" "$BLUE" "$RESET"
-	exit 0
-fi
-
-if has_nix_darwin; then
-	printf "%binfo:%b Nix-Darwin is installed. Installation aborted...\n" "$BLUE" "$RESET"
-	exit 0
-fi
-
-sh "$SCRIPT_DIR/check_deps.sh" "$MAKE_GOALS"
 
 # Only the determinate installer works with SELinux
 if [ -z "${DETERMINATE:-}" ]; then
@@ -145,7 +162,7 @@ if is_truthy "${NIX_DARWIN:-}"; then
 		logf "\n%b>>> Installing nix-darwin...%b\n" "$BLUE" "$RESET"
 
 		if ! has_nix && (source_nix && has_nix); then
-			printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
+			logf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
 			exit 1
 		fi
 
@@ -156,11 +173,6 @@ if is_truthy "${NIX_DARWIN:-}"; then
 	fi
 fi
 
-if has_goal install && has_goal home && has_tag hyprland; then
-	printf "HYPRLAND_SETUP=true\n" >> "$MAKE_NIX_ENV"
-fi
-
-other_targets=$(printf "%s\n" "$MAKE_GOALS" | tr ' ' '\n' | grep -v '^install$')
-if [ -z "$other_targets" ]; then
-	sh "$SCRIPT_DIR/clean.sh"
+if has_tag hyprland && is_truthy "${HOME_ALONE:-}" && is_truthy "${IS_LINUX}"; then
+	printf "HYPRLAND_SETUP=true\n" >>"$MAKE_NIX_ENV"
 fi
