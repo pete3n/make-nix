@@ -46,7 +46,7 @@
         # NOTE: This is imperative and dependent on the USB Thunderbolt port
         # that the eGPU is connected to
         nvidiaBusId = "PCI:65:0:0";
-        intelBusId = "PCI:2:0:0";
+				amdgpuBusId = "PCI:195@0:0:0";
       };
     };
 
@@ -65,7 +65,7 @@
 
     # Add symlink to eGPU for Hyprland
     services.udev.extraRules = ''
-      ACTION=="add", SUBSYSTEM=="pci", ATTRS{vendor}=="0x10de", ATTRS{device}=="0x2216", ENV{SYSTEMD_WANTS}+="egpu-link.service", TAG+="systemd"
+      ACTION=="add", SUBSYSTEM=="pci", ATTRS{vendor}=="0x10de", ATTRS{device}=="0x2216", ENV{SYSTEMD_WANTS}+="egpuLink.service", TAG+="systemd"
     '';
 
     services.xserver.videoDrivers = [
