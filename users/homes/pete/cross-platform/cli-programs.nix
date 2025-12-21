@@ -53,10 +53,6 @@ in
     } // shellIntegration;
     keychain = {
       enable = true;
-      agents = [
-        "ssh"
-        "gpg"
-      ];
       keys = [ "pete3n" ];
     } // shellIntegration;
     # Starship cross-shell prompt config
