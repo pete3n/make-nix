@@ -2,13 +2,15 @@
 {
   programs.git = {
     enable = true;
-    userName = "pete3n";
-    userEmail = "pete3n@protonmail.com";
-    extraConfig = {
+    settings = {
       core.editor = "nvim";
       init = {
         defaultBranch = "main"; # Github default
         templateDir = "${config.home.homeDirectory}/.git-templates";
+      };
+      user = {
+        name = "pete3n";
+        email = "pete3n@protonmail.com";
       };
     };
   };
