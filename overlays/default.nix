@@ -34,12 +34,10 @@ let
         crossPlatformPackages = import ../packages/cross-platform { inherit pkgs; };
 
         # Import linux-only packages if our target is linux
-        linuxPackages =
-          if isLinuxFor final then import ../packages/linux { inherit pkgs; } else { };
+        linuxPackages = if isLinuxFor final then import ../packages/linux { inherit pkgs; } else { };
 
         # Import darwin-only packages if our target is darwin
-        darwinPackages =
-          if isDarwinFor final then import ../packages/darwin { inherit pkgs; } else { };
+        darwinPackages = if isDarwinFor final then import ../packages/darwin { inherit pkgs; } else { };
       in
       # Merge all packages into `local`
       crossPlatformPackages // linuxPackages // darwinPackages;
@@ -57,35 +55,29 @@ let
             postInstall =
               (oldAttrs.postInstall or "")
               +
-                # sh
-                ''
-                  mv $out/bin/Hyprland $out/bin/Hyprland.unwrapped
-                  makeWrapper ${final.nixgl.nixGLIntel}/bin/nixGLIntel $out/bin/Hyprland \
-                  --add-flags "$out/bin/Hyprland.unwrapped"
-                '';
+              # sh
+              ''
+                mv $out/bin/Hyprland $out/bin/Hyprland.unwrapped
+                makeWrapper ${final.nixgl.nixGLIntel}/bin/nixGLIntel $out/bin/Hyprland \
+                --add-flags "$out/bin/Hyprland.unwrapped"
+              '';
           });
 
           # Workaround for: https://github.com/signalapp/Signal-Desktop/issues/6855
           # Cannot find target for triple amdgcn--
           no-gpu-signal-desktop = prev.unstable.signal-desktop.overrideAttrs (oldAttrs: {
-            installPhase =
-              oldAttrs.installPhase
-              + ''
-                wrapProgram $out/bin/signal-desktop \
-                --set LIBGL_ALWAYS_SOFTWARE 1 \
-                --set ELECTRON_DISABLE_GPU true
-              '';
+            installPhase = oldAttrs.installPhase + ''
+              wrapProgram $out/bin/signal-desktop \
+              --set LIBGL_ALWAYS_SOFTWARE 1 \
+              --set ELECTRON_DISABLE_GPU true
+            '';
           });
 
           _86Box = prev._86Box-with-roms.overrideAttrs (oldAttrs: {
-            preFixup =
-              oldAttrs.preFixup
-              + ''
-                makeWrapperArgs+=(--set QT_QPA_PLATFORM "xcb")
-              '';
+            preFixup = oldAttrs.preFixup + ''
+              makeWrapperArgs+=(--set QT_QPA_PLATFORM "xcb")
+            '';
           });
-
-          rofi-calc-wayland = prev.rofi-calc.override { rofi-unwrapped = prev.rofi-wayland-unwrapped; };
         }
       else
         throw "The 'unstable' or 'local' overlay is missing. The mod overlay \
@@ -97,16 +89,13 @@ let
   # be accessible through 'pkgs.unstable'
   unstable-packages = final: _prev: {
     unstable = import inputs.nixpkgs-unstable {
-			localSystem = final.stdenv.hostPlatform;
+      localSystem = final.stdenv.hostPlatform;
       config.allowUnfree = true;
     };
   };
 
   linux-compatibility-packages =
-    final: prev:
-    if isLinuxFor final then
-			inputs.nixgl.overlay final prev
-    else {};
+    final: prev: if isLinuxFor final then inputs.nixgl.overlay final prev else { };
 
 in
 {
