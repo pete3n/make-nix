@@ -82,10 +82,9 @@
         "hypr-session-restore"
       ];
 
-      gestures = {
-        workspace_swipe = true;
-        workspace_swipe_forever = true;
-      };
+      gesture = [
+				"3, horizontal, workspace"
+      ];
 
       # List available monitors with: hyprctl monitors
       # Format is: OutputName, resolution, position, scaling
