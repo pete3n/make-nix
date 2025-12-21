@@ -47,13 +47,16 @@
     };
   };
 
+	services = {
+		swww.enable = true; # Wallpaper service
+	};
+
   # All Wayland/Hyprland dependent packages
   home.packages = with pkgs; [
     cliphist # Clipboard manager for wayland with text and image support
     grim # Screecap
 		hyprshot # Easy screenshot tool
     slurp # Compositor screen selection tool
-    swww # Wallpaper switcher
     wdisplays # Graphical display layout for wayland
     wev # Wayland environment diagnostics
     wl-clipboard # Wayland clipboard
@@ -75,7 +78,6 @@
       exec-once = [
         "wl-paste --type text --watch cliphist store" # Store clipboard text
         "wl-paste --type image --watch cliphist store" # Store clipboard images
-        "swww init"
         "wallpaper-set"
         "hypr-session-restore"
       ];
