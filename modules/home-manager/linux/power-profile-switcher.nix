@@ -98,7 +98,7 @@ in
         "balanced"
         "performance"
       ];
-      default = "balanced";
+      default = "power-saver";
       description = ''
         				Powerprofile to switch to when on battery.
         				One of: "power-saver", "balanced", or "performance"
