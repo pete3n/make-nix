@@ -136,9 +136,9 @@ in
   config = lib.mkIf cfg.enable {
     programs.wallpaper-scripts.wallpaperPath = lib.mkDefault (
       if config.programs.wallpaper-scripts.os == "darwin" then
-        "/Users/${make_opts.user}/Pictures/wallpapers/default_background.png"
+        "/Users/${makeNixAttrs.user}/Pictures/wallpapers/default_background.png"
       else
-        "/home/${make_opts.user}/Pictures/wallpapers/default_background.png"
+        "/home/${makeNixAttrs.user}/Pictures/wallpapers/default_background.png"
     );
     home.packages = [
       wallpaperSetScript
