@@ -17,7 +17,7 @@ in
     };
     profiles.pete3n = {
       bookmarks = { };
-      extensions.packages = with inputs.firefox-addons.packages.${pkgs.system}; [
+      extensions.packages = with inputs.firefox-addons.packages.${pkgs.stdenv.hostPlatform.system}; [
         ublock-origin
         tridactyl
       ];
