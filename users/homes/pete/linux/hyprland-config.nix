@@ -25,15 +25,15 @@
 
     rofi = {
       enable = true;
-      package = pkgs.rofi-wayland;
+      package = pkgs.rofi;
       cycle = true;
       location = "center";
       theme = config.rofi.theme;
       plugins = (
         with pkgs;
         [
-          mod.rofi-calc-wayland
-          rofi-emoji-wayland
+          rofi-calc
+          rofi-emoji
         ]
       );
       xoffset = 0;
