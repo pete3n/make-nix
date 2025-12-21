@@ -29,6 +29,11 @@ let
 
   tagImports = lib.flatten (builtins.map (tag: tagImportMap.${tag}) availableTags);
 
+	blenderCuda = pkgs.blender.override {
+		# Build Blender with CUDA support
+		cudaSupport = true;
+	};
+
 in
 {
   imports =
@@ -50,8 +55,6 @@ in
   nixpkgs = {
     config = {
       allowUnfree = true;
-      # Workaround for https://github.com/nix-community/home-manager/issues/2942
-      allowUnfreePredicate = _: true;
     };
   };
 
@@ -70,16 +73,16 @@ in
 
     userDirs = {
       enable = true;
-      documents = "/home/${make_opts.user}/Documents";
-      download = "/home/${make_opts.user}/Downloads";
-      music = "/home/${make_opts.user}/Music";
-      pictures = "/home/${make_opts.user}/Pictures";
-      publicShare = "/home/${make_opts.user}/Public";
-      templates = "/home/${make_opts.user}/Templates";
-      videos = "/home/${make_opts.user}/Videos";
+      documents = "/home/${makeNixAttrs.user}/Documents";
+      download = "/home/${makeNixAttrs.user}/Downloads";
+      music = "/home/${makeNixAttrs.user}/Music";
+      pictures = "/home/${makeNixAttrs.user}/Pictures";
+      publicShare = "/home/${makeNixAttrs.user}/Public";
+      templates = "/home/${makeNixAttrs.user}/Templates";
+      videos = "/home/${makeNixAttrs.user}/Videos";
 
       extraConfig = {
-        XDG_PROJECT_DIR = "/home/${make_opts.user}/Projects";
+        XDG_PROJECT_DIR = "/home/${makeNixAttrs.user}/Projects";
       };
     };
   };
@@ -87,14 +90,14 @@ in
   home = {
     # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
     stateVersion = "24.05";
-    username = "${make_opts.user}";
-    homeDirectory = "/home/${make_opts.user}";
+    username = "${makeNixAttrs.user}";
+    homeDirectory = "/home/${makeNixAttrs.user}";
 
     packages =
       # Build the default Nixvim package for the system architecture
-      [ inputs.nixvim.packages.${make_opts.system}.default ]
+      [ inputs.nixvim.packages.${makeNixAttrs.system}.default ]
       # non-NixOS systems get
-      ++ lib.optionals make_opts.isHomeAlone [
+      ++ lib.optionals makeNixAttrs.isHomeAlone [
         pkgs.nixgl.nixGLIntel
         pkgs.nixgl.nixVulkanIntel
       ]
@@ -113,7 +116,7 @@ in
         mod._86Box
         mosh # Mobile-shell SSH replacement
         nextcloud-client
-        onlyoffice-bin
+        onlyoffice-desktopeditors
         protonmail-bridge
         remmina
         unstable.standardnotes
@@ -170,7 +173,6 @@ in
         ### Media tools
         drawio # Open Visio replacement
         gimp # Image editing
-
         handbrake # DVD wripping
         inkscape-with-extensions # Vector graphics
         rhythmbox # Music player
@@ -203,7 +205,9 @@ in
         socat
         termshark
         wireshark
-      ]);
+      ]) ++ lib.optionals pkgs.stdenv.isLinux [
+				blenderCuda
+			];
   };
 
   # systemd --user services
@@ -213,9 +217,9 @@ in
       # TODO: Configure dynamically
       local.destination = "/mnt/nfs/share/backups/fw16-pete";
       patterns = [
-        "R /home/${make_opts.user}"
-        "- /home/${make_opts.user}/.cache"
-        "- /home/${make_opts.user}/Downloads"
+        "R /home/${makeNixAttrs.user}"
+        "- /home/${makeNixAttrs.user}/.cache"
+        "- /home/${makeNixAttrs.user}/Downloads"
       ];
     };
 
