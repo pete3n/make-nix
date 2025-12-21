@@ -125,7 +125,6 @@
         "XCURSOR_SIZE,24"
         # Fix for Nvidia GPU output
         "WLR_NO_HARDWARE_CURSORS,1"
-        "WLR_DRM_DEVICES,/var/run/egpu:/dev/dri/card0:/dev/dri/card1"
       ];
 
       # Fix for steam menus
