@@ -5,4 +5,5 @@
 	backup = import ./cross-platform/backup.nix;
 	battery-minder = import ./linux/battery-minder.nix;
 	power-profile-switcher = import ./linux/power-profile-switcher.nix;
+	quickNotes = import ./cross-platform/quick_notes.nix;
 }
