@@ -1,7 +1,7 @@
 { config, pkgs, ... }:
 {
   home.packages = [
-    pkgs.mpc-cli # Media player daemon CLI interface
+    pkgs.mpc # Media player daemon CLI interface
   ];
 
   services.mpd = {
