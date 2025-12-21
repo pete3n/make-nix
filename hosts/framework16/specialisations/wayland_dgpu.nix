@@ -1,11 +1,16 @@
-{ pkgs, lib, outputs, ... }:
+{
+  pkgs,
+  lib,
+  outputs,
+  ...
+}:
 {
   configuration = {
     system.nixos.tags = [
       "wayland"
-      "eGPU"
+      "dGPU"
       "nvidia"
-      "RTX-3080"
+      "RTX-5070"
     ];
     nixpkgs.config = {
       allowUnfree = true;
@@ -18,13 +23,19 @@
 
     environment.systemPackages = with pkgs; [ cudaPackages.cudatoolkit ];
 
-    systemd.services.egpuLink = {
-      description = "Create eGPU symbolic link";
+    systemd.services.dgpuLink = {
+      description = "Create dGPU symbolic link";
       wantedBy = [ "multi-user.target" ];
-      script = ''
-        #!/bin/sh
-        ln -sf /dev/dri/card1 /var/run/egpu
-      '';
+      script =  #sh
+        ''
+          #!/bin/sh
+          GPU_PCI="0000:c2:00.0"
+          
+          card_dir="$(echo /sys/bus/pci/devices/"$GPU_PCI"/drm/card*)"
+          card_name="$(basename "$card_dir")"
+          
+          ln -sf "/dev/dri/$card_name" /run/dgpu
+        '';
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;
@@ -33,20 +44,17 @@
 
     hardware.nvidia = {
       modesetting.enable = true;
-      powerManagement.enable = false;
+      powerManagement.enable = true;
       open = true;
       nvidiaSettings = true;
 
       prime = {
+				amdgpuBusId = "PCI:195@0:0:0";
+				nvidiaBusId = "PCI:194@0:0:0";
         offload = {
           enable = true;
           enableOffloadCmd = true;
         };
-        allowExternalGpu = true;
-        # NOTE: This is imperative and dependent on the USB Thunderbolt port
-        # that the eGPU is connected to
-        nvidiaBusId = "PCI:65:0:0";
-        intelBusId = "PCI:2:0:0";
       };
     };
 
@@ -63,9 +71,9 @@
       ];
     };
 
-    # Add symlink to eGPU for Hyprland
+    # Add symlink to dGPU for Hyprland
     services.udev.extraRules = ''
-      ACTION=="add", SUBSYSTEM=="pci", ATTRS{vendor}=="0x10de", ATTRS{device}=="0x2216", ENV{SYSTEMD_WANTS}+="egpu-link.service", TAG+="systemd"
+      ACTION=="add", SUBSYSTEM=="pci", KERNELS=="0000:c2:00.0", ENV{SYSTEMD_WANTS}+="dgpuLink.service", TAG+="systemd"
     '';
 
     services.xserver.videoDrivers = [
