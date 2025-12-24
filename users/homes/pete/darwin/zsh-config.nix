@@ -32,8 +32,8 @@
             	fi
 
             	if [ "$PATH" != "$SAVED_PATH" ]; then
-            		echo "PATH has changed or not yet saved, updating $PATH_STATE_FILE"
-            		printf 'PATH="%s"\nexport PATH\n' "$PATH" >"$PATH_STATE_FILE"
+            		printf "PATH has changed or not yet saved, updating %s\n" "$PATH_STATE_FILE"
+            		printf 'PATH="%s"\nexport PATH\n' "''${PATH}" >"$PATH_STATE_FILE"
             	fi
             else
             	# Inside tmux: restore PATH if it doesn't match the saved one
@@ -41,7 +41,7 @@
             		SAVED_PATH=$(grep '^PATH=' "$PATH_STATE_FILE" | cut -d'"' -f2)
 
             		if [ "$PATH" != "$SAVED_PATH" ]; then
-            			echo "Restoring PATH from $PATH_STATE_FILE"
+            			printf "Restoring PATH from %s\n" "$PATH_STATE_FILE"
             			eval "$(cat "$PATH_STATE_FILE")"
             		fi
             	fi
@@ -69,11 +69,12 @@
           # Change the Tmux window name based on the SSH destination host
           # to more easily track open connections
           ssh() {
-          	echo "Executing custom ssh wrapper"
+          	printf "Executing custom ssh wrapper\n"
           	# Check if inside tmux
           	if ps -p $$ -o ppid= | xargs -I {} ps -p {} -o comm= | grep -qw tmux; then
           		# Save the current window name so we can restore it
-          		local original_window_name=$(tmux display-message -p '#W')
+          		local original_window_name=""
+							original_window_name=$(tmux display-message -p '#W')
 
           		reset_window_name() {
           			tmux rename-window "$original_window_name"
@@ -83,7 +84,8 @@
           		trap reset_window_name SIGINT
 
           		# Parse and extract the destination host with some really ugly character matching
-          		local destination=$(echo "$@" | sed 's/[[:space:]]*\(\(\(-[46AaCfGgKkMNnqsTtVvXxYy]\)\|\(-[^[:space:]]*\([[:space:]]\+[^[:space:]]*\)\?\)\)[[:space:]]*\)*[[:space:]]\+\([^-][^[:space:]]*\).*/\6/')
+          		local destination=""
+							destination=$(printf '%s\n' "$@" | sed 's/[[:space:]]*\(\(\(-[46AaCfGgKkMNnqsTtVvXxYy]\)\|\(-[^[:space:]]*\([[:space:]]\+[^[:space:]]*\)\?\)\)[[:space:]]*\)*[[:space:]]\+\([^-][^[:space:]]*\).*/\6/')
 
           		tmux rename-window "$destination"
 

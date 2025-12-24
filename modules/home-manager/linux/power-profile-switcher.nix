@@ -46,7 +46,7 @@ let
 			local cur max
 			cur=$(${pkgs.brightnessctl}/bin/brightnessctl g)
 			max=$(${pkgs.brightnessctl}/bin/brightnessctl m)
-			echo $(( cur * 100 / max ))
+			printf "%s\n" $(( cur * 100 / max ))
 		}
 
 		discharging_actions() {

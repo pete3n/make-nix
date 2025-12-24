@@ -36,14 +36,14 @@ let
 				BATTERY_PATH=$(find /sys/class/power_supply -maxdepth 1 -name 'BAT*' | head -n1)
 				[ -z "''${BATTERY_PATH}" ] && exit 0
 
-				STATUS=$(cat "''${BATTERY_PATH}/status" || echo "Unknown")
-				CAPACITY=$(cat "''${BATTERY_PATH}/capacity" || echo 100)
+				STATUS=$(cat "''${BATTERY_PATH}/status" || printf "Unknown\n")
+				CAPACITY=$(cat "''${BATTERY_PATH}/capacity" || printf "100\n")
 
 				if [ "''${STATUS}" = "Charging" ] || [ "''${STATUS}" = "Full" ]; then
-					echo 101 > "''${STATE_FILE}"
+					printf "101\n" > "''${STATE_FILE}"
 					exit 0
 				else
-					echo "''${CAPACITY}" > "''${STATE_FILE}"
+					printf "%s\n" "''${CAPACITY}" > "''${STATE_FILE}"
 					exit 0
 				fi
 
@@ -54,7 +54,7 @@ let
 				fi
 
 				update_last() {
-					echo "''${CAPACITY}" > "''${STATE_FILE}"
+					prtinf "%s\n" "''${CAPACITY}" > "''${STATE_FILE}"
 				}
 
 				# Check in reverse order from shutdown to hibernate to suspend to warn

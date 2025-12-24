@@ -28,7 +28,7 @@ let
         #!/usr/bin/env sh
         set -eu
         if [ $# -ne 1 ]; then
-          echo "Usage: clip58 <string>" >&2
+          printf "Usage: clip58 <string>\n" >&2
           exit 1
         fi
         encoded=$(printf "%s" "$1" | base58)

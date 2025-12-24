@@ -27,7 +27,7 @@ let
       ''
         wallpaper_path=${cfg.wallpaperPath}
         if [[ ! -f "$wallpaper_path" ]]; then
-        	echo "Wallpaper not found at $wallpaper_path"
+        	printf "Wallpaper not found at: %s\n" "''${wallpaper_path}"
         	exit 1
         fi
 
@@ -65,21 +65,21 @@ let
   */
   wallpaperCycleScript =
     pkgs.writeShellScriptBin "wallpaper-cycle"
-      # bash
+      # sh
       ''
         types="jpeg jpg png gif bmp"
         wallpaper_dir="$(dirname "${cfg.wallpaperPath}")"
         current_wallpaper="$(${getWallpaper})"
 
         if [ -z "$current_wallpaper" ]; then
-        	echo "No current wallpaper found."
+        	printf "No current wallpaper found.\n"
         	exit 1
         fi
 
         wallpaper_dir=$(dirname "$current_wallpaper")
 
         if [ ! -d "$wallpaper_dir" ]; then
-        	echo "Wallpaper directory not found: $wallpaper_dir"
+        	printf "Wallpaper directory not found: %s\n" "''${wallpaper_dir}"
         	exit 1
         fi
 
@@ -94,7 +94,7 @@ let
         unset IFS
 
         if [ ''${#sorted_files[@]} -eq 0 ]; then
-        	echo "No wallpaper files found in the directory."
+        	printf "No wallpaper files found in the directory.\n"
         	exit 1
         fi
 
@@ -107,7 +107,7 @@ let
         done
 
         if [ -z "$next_wallpaper" ]; then
-        	echo "Next wallpaper not found."
+        	printf "Next wallpaper not found.\n"
         	exit 1
         fi
         ${setNextCommand}

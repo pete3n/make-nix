@@ -9,7 +9,7 @@
 
     system.activationScripts.setDisplayServer = {
       text = ''
-        echo "x11" > /run/display_server
+        printf "x11" > /run/display_server
       '';
     };
 

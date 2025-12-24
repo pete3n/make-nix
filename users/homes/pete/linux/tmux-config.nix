@@ -22,11 +22,12 @@ in
         # Change the Tmux window name based on the SSH destination host
         # to more easily track open connections
         ssh() {
-        	echo "Executing custom ssh wrapper"
+        	printf "Executing custom ssh wrapper\n"
         	# Check if inside tmux
         	if ps -p $$ -o ppid= | xargs -I {} ps -p {} -o comm= | grep -qw tmux; then
         		# Save the current window name so we can restore it
-        		local original_window_name=$(tmux display-message -p '#W')
+        		local original_window_name=""
+						original_window_name=$(tmux display-message -p '#W')
 
         		reset_window_name() {
         			tmux rename-window "$original_window_name"
@@ -36,7 +37,8 @@ in
         		trap reset_window_name SIGINT
 
         		# Parse and extract the destination host with some really ugly character matching
-        		local destination=$(echo "$@" | sed 's/[[:space:]]*\(\(\(-[46AaCfGgKkMNnqsTtVvXxYy]\)\|\(-[^[:space:]]*\([[:space:]]\+[^[:space:]]*\)\?\)\)[[:space:]]*\)*[[:space:]]\+\([^-][^[:space:]]*\).*/\6/')
+        		local destination=""
+						destination=$(printf "%s\n" "$@" | sed 's/[[:space:]]*\(\(\(-[46AaCfGgKkMNnqsTtVvXxYy]\)\|\(-[^[:space:]]*\([[:space:]]\+[^[:space:]]*\)\?\)\)[[:space:]]*\)*[[:space:]]\+\([^-][^[:space:]]*\).*/\6/')
 
         		tmux rename-window "$destination"
 

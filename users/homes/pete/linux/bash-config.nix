@@ -81,11 +81,11 @@ in
         if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
         	command -v fastfetch &> /dev/null && fastfetch
         	export FASTFETCH_EXECUTED=1
-        	echo
+        	printf "\n"	
         	ip link
-        	echo
+        	printf "\n"
         	ip -br a
-        	echo
+        	printf "\n"
         fi
         # Workaround for xdg.userDirs bug always being set to false
         source "${config.home.homeDirectory}/.config/user-dirs.dirs"
