@@ -197,7 +197,9 @@ _set_vars() {
 _eval_vars() {
 	_attrs_file="${1}"
 
+	# nix-instantiate is required to parse the attribute file for syntax errors
   if ! command -v nix-instantiate >/dev/null 2>&1; then
+		# Attempt to fix PATH issues
     source_nix
   fi
 
@@ -252,7 +254,7 @@ _eval_vars() {
 		"${system}" "${is_home_alone}" "${use_homebrew}" "${use_keys}" "${use_cache}" "${tags}" "${specs}"
 }
 
-# Kludge to prevent Git tree from being marked as dirty
+# Prevent Git tree from being marked as dirty
 _commit_config() {
 	_filename="${1}"
 	if [ -f "${_filename}" ]; then
@@ -277,10 +279,10 @@ _write_home_alone() {
 	logf '  user              = "%s"\n' "$user"
 	logf '  host              = "%s"\n' "$host"
 	logf '  system            = "%s"\n' "$system"
-	logf '  isHomeAlone       = %s\n' "$is_home_alone"
-	logf '  useHomebrew       = %s\n' "$use_homebrew"
-	logf '  useCache          = %s\n' "$use_cache"
-	logf '  useKeys           = %s\n' "$use_keys"
+	logf "  isHomeAlone       = %s\n" "$is_home_alone"
+	logf "  useHomebrew       = %s\n" "$use_homebrew"
+	logf "  useCache          = %s\n" "$use_cache"
+	logf "  useKeys           = %s\n" "$use_keys"
 	logf "  tags              = ["
 	if [ -n "${tags}" ]; then
 		set -f
@@ -299,8 +301,8 @@ _write_home_alone() {
 		printf '  user = "%s";\n' "$user"
 		printf '  host = "%s";\n' "$host"
 		printf '  system = "%s";\n' "$system"
-		printf '  isHomeAlone = %s;\n' "$is_home_alone"
-		printf '  useHomebrew = %s;\n' "$use_homebrew"
+		printf "  isHomeAlone = %s;\n" "$is_home_alone"
+		printf "  useHomebrew = %s;\n" "$use_homebrew"
 		printf "  tags = ["
 		if [ -n "${tags}" ]; then
 			set -f
@@ -325,10 +327,10 @@ _write_system() {
 	logf '  user              = "%s"\n' "$user"
 	logf '  host              = "%s"\n' "$host"
 	logf '  system            = "%s"\n' "$system"
-	logf '  isHomeAlone       = %s\n' "$is_home_alone"
-	logf '  useHomebrew       = %s\n' "$use_homebrew"
-	logf '  useCache          = %s\n' "$use_cache"
-	logf '  useKeys           = %s\n' "$use_keys"
+	logf "  isHomeAlone       = %s\n" "$is_home_alone"
+	logf "  useHomebrew       = %s\n" "$use_homebrew"
+	logf "  useCache          = %s\n" "$use_cache"
+	logf "  useKeys           = %s\n" "$use_keys"
 	logf "  tags              = ["
 	if [ -n "${tags}" ]; then
 		set -f
@@ -358,10 +360,10 @@ _write_system() {
 		printf '  user = "%s";\n' "$user"
 		printf '  host = "%s";\n' "$host"
 		printf '  system = "%s";\n' "$system"
-		printf '  isHomeAlone = %s;\n' "$is_home_alone"
-		printf '  useHomebrew = %s;\n' "$use_homebrew"
-		printf '  useCache = %s;\n' "$use_cache"
-		printf '  useKeys = %s;\n' "$use_keys"
+		printf "  isHomeAlone = %s;\n" "$is_home_alone"
+		printf "  useHomebrew = %s;\n" "$use_homebrew"
+		printf "  useCache = %s;\n" "$use_cache"
+		printf "  useKeys = %s;\n" "$use_keys"
 		printf "  tags = ["
 		if [ -n "${tags}" ]; then
 			set -f
@@ -386,7 +388,7 @@ _write_system() {
 		fi
 		printf " ];\n"
 
-		printf '}\n'
+		printf "}\n"
 	} >"$_system_config"
 }
 
@@ -477,9 +479,9 @@ write_attrs() {
 	fi
 
 	_set_vars "write"
+	_write_env
 
 	logf "\n%b>>> Writing Nix configuration.%b\n" "$BLUE" "$RESET"
-	_write_env
 	if [ "${is_home_alone}" = true ]; then
 		if _write_home_alone "$(resolve_path "./make-attrs/home-alone/$user@$host.nix")"; then
 			_commit_config "${_home_alone_config}"
