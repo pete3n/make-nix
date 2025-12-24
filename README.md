@@ -50,9 +50,9 @@ are bridged with the declarative configuration.
 make <help|install|home|system|all|test>
      [TGT_USER=<user>]
      [TGT_HOST=<host>]
-     [TGT_TAGS=<tag1>,<tag2>,<tag3>,...]
+     [CFG_TAGS=<tag1>,<tag2>,<tag3>,...]
      [TGT_SYSTEM=<system>]
-     [TGT_SPEC=<spc1>,<spc2>,<spc3>,...]
+     [SPECS=<spc1>,<spc2>,<spc3>,...]
      [OPTION FLAGS]
 ```
 
@@ -78,8 +78,8 @@ make <help|install|home|system|all|test>
 | `TGT_USER`   | User configuration (current user will be passed by default).                                                                                              |
 | `TGT_HOST`   | System configuration host (current hostname will be passed by default).                                                                                   |
 | `TGT_SYSTEM` | System platform to target for builds: `x86_64-linux`, `aarch64-linux`, `x86_64-darwin`, or `aarch64-darwin` (current platform will be passed by default). |
-| `TGT_SPEC`   | Comma-separated list of system specialisation configurations (no spaces).                                                                                 |
-| `TGT_TAGS`   | Customize home-manager user configuration based on tags, similar to specialisations for system configurations.                                            |
+| `SPECS`   | Comma-separated list of system specialisation configurations (no spaces).                                                                                 |
+| `CFG_TAGS`   | Customize home-manager user configuration based on tags, similar to specialisations for system configurations.                                            |
 
 ---
 
@@ -92,7 +92,7 @@ These are **boolean**; assigning any _truthy_ value will enable them.
 #### **Install Flags**
 
 - `DETERMINATE=true` – Install Nix using the Determinate Systems installer.
-- `NIX_DARWIN=true` – Install Nix-Darwin for macOS.
+- `INSTALL_DARWIN=true` – Install Nix-Darwin for macOS.
 - `SINGLE_USER=true` – Install Nix for single-user mode (default installer only).
 - `USE_CACHE=true` – Use the NIX_CACHE_URLS list from the make.env file as a proxy
   cache instead of cache.nixos.org. This variable accepts a comma-separated list
@@ -118,7 +118,7 @@ These are **boolean**; assigning any _truthy_ value will enable them.
 make install SINGLE_USER=Y
 
 # Install Nix-Darwin using the Determinate Systems installer:
-make install DETERMINATE=1 NIX_DARWIN=y
+make install DETERMINATE=1 INSTALL_DARWIN=y
 
 # Build and activate the home-manager config using a standalone configuration:
 make home HOME_ALONE=true
