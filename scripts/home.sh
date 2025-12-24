@@ -60,11 +60,10 @@ trap '
   exit 130
 ' INT TERM QUIT
 
-if ! has_nix; then
+if ! has_cmd "nix"; then
 	source_nix
-	if ! has_nix; then
-		printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
-		exit 1
+	if ! has_cmd "nix"; then
+		err 1 "nix not found. Run {$C_CMD}make install{$C_RST} to install it."
 	fi
 fi
 
@@ -113,9 +112,12 @@ build() {
 		"$CYAN" "$host" "$RESET"
 	logf "\n%bBuild command:%b %b\n\n" "$BLUE" "$RESET" "$print_cmd"
 
-	if ! has_nix && (source_nix && has_nix); then
-		printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
-		exit 1
+	if ! has_nix; then
+		source_nix
+		if ! has_nix; then
+			printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
+			exit 1
+		fi
 	fi
 
 	if is_truthy "${USE_SCRIPT:-}"; then
@@ -149,9 +151,11 @@ activate() {
 		"$CYAN" "$TGT_SYSTEM" "$RESET" "$CYAN" "$host" "$RESET"
 	logf "\n%bActivation command:%b %b\n\n" "$BLUE" "$RESET" "$print_cmd"
 
-	if ! has_nix && (source_nix && has_nix); then
-		printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
-		exit 1
+	if ! has_cmd "nix"; then
+		source_nix
+		if ! has_cmd "nix"; then
+			err 1 "nix not found. Run {$C_CMD}make install{$C_RST} to install it."
+		fi
 	fi
 
 	if is_truthy "${USE_SCRIPT:-}"; then
