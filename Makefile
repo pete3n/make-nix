@@ -10,6 +10,12 @@ SHELL := /bin/sh
 
 UNAME_S := $(shell uname -s)
 
+ifeq ($(shell id -u),0)
+	ifneq ($(filter help,$(MAKECMDGOALS)),help)
+		$(error Do not run make as root. Run as a normal user; sudo will be used when needed.)
+	endif
+endif
+
 ifeq ($(origin MAKE_NIX_TMPDIR), undefined)
   MAKE_NIX_TMPDIR := $(shell TMPDIR="$${TMPDIR:-/tmp}"; mktemp -d "$$TMPDIR/make-nix.XXXXXX")
   export MAKE_NIX_TMPDIR
