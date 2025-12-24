@@ -100,7 +100,8 @@ all: all-config
 
 # Execute both system and home targets.
 .PHONY: all-config
-all-config: set-env check-deps write-nix-attrs all-system all-home clean
+all-config: set-env check-deps write-nix-attrs build-system activate-system check-dirty-warn \
+	build-home activate-home check-dirty-warn set-spec-boot clean
 
 # Home target used by all-config (environment setup and cleanup called by all-config.)
 .PHONY: all-home
