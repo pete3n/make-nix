@@ -3,14 +3,14 @@
 # Common helper functions for all scripts
 
 # Prevent sourcing multiple times
-if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
-	_COMMON_SH_INCLUDED=1
+if [ -z "${_common_sourced:-}" ]; then
+	_common_sourced=1
 
 	# Ensure MAKE_NIX_ENV was defined by make
 	env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp is working and in your PATH.}"
 
 	# shellcheck disable=SC1090
-	. "$env_file" || {
+	. "${env_file}" || {
 		printf "ERROR: common.sh failed to source MAKE_NIX_ENV file: %s" "${env_file}" >&2
 		exit 1
 	}
@@ -19,13 +19,24 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 	err() {
 		_rc=${1:-1}
 		shift || true
-		[ $# -gt 0 ] && logf "\n%berror: %b%b\n" "$RED" "$RESET" "$*" >&2
+
+		_msg=$*
+
+		# Print to stderr (render \n and any ANSI sequences included in _msg)
+		if [ -n "${MAKE_NIX_LOG:-}" ]; then
+			# Show on stderr, and append plain text to log
+			printf "%b\n" "${C_ERR}error:${C_RST} ${_msg}" | tee -a "$MAKE_NIX_LOG" >&2
+		else
+			printf "%b\n" "${C_ERR}error:${C_RST} ${_msg}" >&2
+		fi
+
 		cleanup "${_rc}" "ERR"
 		exit "${_rc}"
 	}
 
-	# shellcheck disable=SC2059
+	# Safely log to MAKE_NIX_LOG or print to stdout
 	logf() {
+		# shellcheck disable=SC2059
 		if [ -n "${MAKE_NIX_LOG:-}" ]; then
 			printf "$@" | tee -a "$MAKE_NIX_LOG"
 		else
@@ -33,16 +44,26 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		fi
 	}
 
+	# Allow the user flexibility in setting boolean options
+	# truthy=1,true,True,TRUE,yes,Yes,YES,on,On,ON,y,Y
+	# Convention:
+	# - quoted "true"/"false" are string values
+	# - unquoted true/false are commands for control flow
 	is_truthy() {
-		var="${1:-}"
-
-		case "$var" in
-		1 | true | True | TRUE | yes | Yes | YES | on | On | ON | y | Y) return 0 ;;
+		case "${1:-}" in
+		'1'|'true'|'True'|'TRUE'|'yes'|'Yes'|'YES'|'on'|'On'|'ON'|'y'|'Y') return 0 ;;
 		*) return 1 ;;
 		esac
 	}
 
-	# as_root uses sudo unless already root
+	# Ensure commands are present and are executable files.
+	has_cmd() {
+		_cmd_name="${1}"
+		_cmd_path=$(command -v "${_cmd_name}" 2>/dev/null) || return 1
+		[ -n "$_cmd_path" ] && [ -f "$_cmd_path" ] && [ -x "$_cmd_path" ]
+	}
+
+	# Prevent duplicate/unecessary sudo calls
 	as_root() {
 		if [ "$(id -u)" -eq 0 ]; then
 			"$@"
@@ -51,13 +72,14 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		fi
 	}
 
-	_cleaned=0
+	_cleaned="false"
+	# Cleanup temporary files
 	cleanup() {
-		[ "${_cleaned}" -eq 1 ] && return
-		_cleaned=1
+		[ "${_cleaned}" = "true" ] && return
+		_cleaned="true"
 		_script="${0##*/}" # Get the calling script basename, without requiring basename 
 		_status="${1:-0}"
-		_reason="${2:-'EXIT'}"
+		_reason="${2:-EXIT}"
 
 		printf '\n[cleanup] script=%s reason=%s exit_code=%s\n' \
 			"${_script}" "${_reason}" "${_status}" >&2
@@ -67,9 +89,9 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 				# Prevent deleting root paths if $dir gets truncated somehow
 				case "${_dir}" in 
 					""|/|/tmp|/var/tmp) : ;; 
-					*/make-nix.*) rm -rf -- "$_dir" ;; 
-				*) printf "common.sh [cleanup] failed to delete unexpected path: %s\n" "${_dir}" >&2 ;;
-			esac
+					*/make-nix.*) rm -rf "${_dir}" ;; 
+					*) printf "common.sh [cleanup] failed to delete unexpected path: %s\n" "${_dir}" >&2 ;;
+				esac
 			fi
 		fi
 
@@ -78,21 +100,14 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		[ "${_reason}" = "EXIT" ] || exit "${_status}"
 	}
 
-	has_nix() {
-		if [ -x "$(command -v nix)" ]; then
-			return 0
-		else
-			return 1
-		fi
-	}
-
+	# Check system for active nix-daemon 
 	has_nix_daemon() {
-		case "$UNAME_S" in
+		case "${UNAME_S}" in
 		Darwin)
-			sudo launchctl print system/org.nixos.nix-daemon >/dev/null 2>&1
+			as_root launchctl print system/org.nixos.nix-daemon >/dev/null 2>&1
 			;;
 		Linux)
-			if command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ]; then
+			if [ -x "$(command -v systemctl)" ] && [ -d /run/systemd/system ]; then
 				systemctl is-active --quiet nix-daemon
 			else
 				# Fallback for non-systemd Linux
@@ -105,24 +120,12 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		esac
 	}
 
+	# Check system for active nix-daemon socket
 	nix_daemon_socket_up() {
 		[ -S /nix/var/nix/daemon-socket/socket ]
 	}
 
-	has_nixos() {
-		if command -v nixos-rebuild >/dev/null 2>&1; then
-			return 0
-		else
-			return 1
-		fi
-	}
-
-	has_nix_darwin() {
-		[ "$UNAME_S" = "Darwin" ] || return 1
-		# Activated system export OR tool still on PATH
-		[ -x /run/current-system/sw/bin/darwin-rebuild ] || command -v darwin-rebuild >/dev/null 2>&1
-	}
-
+	# Configure pathing for Nix/Nix-Daemon
 	source_nix() {
 		for _file in \
 			/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh \
@@ -137,25 +140,30 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		return 0
 	}
 
+	# Check for configuration tag match
 	has_tag() {
-		case ",$CFG_TAGS," in
-		*",$1,"*) return 0 ;;
+		_tag="${1}"
+		case ",${CFG_TAGS:-}," in
+		*",${_tag},"*) return 0 ;;
 		*) return 1 ;;
 		esac
 	}
 
+	# Resolve the absolute path of any path
 	resolve_path() {
-		# $1 = file path (can be relative, with ../, etc.)
-		_dir="$(cd "$(dirname "$1")" && pwd)"
-		base="$(basename "$1")"
-		printf '%s/%s\n' "$_dir" "$base"
+		_path="${1}"
+		_dir=$(cd "$(dirname "$_path")" 2>/dev/null && pwd) || return 1
+		_filename=${_path##*/} # Resolve file name with basename
+		printf '%s/%s\n' "${_dir}" "${_filename}"
 	}
 
+	# Determine if symlink is dead
 	is_deadlink() {
-		if [ -L "$1" ] && [ ! -e "$1" ]; then
+		_path="${1}"
+		if [ -L "${_path}" ] && [ ! -e "${_path}" ]; then
 			return 0
 		else
 			return 1
 		fi
 	}
-fi # _COMMON_SH_INCLUDED
+fi # _common_sourced
