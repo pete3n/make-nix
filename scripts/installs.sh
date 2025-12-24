@@ -1,13 +1,13 @@
 #!/usr/bin/env sh
 set -eu
 
-IS_FINAL_GOAL=0
+is_final_goal=0
 
 while getopts ':F:' opt; do
   case "$opt" in
     F)
       case "$OPTARG" in
-        0|1) IS_FINAL_GOAL=$OPTARG ;;
+        0|1) is_final_goal=$OPTARG ;;
         *) printf '%s: invalid -F value: %s (expected 0 or 1)\n' "${0##*/}" "$OPTARG" >&2; exit 2 ;;
       esac
       ;;
@@ -23,99 +23,96 @@ while getopts ':F:' opt; do
 done
 shift $((OPTIND - 1))
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+_script_dir="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
-. "$SCRIPT_DIR/common.sh"
+. "$_script_dir/common.sh"
 
-cleanup_on_exit() {
+_cleanup_on_exit() {
   status=$?
-  if [ "$status" -ne 0 ] && [ "${IS_FINAL_GOAL:-0}" -eq 1 ]; then
-    cleanup "$status" ERROR
+  if [ "$status" -ne 0 ] && [ "${is_final_goal:-0}" -eq 1 ]; then
+    cleanup "$status" "ERROR"
   fi
   exit "$status"
 }
 
-trap 'cleanup_on_exit' 0
+trap '_cleanup_on_exit' 0
 
 trap '
-  [ "${IS_FINAL_GOAL:-0}" -eq 1 ] && cleanup 130 SIGNAL
+  [ "${is_final_goal:-0}" -eq 1 ] && cleanup 130 SIGNAL
   exit 130
 ' INT TERM QUIT
 
-check_integrity() {
-	URL=$1
-	EXPECTED_HASH=$2
+_check_integrity() {
+	_url=$1
+	_expected_hash=$2
 
-	curl -Ls "$URL" >"$MAKE_NIX_INSTALLER"
-	# shellcheck disable=SC2002
-	ACTUAL_HASH=$(cat "$MAKE_NIX_INSTALLER" | shasum | cut -d ' ' -f 1)
+	curl -fLs "$_url" > "$MAKE_NIX_INSTALLER" || err 1 "Download failed: $_url"
+	set -- "$(shasum "$MAKE_NIX_INSTALLER")"
+	_actual_hash="${1}"
 
-	if [ "$ACTUAL_HASH" != "$EXPECTED_HASH" ]; then
-		logf "\n%bIntegrity check failed!%b\n" "$YELLOW" "$RESET"
-		logf "Expected: %b" "$EXPECTED_HASH\n"
-		logf "Actual:   %b" "$RED$ACTUAL_HASH$RESET\n"
-		logf "%bCheck%b the URL and HASH values in your make.env file.\n" "$BLUE" "$RESET"
+	if [ "$_actual_hash" != "$_expected_hash" ]; then
 		rm "$MAKE_NIX_INSTALLER"
-		exit 1
+		_msg="Expected:	${C_CFG}${_expected_hash}${C_RST}\n"
+		_msg="${_msg}Actual: ${C_ERR}${_actual_hash}${C_RST}\n"
+		_msg="${_msg}Check the URL and hash values in your make.env file."
+		err 1 "${C_WARN}Integrity check failed!${C_RST}\n${_msg}"
 	else
-		logf "\n%b✅Integrity check passed.%b\n" "$GREEN" "$RESET"
+		logf "\n%b✅Integrity check passed.%b\n" "${C_OK}" "${C_RST}"
 		chmod +x "$MAKE_NIX_INSTALLER"
 	fi
 }
 
 # Only the determinate installer works with SELinux
 if [ -z "${DETERMINATE:-}" ]; then
-	if command -v getenforce >/dev/null 2>&1; then
+	if has_cmd "getenforce"; then
 		case "$(getenforce 2>/dev/null)" in
-		Enforcing | Permissive)
+		"Enforcing"|"Permissive")
 			logf "\n%binfo:%b SELinux detected (%s). Using Determinate Systems installer.\n" \
-				"${BLUE:-}" "${RESET:-}" "$(getenforce)"
+				"${C_INFO:-}" "${C_RST:-}" "$(getenforce)"
 			DETERMINATE=true
 			;;
 		esac
 	elif [ -f /sys/fs/selinux/enforce ] && [ "$(cat /sys/fs/selinux/enforce 2>/dev/null)" = "1" ]; then
 		logf "\n%binfo:%b SELinux detected (sysfs).  Using Determinate Systems installer.\n" \
-			"${BLUE:-}" "${RESET:-}"
+			"${C_INFO:-}" "${C_RST:-}"
 		DETERMINATE=true
 	fi
 fi
 
 # Integrity checks
 if is_truthy "${DETERMINATE:-}"; then
-	logf "\n%b>>> Verifying Determinate Systems installer integrity...%b\n" "$BLUE" "$RESET"
-	check_integrity "$DETERMINATE_INSTALL_URL" "$DETERMINATE_INSTALL_HASH"
+	logf "\n%b>>> Verifying Determinate Systems installer integrity...%b\n" "$C_INFO" "$C_RST"
+	_check_integrity "$DETERMINATE_INSTALL_URL" "$DETERMINATE_INSTALL_HASH"
 else
-	logf "\n%b>>> Verifying Nix installer integrity...%b\n" "$BLUE" "$RESET"
-	check_integrity "$NIX_INSTALL_URL" "$NIX_INSTALL_HASH"
+	logf "\n%b>>> Verifying Nix installer integrity...%b\n" "$C_INFO" "$C_RST"
+	_check_integrity "$NIX_INSTALL_URL" "$NIX_INSTALL_HASH"
 fi
 
 # Launch installers
-logf "\n%b>>> Launching installer...%b\n" "$BLUE" "$RESET"
+logf "\n%b>>> Launching installer...%b\n" "$C_INFO" "$C_RST"
 
-install_flags=""
 if is_truthy "${DETERMINATE:-}"; then
-	install_flags="$DETERMINATE_INSTALL_MODE"
+	set -- "$DETERMINATE_INSTALL_MODE"
 else
 	if is_truthy "${SINGLE_USER:-}"; then
-		install_flags="--no-daemon"
+		set -- "--no-daemon"
 	else
-		install_flags="$NIX_INSTALL_MODE"
+		set -- "$NIX_INSTALL_MODE"
 	fi
 fi
 
-if has_nix; then
-	logf "\n%binfo:%b Nix found in PATH; skipping Nix installation...\n" "$BLUE" "$RESET"
+if has_cmd "nix"; then
+	logf "\n%binfo:%b Nix found in PATH; skipping Nix installation...\n" "$C_INFO" "$C_RST"
 	logf "If you want to re-install, please run 'make uninstall' first.\n"
 else
 	if [ -f "$MAKE_NIX_INSTALLER" ]; then
-		sh "$MAKE_NIX_INSTALLER" "$install_flags"
+		sh "$MAKE_NIX_INSTALLER" "$@"
 
 		# Make nix available immediately in the current shell
 		source_nix
 
 	else
-		logf "\n%berror:%b Could not execute 'sh %b'.\n" "$RED" "$RESET" "$MAKE_NIX_INSTALLER"
-		exit 1
+		err 1 "Could not execute ${C_PATH}${MAKE_NIX_INSTALLER}${C_RST}"
 	fi
 fi
 
@@ -125,13 +122,13 @@ features="experimental-features = nix-command flakes"
 
 if [ -f "$nix_conf" ]; then
 	if ! grep -qF "nix-command flakes" "$nix_conf"; then
-		logf "\n%b>>> Enabling flakes...%b\n" "$BLUE" "$RESET"
-		logf "\n%binfo:%b appending %s to %b%s%b\n" "$BLUE" "$RESET" "$features" \
-			"$MAGENTA" "$nix_conf" "$RESET"
+		logf "\n%b>>> Enabling flakes...%b\n" "$C_INFO" "$C_RST"
+		logf "\n%binfo:%b appending %s to %b%s%b\n" "$C_INFO" "$C_RST" "$features" \
+			"$C_PATH" "$nix_conf" "$C_RST"
 		printf "%s\n" "$features" >>"$nix_conf"
 	fi
 else
-	logf "\n%b>>> Creating nix.conf with experimental features enabled...%b\n" "$BLUE" "$RESET"
+	logf "\n%b>>> Creating nix.conf with experimental features enabled...%b\n" "$C_INFO" "$C_RST"
 	mkdir -p "$(dirname "$nix_conf")"
 	printf "%s\n" "$features" >"$nix_conf"
 fi
@@ -139,19 +136,19 @@ fi
 # Set user-defined binary cache URLs and Nix trusted public keys from make.env.
 # This is set before Nix-Darwin install so it can take advantage of cacheing.
 if is_truthy "${USE_KEYS:-}" || is_truthy "${USE_CACHE:-}"; then
-	sh "$SCRIPT_DIR/set_subs_keys.sh"
+	sh "$_script_dir/set_subs_keys.sh"
 fi
 
 # Optional Homebrew install
 if is_truthy "${USE_HOMEBREW:-}" && [ "${UNAME_S}" = "Darwin" ]; then
-	logf "\n%b>>> Installing Homebrew...%b\n" "$BLUE" "$RESET"
-	logf "\n%binfo:%bVerifying Homebrew installer integrity...\n" "$BLUE" "$RESET"
+	logf "\n%b>>> Installing Homebrew...%b\n" "$C_INFO" "$C_RST"
+	logf "\n%binfo:%bVerifying Homebrew installer integrity...\n" "$C_INFO" "$C_RST"
 	# Overwrites previous mktmp installer
-	check_integrity "$HOMEBREW_INSTALL_URL" "$HOMEBREW_INSTALL_HASH"
-	if command -v bash >/dev/null 2>&1; then
+	_check_integrity "$HOMEBREW_INSTALL_URL" "$HOMEBREW_INSTALL_HASH"
+	if has_cmd "bash"; then
 		bash -c "$MAKE_NIX_INSTALLER"
 	else
-		logf "\n%berror:%b bash was not found. This is required for Homebrew installation.\n" "$RED" "$RESET"
+		logf "\n%berror:%b bash was not found. This is required for Homebrew installation.\n" "$C_ERR" "$C_RST"
 		exit 1
 	fi
 fi
@@ -159,20 +156,22 @@ fi
 # Optional Nix-Darwin install
 if is_truthy "${INSTALL_DARWIN:-}"; then
 	if [ "${UNAME_S:-}" = "Darwin" ]; then
-		logf "\n%b>>> Installing nix-darwin...%b\n" "$BLUE" "$RESET"
-
-		if ! has_nix && (source_nix && has_nix); then
-			logf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
-			exit 1
+		logf "\n%b>>> Installing nix-darwin...%b\n" "${C_INFO}" "${C_RST}"
+		
+		if ! has_cmd "nix"; then
+			source_nix
+			if ! has_cmd "nix"; then
+				err 1 "nix not found. Run {$C_CMD}make install{$C_RST} to install it."
+			fi
 		fi
+		sh "$_script_dir/install_nix_darwin.sh"
 
-		sh "$SCRIPT_DIR/install_nix_darwin.sh"
 	else
-		logf "\n%binfo:%b Skipping nix-darwin install: macOS not detected.\n" "$BLUE" "$RESET"
+		logf "\n%binfo:%b Skipping nix-darwin install: macOS not detected.\n" "$C_INFO" "$C_RST"
 		exit 0
 	fi
 fi
 
 if has_tag hyprland && is_truthy "${HOME_ALONE:-}" && is_truthy "${IS_LINUX}"; then
-	printf "HYPRLAND_SETUP=true\n" >>"$MAKE_NIX_ENV"
+	printf "HYPRLAND_SETUP=true\n" >> "$MAKE_NIX_ENV"
 fi
