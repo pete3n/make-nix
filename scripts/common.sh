@@ -5,7 +5,10 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 	env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp is working and in your PATH.}"
 
 	# shellcheck disable=SC1090
-	. "$env_file"
+	. "$env_file" || {
+		printf "ERROR: common.sh failed to source MAKE_NIX_ENV file: %s" "${env_file}" >&2
+		exit 1
+	}
 
 	is_truthy() {
 		var="${1:-}"
@@ -63,7 +66,11 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 	}
 
 	has_nix() {
-		command -v nix >/dev/null 2>&1
+		if [ -x "$(command -v nix)" ]; then
+			return 0
+		else
+			return 1
+		fi
 	}
 
 	has_nix_daemon() {
@@ -104,10 +111,17 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 	}
 
 	source_nix() {
-		if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
-			# shellcheck disable=SC1091
-			. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-		fi
+		for _file in \
+			/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh \
+			/nix/var/nix/profiles/default/etc/profile.d/nix.sh
+		do
+			if [ -f "${_file}" ]; then
+				# shellcheck disable=SC1090
+				. "${_file}"
+				return 0
+			fi
+		done
+		return 0
 	}
 
 	has_tag() {
