@@ -181,5 +181,5 @@ check-dirty-warn:
 
 %:
 	@printf "Unknown target: '$@'\n"
-	@printf "Valid targets: help install check home system all rebuild rebuild-all rebuild-home rebuild-system\n"
+	@printf "Valid targets: help install uninstall check home system all rebuild rebuild-all rebuild-home rebuild-system\n"
 	@false
