@@ -56,10 +56,10 @@ for target in $TARGETS; do
 done
 
 # Add option-based dependencies
-[ -n "${TGT_SPEC:-}" ]       && required_utils="$required_utils $spec_boot_opt_deps"
+[ -n "${SPECS:-}" ]       && required_utils="$required_utils $spec_boot_opt_deps"
 is_truthy "${BOOT_SPEC:-}"   && required_utils="$required_utils $set_spec_boot_opt_deps"
 is_truthy "${USE_CACHE:-}"   && required_utils="$required_utils $use_cache_opt_deps"
-is_truthy "${NIX_DARWIN:-}"  && required_utils="$required_utils $nix_darwin_opt_deps"
+is_truthy "${INSTALL_DARWIN:-}"  && required_utils="$required_utils $nix_darwin_opt_deps"
 
 # Remove duplicates
 deduped_utils=""
