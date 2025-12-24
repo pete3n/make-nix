@@ -10,12 +10,12 @@ if is_truthy "${DRY_RUN:-}" || ! is_truthy "${BOOT_SPEC:-}"; then
 	exit 0
 fi
 
-if [ -z "${TGT_SPEC:-}" ]; then
+if [ -z "${SPECS:-}" ]; then
 	logf "\n%binfo:%b No specialisations specified. Skipping setting default boot...\n" "$BLUE" "$RESET"
 	exit 0
 fi
 
-first_spec=$(printf '%s\n' "$TGT_SPEC" | cut -d',' -f1 | xargs)
+first_spec=$(printf '%s\n' "$SPECS" | cut -d',' -f1 | xargs)
 
 if [ -z "$first_spec" ]; then
 	logf "\n%binfo:%b No valid specialisation found. Skipping...\n" "$BLUE" "$RESET"
