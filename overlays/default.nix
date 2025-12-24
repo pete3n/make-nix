@@ -12,14 +12,14 @@ let
   isLinuxFor =
     final:
     let
-      sys = if makeNixAttrs == null then final.system else makeNixAttrs.system;
+      sys = if makeNixAttrs == null then final.stdenv.hostPlatform.system else makeNixAttrs.system;
     in
     makeNix.isLinux sys;
 
   isDarwinFor =
     final:
     let
-      sys = if makeNixAttrs == null then final.system else makeNixAttrs.system;
+      sys = if makeNixAttrs == null then final.stdenv.hostPlatform.system else makeNixAttrs.system;
     in
     makeNix.isDarwin sys;
 
@@ -51,14 +51,14 @@ let
         {
           # Wrapper to transparently launch Hyprland with nixGLIntel on non-NixOS
           # systems which require it to function correctly.
-          hyprland-nixgli-wrapped = prev.hyprland.overrideAttrs (oldAttrs: {
+          hyprland-nixgl-wrapped = prev.hyprland.overrideAttrs (oldAttrs: {
             postInstall =
               (oldAttrs.postInstall or "")
               +
               # sh
               ''
                 mv $out/bin/Hyprland $out/bin/Hyprland.unwrapped
-                makeWrapper ${final.nixgl.nixGLIntel}/bin/nixGLIntel $out/bin/Hyprland \
+                makeWrapper ${final.nixgl.auto.nixGLDefault}/bin/nixGL $out/bin/Hyprland \
                 --add-flags "$out/bin/Hyprland.unwrapped"
               '';
           });
@@ -95,8 +95,24 @@ let
   };
 
   linux-compatibility-packages =
-    final: prev: if isLinuxFor final then inputs.nixgl.overlay final prev else { };
-
+    final: prev:
+    if isLinuxFor final then
+      let
+				# Patch system to reference stdenv.hostPlatform.system
+        nixglOverlay = inputs.nixgl.overlay;
+        patched = (
+          final': prev':
+          let
+            finalPatched = final' // {
+              system = final'.stdenv.hostPlatform.system;
+            };
+          in
+          nixglOverlay finalPatched prev'
+        );
+      in
+      patched final prev
+    else
+      { };
 in
 {
   # Name overlays (for flake outputs.overlays.<name>)

@@ -73,14 +73,17 @@
 
       hmUsers = makeNix.getHomeAttrs { dir = ./make-attrs/system; };
       hmConfigs = builtins.mapAttrs (
-        _key: sa:
+        _key: hmAttrs:
         let
+					ctx = makeNix.makeAttrsCtx hmAttrs;
+
           userOverlays = import ./overlays {
             inherit inputs makeNix;
-            makeNixAttrs = sa;
+            makeNixAttrs = ctx;
           };
+
           pkgsForUser = import nixpkgs {
-            system = sa.system;
+						localSystem = { system = ctx.system; };
             overlays = [
               userOverlays.unstable-packages
               userOverlays.local-packages
@@ -94,13 +97,13 @@
           extraSpecialArgs = {
             inherit inputs makeNix;
             homeModules = homeModules';
-						makeNixAttrs = makeNix.makeAttrsCtx sa;
+						makeNixAttrs = ctx;
           };
           modules = [
             (makeNix.getHomePath {
               basePath = ./users/homes;
-              system = sa.system;
-              user = sa.user;
+              system = ctx.system;
+              user = ctx.user;
             })
           ];
         }
@@ -108,14 +111,16 @@
 
       hmAloneUsers = makeNix.getHomeAttrs { dir = ./make-attrs/home-alone; };
       hmAloneConfigs = builtins.mapAttrs (
-        _key: ua:
+        _key: haAttrs:
         let
+					ctx = makeNix.makeAttrsCtx haAttrs;
+
           userOverlays = import ./overlays {
             inherit inputs makeNix;
-						system = ua.system;
+						makeNixAttrs = ctx;
           };
           pkgsForUser = import nixpkgs {
-            system = ua.system;
+						localSystem = { system = ctx.system; };
             overlays = [
               userOverlays.unstable-packages
               userOverlays.local-packages
@@ -129,13 +134,13 @@
           extraSpecialArgs = {
             inherit inputs makeNix;
             homeModules = homeModules';
-						makeNixAttrs = makeNix.makeAttrsCtx ua;
+						makeNixAttrs = ctx;
           };
           modules = [
             (makeNix.getHomePath {
               basePath = ./users/homes;
-              system = ua.system;
-              user = ua.user;
+              system = ctx.system;
+              user = ctx.user;
             })
           ];
         }
