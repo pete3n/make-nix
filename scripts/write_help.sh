@@ -22,9 +22,9 @@ write_line "Usage:"
 write_line "${RED}make${RESET} ${BOLD}<help|install|home|system|all|test>${RESET}\n\
 [${CYAN}TGT_USER${RESET}${RED}=${RESET}<user>]\n\
 [${CYAN}TGT_HOST${RESET}${RED}=${RESET}<host>]\n\
-[${CYAN}TGT_TAGS${RESET}${RED}=${RESET}<tag1>${RED},${RESET}<tag2>${RED},${RESET}<tag3>${RED},${RESET}...]\n\
+[${CYAN}CFG_TAGS${RESET}${RED}=${RESET}<tag1>${RED},${RESET}<tag2>${RED},${RESET}<tag3>${RED},${RESET}...]\n\
 [${CYAN}TGT_SYSTEM${RESET}${RED}=${RESET}<system>]\n\
-[${CYAN}TGT_SPEC${RESET}${RED}=${RESET}<spc1>${RED},${RESET}<spc2>${RED},${RESET}<spc3>${RED},${RESET}...]\n\
+[${CYAN}SPECS${RESET}${RED}=${RESET}<spc1>${RED},${RESET}<spc2>${RED},${RESET}<spc3>${RED},${RESET}...]\n\
 [${BLUE}OPTION FLAGS${RESET}]\n"
 
 write_line "${BOLD}Make targets:${RESET}"
@@ -38,15 +38,15 @@ write_line "  ${BOLD}test${RESET}    - Check all flake configurations.\n"
 write_line "${CYAN}Configuration parameters:${RESET}"
 write_line "  ${CYAN}TGT_USER${RESET}    - User configuration (current user will be passed by default)."
 write_line "  ${CYAN}TGT_HOST${RESET}    - System configuration host (current hostname will be passed by default)."
-write_line "  ${CYAN}TGT_TAGS${RESET}    - User allows to customizing home-manager user configuration based on tags similar to specialisations for system configurations."
+write_line "  ${CYAN}CFG_TAGS${RESET}    - User allows to customizing home-manager user configuration based on tags similar to specialisations for system configurations."
 write_line "  ${CYAN}TGT_SYSTEM${RESET}  - System platform to target for builds: x86_64-linux, aarch64-linux, x86_64-darwin, or aarch64-darwin (current platform will be passed by default.)"
-write_line "  ${CYAN}TGT_SPEC${RESET}    - Comma separated list of NixOS system specialisation configurations (no spaces).\n"
+write_line "  ${CYAN}SPECS${RESET}    - Comma separated list of NixOS system specialisation configurations (no spaces).\n"
 
 write_line "${BLUE}Option flags${RESET} (These are boolean, assigning ${BOLD}any truthy${RESET} value will enable them):"
 write_line "Truthy values are 1 yes Yes YES true True TRUE on On ON y Y\n"
 write_line "Install option flags (install):"
 write_line "  ${BLUE}DETERMINATE${RESET}${RED}=${RESET}true  - Install Nix using the Determinate Systems installer.\n"
-write_line "  ${BLUE}NIX_DARWIN${RESET}${RED}=${RESET}true   - Install Nix-Darwin for MacOS.\n"
+write_line "  ${BLUE}INSTALL_DARWIN${RESET}${RED}=${RESET}true   - Install Nix-Darwin for MacOS.\n"
 write_line "  ${BLUE}USE_HOMEBREW${RESET}${RED}=${RESET}true - Install Homebrew.\n"
 write_line "  ${BLUE}SINGLE_USER${RESET}${RED}=${RESET}true  - Install Nix for single-user mode (default installer only).\n"
 write_line "  ${BLUE}USE_CACHE${RESET}${RED}=${RESET}true    - Set a additional cache server URLs to be used as substituters (cache.nixos.org is used by default). This option is defined in make.env as a comma separated list of URLs (no spaces) in order of precedence.\n"
@@ -67,7 +67,7 @@ write_line "  ${GREEN}- Install Nix using the default installer for single-user 
 write_line "    ${RED}make${RESET} ${BOLD}install${RESET} ${BLUE}SINGLE_USER${RESET}${RED}=${RESET}Y\n"
 
 write_line "  ${GREEN}- Install Nix-Darwin using the Determinate Systems installer:"
-write_line "    ${RED}make${RESET} ${BOLD}install${RESET} ${BLUE}DETERMINATE${RESET}${RED}=${RESET}1 ${BLUE}NIX_DARWIN${RESET}${RED}=${RESET}y\n"
+write_line "    ${RED}make${RESET} ${BOLD}install${RESET} ${BLUE}DETERMINATE${RESET}${RED}=${RESET}1 ${BLUE}INSTALL_DARWIN${RESET}${RED}=${RESET}y\n"
 
 write_line "  ${GREEN}- Build and activate the home-manager configuration for the current user using a standalone home-manager configuration; autodetect hostname and system type:${RESET}"
 write_line "    ${RED}make${RESET} ${BOLD}home${RESET} ${BLUE}HOME_ALONE${RESET}${RED}=${RESET}true\n"
