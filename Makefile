@@ -112,7 +112,11 @@ all-home: build-home activate-home check-dirty-warn
 all-system: build-system activate-system check-dirty-warn set-spec-boot
 
 .PHONY: test
-test: set-env check-deps check-nix-attrs clean
+test: set-env check-deps check-nix-attrs check-dirty-warn clean
+
+# Alias for test
+.PHONY: check
+check: test
 
 .PHONY: rebuild-home rebuild-system rebuild-all rebuild
 
@@ -177,5 +181,5 @@ check-dirty-warn:
 
 %:
 	@printf "Unknown target: '$@'\n"
-	@printf "Valid targets: help install home system all test rebuild\n"
+	@printf "Valid targets: help install check home system all rebuild rebuild-all rebuild-home rebuild-system\n"
 	@false
