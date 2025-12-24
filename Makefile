@@ -111,18 +111,38 @@ all-home: build-home activate-home check-dirty-warn
 .PHONY: all-system
 all-system: build-system activate-system check-dirty-warn set-spec-boot
 
-# Check all flake configurations.
 .PHONY: test
-test: set-env check-deps write-nix-attrs flake-check check-dirty-warn clean
+test: set-env check-deps check-nix-attrs clean
+
+.PHONY: rebuild-home rebuild-system rebuild-all rebuild
+
+rebuild: rebuild-all
+
+rebuild-home: set-env check-deps rebuild-nix-attrs build-home activate-home check-dirty-warn clean
+
+rebuild-system: set-env check-deps rebuild-nix-attrs build-system activate-system check-dirty-warn set-spec-boot clean
+
+rebuild-all: set-env check-deps check-nix-attrs rebuild-nix-attrs build-system activate-system check-dirty-warn \
+	build-home activate-home check-dirty-warn set-spec-boot clean
 
 #
 # Configuration utility targets
 #
 
+# Check previous configuration based on username and hostname
+.PHONY: check-nix-attrs
+check-nix-attrs:
+	@sh "scripts/attrs.sh" --check
+
 # Pass imperative configuration attributes from make to flake.nix
 .PHONY: write-nix-attrs
 write-nix-attrs:
-	@sh scripts/write_nix_attrs.sh
+	@sh "scripts/attrs.sh" --write
+
+# Rebuild previous attributes based on username and hostname
+.PHONY: rebuild-nix-attrs
+rebuild-nix-attrs:
+	@sh "scripts/attrs.sh" --rebuild
 
 # Build flake-based Home-manager configurations for Linux or Darwin systems.
 .PHONY: build-home
@@ -155,12 +175,7 @@ set-spec-boot:
 check-dirty-warn:
 	@sh scripts/check_dirty_warn.sh
 
-# Check all flake configurations; called by test.
-.PHONY: flake-check
-flake-check:
-	@sh scripts/flake_check.sh
-
 %:
 	@printf "Unknown target: '$@'\n"
-	@printf "Valid targets: help install home system all test\n"
+	@printf "Valid targets: help install home system all test rebuild\n"
 	@false
