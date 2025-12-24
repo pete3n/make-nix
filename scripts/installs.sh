@@ -157,7 +157,7 @@ if is_truthy "${USE_HOMEBREW:-}" && [ "${UNAME_S}" = "Darwin" ]; then
 fi
 
 # Optional Nix-Darwin install
-if is_truthy "${NIX_DARWIN:-}"; then
+if is_truthy "${INSTALL_DARWIN:-}"; then
 	if [ "${UNAME_S:-}" = "Darwin" ]; then
 		logf "\n%b>>> Installing nix-darwin...%b\n" "$BLUE" "$RESET"
 
