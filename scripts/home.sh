@@ -112,9 +112,9 @@ build() {
 		"$CYAN" "$host" "$RESET"
 	logf "\n%bBuild command:%b %b\n\n" "$BLUE" "$RESET" "$print_cmd"
 
-	if ! has_nix; then
+	if ! has_cmd "nix"; then
 		source_nix
-		if ! has_nix; then
+		if ! has_cmd "nix"; then
 			printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
 			exit 1
 		fi
