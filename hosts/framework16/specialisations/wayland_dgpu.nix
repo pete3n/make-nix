@@ -30,10 +30,11 @@
         ''
           #!/bin/sh
           GPU_PCI="0000:c2:00.0"
-          
-          card_dir="$(echo /sys/bus/pci/devices/"$GPU_PCI"/drm/card*)"
+
+          set -- /sys/bus/pci/devices/"$GPU_PCI"/drm/card*
+          card_dir=$1
           card_name="$(basename "$card_dir")"
-          
+
           ln -sf "/dev/dri/$card_name" /run/dgpu
         '';
       serviceConfig = {
@@ -50,7 +51,7 @@
 
       prime = {
 				amdgpuBusId = "PCI:195@0:0:0";
-				nvidiaBusId = "PCI:194@0:0:0";
+				nvidiaBusId = "PCI:44@0:0:0";
         offload = {
           enable = true;
           enableOffloadCmd = true;
