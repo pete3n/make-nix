@@ -128,56 +128,7 @@ _set_vars() {
 		fi
 	}
 
-	# Create a Nix compatible system tuple e.g: aarch64-linux, x86_64-darwin
-	_detect_system() {
-		_arch=$(uname -m)
-		# Normalize arm64 and aarch64 to always be aarch64
-		[ "${_arch}" = "arm64" ] && _arch=aarch64
-		# Use UNAME_S if specified, otherwise detect host system and use lowercase name
-		_os=$(printf "%s" "${UNAME_S:-$(uname -s)}" | tr '[:upper:]' '[:lower:]')
-		printf "%s-%s" "${_arch}" "${_os}"
-	}
-
-	# Set is_linux for easy condition checks without string comparison.
-	_derive_is_linux() {
-		case "${system-}" in
-			*-linux) is_linux=true ;;
-			*-darwin) is_linux=false ;;
-			"")
-				_err 1 "System is empty; cannot determine system type"
-				;;
-			*)
-				_err 1 "Unsupported system detected" "${system}"
-				;;
-		esac
-	}
-
 	_assign_bool_if_set HOME_ALONE is_home_alone
-
-	# Tags to pass to the Nix configuration to customize at build time
-	if [ "${CFG_TAGS+x}" ]; then
-		tags="${CFG_TAGS}"
-	elif [ "${mode}" = "write" ]; then
-		tags=""
-	fi
-
-	# Boot specialisations to build for the system configuration
-	if [ "${SPECS+x}" ]; then
-		specs="${SPECS}"
-	elif [ "${mode}" = "write" ]; then
-		specs=""
-	fi
-
-	# Target system tuple, autodetect and use host system if none provided
-	# Don't override the system if checking or rebuilding an attribute set
-  if [ -n "${TGT_SYSTEM-}" ]; then
-    system="${TGT_SYSTEM}"
-  elif [ "${mode}" = "write" ]; then
-    system=$(_detect_system)
-  else
-		[ -n "${system-}" ] || _err 1 "system tuple was not configured by attr file or env var"
-  fi
-	_derive_is_linux
 
 	# Use Homebrew for packages in Nix Darwin configuration
   _assign_bool_if_set USE_HOMEBREW use_homebrew
@@ -198,6 +149,48 @@ _set_vars() {
   if [ "$mode" = "write" ] && [ -z "${USE_KEYS-}" ]; then
     : "${use_keys:=false}" # var should always be set to false if empty
   fi
+
+	# Tags to pass to the Nix configuration to customize at build time
+	if [ "${CFG_TAGS+x}" ]; then
+		tags="${CFG_TAGS}"
+	elif [ "${mode}" = "write" ]; then
+		tags=""
+	fi
+
+	# Boot specialisations to build for the system configuration
+	if [ "${SPECS+x}" ]; then
+		specs="${SPECS}"
+	elif [ "${mode}" = "write" ]; then
+		specs=""
+	fi
+
+	# Target system tuple, autodetect and use host system if none provided
+	# Don't override the system if checking or rebuilding an attribute set
+  if [ -n "${TGT_SYSTEM-}" ]; then
+    system="${TGT_SYSTEM}"
+  elif [ "${mode}" = "write" ]; then
+		# Create a Nix compatible system tuple e.g: aarch64-linux, x86_64-darwin
+		_arch=$(uname -m)
+		# Normalize arm64 and aarch64 to always be aarch64
+		[ "${_arch}" = "arm64" ] && _arch=aarch64
+		# Use UNAME_S if specified, otherwise detect host system and use lowercase name
+		_os=$(printf "%s" "${UNAME_S:-$(uname -s)}" | tr '[:upper:]' '[:lower:]')
+		system=$(printf "%s-%s" "${_arch}" "${_os}")
+  else
+		[ -n "${system-}" ] || err 1 "system tuple could not be determined"
+  fi
+	
+	# Set is_linux for easy condition checks without string comparison.
+	case "${system-}" in
+		*-linux) is_linux=true ;;
+		*-darwin) is_linux=false ;;
+		"")
+			err 1 "Cannot determine system type"
+			;;
+		*)
+			err 1 "Unsupported system detected" "${system}"
+			;;
+	esac
 }
 
 # Assign global configuration values be evaluating an attribute file using Nix
