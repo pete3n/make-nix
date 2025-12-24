@@ -4,9 +4,9 @@ Usage:
 make <help|install|home|system|all|test>
 [TGT_USER=<user>]
 [TGT_HOST=<host>]
-[TGT_TAGS=<tag1>,<tag2>,<tag3>,...]
+[CFG_TAGS=<tag1>,<tag2>,<tag3>,...]
 [TGT_SYSTEM=<system>]
-[TGT_SPEC=<spc1>,<spc2>,<spc3>,...]
+[SPECS=<spc1>,<spc2>,<spc3>,...]
 [OPTION FLAGS]
 
 Make targets:
@@ -20,9 +20,9 @@ Make targets:
 Configuration parameters:
   TGT_USER    - User configuration (current user will be passed by default).
   TGT_HOST    - System configuration host (current hostname will be passed by default).
-  TGT_TAGS    - User allows to customizing home-manager user configuration based on tags similar to specialisations for system configurations.
+  CFG_TAGS		- User allows to customizing home-manager user configuration based on tags similar to specialisations for system configurations.
   TGT_SYSTEM  - System platform to target for builds: x86_64-linux, aarch64-linux, x86_64-darwin, or aarch64-darwin (current platform will be passed by default.)
-  TGT_SPEC    - Comma separated list of NixOS system specialisation configurations (no spaces).
+  SPECS    - Comma separated list of NixOS system specialisation configurations (no spaces).
 
 Option flags (These are boolean, assigning any truthy value will enable them):
 Truthy values are 1 yes Yes YES true True TRUE on On ON y Y
@@ -30,7 +30,7 @@ Truthy values are 1 yes Yes YES true True TRUE on On ON y Y
 Install option flags (install):
   DETERMINATE=true  - Install Nix using the Determinate Systems installer.
 
-  NIX_DARWIN=true   - Install Nix-Darwin for MacOS.
+  INSTALL_DARWIN=true   - Install Nix-Darwin for MacOS.
 
   USE_HOMEBREW=true - Install Homebrew.
 
@@ -57,7 +57,7 @@ Usage examples:
     make install SINGLE_USER=Y
 
   - Install Nix-Darwin using the Determinate Systems installer:
-    make install DETERMINATE=1 NIX_DARWIN=y
+    make install DETERMINATE=1 INSTALL_DARWIN=y
 
   - Build and activate the home-manager configuration for the current user using a standalone home-manager configuration; autodetect hostname and system type:
     make home HOME_ALONE=true
