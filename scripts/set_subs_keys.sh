@@ -7,9 +7,11 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 trap 'cleanup 130 SIGNAL' INT TERM QUIT # one generic non-zero code for signals
 
-if ! has_nix && (source_nix && has_nix); then
-	printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
-	exit 1
+if ! has_cmd "nix"; then
+	source_nix
+	if ! has_cmd "nix"; then
+		err 1 "nix not found. Run {$C_CMD}make install{$C_RST} to install it."
+	fi
 fi
 
 logf "\n%b>>> Cache configuration started...%b\n" "$BLUE" "$RESET"
