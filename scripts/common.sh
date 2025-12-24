@@ -1,7 +1,8 @@
 #!/usr/bin/env sh
 
-# common.sh contains common helper functions for all scripts
+# Common helper functions for all scripts
 
+# Prevent sourcing multiple times
 if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 	_COMMON_SH_INCLUDED=1
 
@@ -14,13 +15,13 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		exit 1
 	}
 
-	is_truthy() {
-		var="${1:-}"
-
-		case "$var" in
-		1 | true | True | TRUE | yes | Yes | YES | on | On | ON | y | Y) return 0 ;;
-		*) return 1 ;;
-		esac
+	# Error handler to provide ANSI colored message and call cleanup
+	err() {
+		_rc=${1:-1}
+		shift || true
+		[ $# -gt 0 ] && logf "\n%berror: %b%b\n" "$RED" "$RESET" "$*" >&2
+		cleanup "${_rc}" "ERR"
+		exit "${_rc}"
 	}
 
 	# shellcheck disable=SC2059
@@ -30,6 +31,15 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		else
 			printf "$@"
 		fi
+	}
+
+	is_truthy() {
+		var="${1:-}"
+
+		case "$var" in
+		1 | true | True | TRUE | yes | Yes | YES | on | On | ON | y | Y) return 0 ;;
+		*) return 1 ;;
+		esac
 	}
 
 	# as_root uses sudo unless already root
