@@ -43,22 +43,23 @@ trap '
 ' INT TERM QUIT
 
 _check_integrity() {
-	_url=$1
-	_expected_hash=$2
+	_url="${1}"
+	_expected_hash="${2}"
 
-	curl -fLs "$_url" > "$MAKE_NIX_INSTALLER" || err 1 "Download failed: $_url"
-	set -- "$(shasum "$MAKE_NIX_INSTALLER")"
+	curl -fLs "${_url}" > "$MAKE_NIX_INSTALLER" || err 1 "Download failed: ${_url}"
+	# shellcheck disable=SC2046
+	set -- $(shasum "$MAKE_NIX_INSTALLER")
 	_actual_hash="${1}"
 
-	if [ "$_actual_hash" != "$_expected_hash" ]; then
-		rm "$MAKE_NIX_INSTALLER"
+	if [ "${_actual_hash}" != "${_expected_hash}" ]; then
+		rm "${MAKE_NIX_INSTALLER}"
 		_msg="Expected:	${C_CFG}${_expected_hash}${C_RST}\n"
 		_msg="${_msg}Actual: ${C_ERR}${_actual_hash}${C_RST}\n"
 		_msg="${_msg}Check the URL and hash values in your make.env file."
 		err 1 "${C_WARN}Integrity check failed!${C_RST}\n${_msg}"
 	else
 		logf "\n%b✅Integrity check passed.%b\n" "${C_OK}" "${C_RST}"
-		chmod +x "$MAKE_NIX_INSTALLER"
+		chmod +x "${MAKE_NIX_INSTALLER}"
 	fi
 }
 
