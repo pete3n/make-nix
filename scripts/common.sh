@@ -1,7 +1,11 @@
 #!/usr/bin/env sh
+
+# common.sh contains common helper functions for all scripts
+
 if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 	_COMMON_SH_INCLUDED=1
 
+	# Ensure MAKE_NIX_ENV was defined by make
 	env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp is working and in your PATH.}"
 
 	# shellcheck disable=SC1090
@@ -45,8 +49,6 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		_status="${1:-0}"
 		_reason="${2:-'EXIT'}"
 
-		status=${1:-0}
-		reason=${2:-EXIT}
 		printf '\n[cleanup] script=%s reason=%s exit_code=%s\n' \
 			"${_script}" "${_reason}" "${_status}" >&2
 		if ! is_truthy "${KEEP_LOGS:-}"; then
@@ -61,6 +63,7 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 			fi
 		fi
 
+		# Prevent recursive calling of cleanup
 		# Do not 'exit' on EXIT trap; only exit on INT/TERM so the script stops.
 		[ "${_reason}" = "EXIT" ] || exit "${_status}"
 	}
@@ -125,7 +128,7 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 	}
 
 	has_tag() {
-		case ",$TGT_TAGS," in
+		case ",$CFG_TAGS," in
 		*",$1,"*) return 0 ;;
 		*) return 1 ;;
 		esac
