@@ -39,5 +39,4 @@ in
       session required pam_unix.so
     '';
   };
-
 }
