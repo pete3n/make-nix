@@ -256,19 +256,30 @@ _eval_vars() {
 
 # Prevent Git tree from being marked as dirty
 _commit_config() {
-	_filename="${1}"
-	if [ -f "${_filename}" ]; then
-		logf "%binfo:%b committing %b%s%b to git tree.\n" "$BLUE" "$RESET" "$MAGENTA" "${_filename}" "$RESET"
-		git add -f "${_filename}"
-		GIT_AUTHOR_NAME="make-nix" \
-		GIT_AUTHOR_EMAIL="make-nix@bot" \
-		GIT_COMMITTER_NAME="make-nix" \
-		GIT_COMMITTER_EMAIL="make-nix@bot" \
-		git commit -m "build: Make-nix automated commit to keep git tree clean" || true
-	else
-		logf "\n%berror:%b %b%s%b not found!\n" "$RED" "$RESET" "$MAGENTA" "${_filename}" "$RESET"
-		exit 1
-	fi
+  _filename="${1}"
+
+  git rev-parse --is-inside-work-tree >/dev/null 2>&1 \
+    || err 1 "Not inside a git work tree. Flakes require git."
+  
+	if [ ! -f "${_filename}" ]; then
+		err 1 "Git cannot add ${CYAN}${_filename}${RESET} file was not found"
+  fi
+  git add -f "${_filename}"
+
+  # If no changes were staged, then do nothing
+  if git diff --cached --quiet -- "${_filename}"; then
+    logf "%binfo:%b %s unchanged, skipping commit.\n" "$BLUE" "$RESET" "${_filename}"
+    return 0
+  fi
+
+  logf "%binfo:%b committing %b%s%b to git tree.\n" \
+    "$BLUE" "$RESET" "$MAGENTA" "${_filename}" "$RESET"
+
+  GIT_AUTHOR_NAME="make-nix" \
+  GIT_AUTHOR_EMAIL="make-nix@bot" \
+  GIT_COMMITTER_NAME="make-nix" \
+  GIT_COMMITTER_EMAIL="make-nix@bot" \
+  git commit -m "build: Make-nix automated commit to keep git tree clean"
 }
 
 # Write a Nix attribute set for a home-alone configuration
@@ -520,6 +531,9 @@ rebuild_attrs() {
 			err 1 "Could not write configuration: ${CYAN}${_home_alone_config}${RESET}"
 		fi
 
+	else
+		if _write_system "$(resolve_path "./make-attrs/system/$user@$host.nix")"; then
+			_commit_config "$_system_config"
 		else
 			err 1 "Could not write configuration: ${CYAN}${_system_config}${RESET}"
 		fi
