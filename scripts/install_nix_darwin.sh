@@ -91,7 +91,7 @@ fi
 
 ensure_nix_daemon
 
-if has_nix_darwin; then
+if has_cmd "darwin-rebuild"; then
 	logf "\n%binfo:%b Nix-Darwin already appears to be installed. Skipping installation...\n" "$BLUE" "$RESET"
 	logf "If you want to re-install, please run 'make uninstall' first.\n"
 	exit 0
