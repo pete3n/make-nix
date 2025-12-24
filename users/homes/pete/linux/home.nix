@@ -98,8 +98,7 @@ in
       [ inputs.nixvim.packages.${makeNixAttrs.system}.default ]
       # non-NixOS systems get
       ++ lib.optionals makeNixAttrs.isHomeAlone [
-        pkgs.nixgl.nixGLIntel
-        pkgs.nixgl.nixVulkanIntel
+        pkgs.nixgl.auto.nixGLDefault
       ]
       ++ (with pkgs; [
 
