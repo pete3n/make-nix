@@ -344,10 +344,10 @@ try_installer_uninstall() {
 
 if [ "${UNAME_S}" = "Darwin" ]; then
 	# Check for Nix-Darwin first because we need to remove it before removing Nix.
-	if has_nix_darwin || is_truthy "${INSTALL_DARWIN:-}"; then
+	if has_cmd "darwin-rebuild" || is_truthy "${INSTALL_DARWIN:-}"; then
 		# Try provided uninstaller first if it is available
 		if { command -v darwin-uninstaller >/dev/null 2>&1 && sudo darwin-uninstaller; } ||
-			sudo nix --extra-experimental-features "nix-command flakes" run nix-darwin#darwin-uninstaller; then
+			as_root nix --extra-experimental-features "nix-command flakes" run nix-darwin#darwin-uninstaller; then
 			logf "\n%b✅ success:%b nix-darwin uninstall complete.\n" "$GREEN" "$RESET"
 		else
 			logf "\n%berror:%b failed to uninstall nix-darwin.\n" "$RED" "$RESET"
@@ -360,7 +360,7 @@ if [ "${UNAME_S}" = "Darwin" ]; then
 		try_installer_uninstall
 		nix_multi_user_uninstall_darwin && cleanup_nix_files
 		exit $?
-	elif has_nix; then
+	elif has_cmd "nix"; then
 		logf "\n%binfo:%b nix CLI detected (likely single-user).\n" "$BLUE" "$RESET"
 		try_installer_uninstall
 		nix_single_user_uninstall && cleanup_nix_files
@@ -376,7 +376,7 @@ if [ "$UNAME_S" = "Linux" ]; then
     logf "\n%binfo:%b nix-daemon (multi-user) detected.\n" "$BLUE" "$RESET"
     nix_multi_user_uninstall_linux && cleanup_nix_files
     exit $?
-  elif has_nix; then
+  elif has_cmd "nix"; then
     logf "\n%binfo:%b nix CLI detected (likely single-user).\n" "$BLUE" "$RESET"
     nix_single_user_uninstall && cleanup_nix_files
     exit $?
