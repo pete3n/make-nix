@@ -344,7 +344,7 @@ try_installer_uninstall() {
 
 if [ "${UNAME_S}" = "Darwin" ]; then
 	# Check for Nix-Darwin first because we need to remove it before removing Nix.
-	if has_nix_darwin || is_truthy "${NIX_DARWIN:-}"; then
+	if has_nix_darwin || is_truthy "${INSTALL_DARWIN:-}"; then
 		# Try provided uninstaller first if it is available
 		if { command -v darwin-uninstaller >/dev/null 2>&1 && sudo darwin-uninstaller; } ||
 			sudo nix --extra-experimental-features "nix-command flakes" run nix-darwin#darwin-uninstaller; then
