@@ -1,11 +1,11 @@
 #!/usr/bin/env sh
 set -eu
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+script_dir="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
-. "$SCRIPT_DIR/common.sh"
+. "$script_dir/common.sh"
 
-trap 'cleanup 130 SIGNAL' INT TERM QUIT # one generic non-zero code for signals
+trap 'cleanup 130 SIGNAL' INT TERM QUIT 
 
 has_cmd() {
   search_path="$PATH"
