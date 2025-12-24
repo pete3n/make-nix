@@ -68,11 +68,10 @@ trap '
   exit 130
 ' INT TERM QUIT
 
-if ! has_nix; then
+if ! has_cmd "nix"; then
 	source_nix
-	if ! has_nix; then
-		printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
-		exit 1
+	if ! has_cmd "nix"; then
+		err 1 "nix not found. Run {$C_CMD}make install{$C_RST} to install it."
 	fi
 fi
 
@@ -122,9 +121,11 @@ build() {
 	print_cmd="${print_cmd} ${print_switches}"
 	rcfile="$(mktemp)"
 
-	if ! has_nix && (source_nix && has_nix); then
-		printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
-		exit 1
+	if ! has_cmd "nix"; then
+		source_nix
+		if ! has_cmd "nix"; then
+			err 1 "nix not found. Run {$C_CMD}make install{$C_RST} to install it."
+		fi
 	fi
 
 	logf "\n%b>>> Building system configuration for:%b\n" "$BLUE" "$RESET"
@@ -158,17 +159,19 @@ activate() {
 	print_cmd=$2
 	rcfile="$(mktemp)"
 
-	if ! has_nix && (source_nix && has_nix); then
-		printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
-		exit 1
+	if ! has_cmd "nix"; then
+		source_nix
+		if ! has_cmd "nix"; then
+			err 1 "nix not found. Run {$C_CMD}make install{$C_RST} to install it."
+		fi
 	fi
 
-	if [ "$UNAME_S" = "Linux" ] && ! has_nixos; then
+	if [ "$UNAME_S" = "Linux" ] && ! has_cmd "nixos-rebuild"; then
 		logf "\n%berror:%b cannot activate a NixOS system configuration on Linux without %bnixos-rebuild%b.\n" \
 			"$RED" "$RESET" "$RED" "$RESET"
 	fi
 
-	if [ "$UNAME_S" = "Darwin" ] && ! has_nix_darwin; then
+	if [ "$UNAME_S" = "Darwin" ] && ! has_cmd "darwin-rebuild"; then
 		logf "\n%berror:%b cannot activate a Nix-Darwin system configuration on Darwin without darwin-rebuild.\n" \
 			"$RED" "$RESET" "$RED" "$RESET"
 	fi
