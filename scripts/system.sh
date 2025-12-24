@@ -145,7 +145,7 @@ build() {
 	rc=$(cat "$rcfile")
 	rm -f "$rcfile"
 	if ! [ "$rc" -eq 0 ]; then
-		logf "\n%berror:%b system configuraiton build failed. Halting make-nix.\n" "$RED" "$RESET"
+		logf "\n%berror:%b system configuration build failed. Halting make-nix.\n" "$RED" "$RESET"
 		sh "$SCRIPT_DIR/check_dirty_warn.sh"
 		exit "$rc"
 	else
