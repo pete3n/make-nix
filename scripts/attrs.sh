@@ -51,14 +51,6 @@ _write_env() {
   printf "USE_KEYS=%s\n" "${use_keys:-}"
 } >> "${MAKE_NIX_ENV}"
 
-_err() {
-  _rc=${1:-1}
-  shift || true
-  [ $# -gt 0 ] && logf "\n%berror: %b%b\n" "$RED" "$RESET" "$*" >&2
-  cleanup "${_rc}" FAIL
-  exit "${_rc}"
-}
-
 # Avoid special chars in host and user names
 _validate_ident() {
   _label=$1
@@ -66,10 +58,10 @@ _validate_ident() {
 
   case $_val in
     "" )
-      _err 2 "$_label is empty"
+      err 2 "$_label is empty"
       ;;
     *[!A-Za-z0-9._-]* )
-      _err 2 "invalid characters in $_label: $_val"
+      err 2 "invalid characters in $_label: $_val"
       ;;
   esac
 }
@@ -78,7 +70,7 @@ _validate_ident() {
 if [ -z "${TGT_HOST:-}" ]; then
 	host="$(hostname -s)"
 	if [ -z "${host}" ]; then
-		_err 1 "Could not determine local hostname"
+		err 1 "Could not determine local hostname"
 	fi
 else
 	host=$TGT_HOST
@@ -89,7 +81,7 @@ _validate_ident "host" "${host}"
 if [ -z "${TGT_USER:-}" ]; then
 	user="$(whoami)"
 	if [ -z "$user" ]; then
-		_err 1 "Could not determine local user"
+		err 1 "Could not determine local user"
 	fi
 else
 	user=$TGT_USER
@@ -217,11 +209,11 @@ _eval_vars() {
   fi
 
   if ! command -v nix-instantiate >/dev/null 2>&1; then
-    _err 1 "nix-instantiate not found; cannot validate Nix syntax"
+    err 1 "nix-instantiate not found. Cannot validate Nix syntax"
   fi
 
   if ! _out=$(nix-instantiate --parse "$_attrs_file" 2>&1); then
-    _err 1 "Invalid attrs file ${CYAN-}${_attrs_file}${RESET-}:\n${_out}"
+    err 1 "Invalid attrs file ${CYAN-}${_attrs_file}${RESET-}:\n${_out}"
   fi
 
 	# Convert variable to boolean
@@ -240,7 +232,8 @@ _eval_vars() {
 			NIX_CONFIG='extra-experimental-features = nix-command flakes' \
 			command nix eval --raw --impure --expr "${_expr}" 2>&1
 		); then
-			_err 1 "nix eval failed while reading attrs file ${CYAN-}${_attrs_file}${RESET-}:\n${_out}\nexpr:\n${_expr}"
+			err 1 "nix eval failed while reading attrs file\ 
+				${CYAN-}${_attrs_file}${RESET-}:\n${_out}\nexpr:\n${_expr}"
 		fi
 		printf '%s\n' "${_out}"
 	}
@@ -411,7 +404,8 @@ check_attrs() {
 	if _attrs_file="$(_find_attrs_file)"; then
 		logf "Nix attribute file: %b%s%b\n" "${CYAN}" "${_attrs_file}" "${RESET}"
 	else
-		_err 1 "Nix attribute check failed, attrs file was not found for:${CYAN} ${_cfg_key} ${RESET}"
+		err 1 "Nix attribute check failed, attrs file was not found for:\
+			${CYAN}${_cfg_key}${RESET}"
 	fi
 
 	_eval_vars "${_attrs_file}"
@@ -427,7 +421,8 @@ check_attrs() {
 			command nix eval --impure --json "${_flake_path}#${_attr}" \
 				--apply "config: builtins.hasAttr \"${_cfg_key}\" config" 2>&1
 		); then
-			_err 1 "nix eval failed while checking ${CYAN}${_flake_path}#${_attr}.${_cfg_key}${RESET}:\n${_out}"
+			err 1 "nix eval failed while checking \
+				${CYAN}${_flake_path}#${_attr}.${_cfg_key}${RESET}:\n${_out}"
 		fi
 
 		printf '%s\n' "$_out"
@@ -442,12 +437,12 @@ check_attrs() {
 	}
 
   if [ "$(_has_attr "homeConfigurations" "${_cfg_key}")" != "true" ]; then
-    _err 1 "${CYAN}homeConfigurations.${_cfg_key}${RESET} not found in flake outputs" 
+    err 1 "${CYAN}homeConfigurations.${_cfg_key}${RESET} not found in flake outputs" 
   fi
 
 	logf "\n%bChecking%b %bhomeConfigurations.%s%b ...\n" "${BLUE}" "${RESET}" "${CYAN}" "${_cfg_key}" "${RESET}"
   if ! _eval_ok="$(_eval_drv ".#homeConfigurations.\"${_cfg_key}\".activationPackage.drvPath")"; then
-    _err 1 "Failed evaluating home activation drvPath for: ${CYAN} ${_cfg_key} ${RESET}"
+    err 1 "Failed evaluating home activation drvPath for: ${CYAN} ${_cfg_key} ${RESET}"
   fi
 	logf "%b✅ success:%b eval passed %s\n" "$GREEN" "$RESET" "${_eval_ok}"
 
@@ -460,7 +455,7 @@ check_attrs() {
   if [ "$(_has_attr "nixosConfigurations" "${_cfg_key}")" = "true" ]; then
     logf "\n%bChecking%b %bnixosConfigurations.%s%b ...\n" "${BLUE}" "${RESET}" "${CYAN}" "${_cfg_key}" "${RESET}"
     if ! _eval_ok="$(_eval_drv ".#nixosConfigurations.\"${_cfg_key}\".config.system.build.toplevel.drvPath")"; then
-			_err 1 "Failed evaluating NixOS toplevel drvPath for ${CYAN} ${_cfg_key} ${RESET}"
+			err 1 "Failed evaluating NixOS toplevel drvPath for ${CYAN} ${_cfg_key} ${RESET}"
     fi
 		logf "%b✅ success:%b eval passed %s\n" "$GREEN" "$RESET" "${_eval_ok}"
 		return 0
@@ -469,13 +464,13 @@ check_attrs() {
   if [ "$(_has_attr "darwinConfigurations" "${_cfg_key}")" = "true" ]; then
     logf "\n%bChecking%b %b darwinConfigurations.%s%b ...\n" "${BLUE}" "${RESET}" "${CYAN}" "${_cfg_key}" "${RESET}"
 		if ! _eval_ok="$(_eval_drv ".#darwinConfigurations.\"${_cfg_key}\".system.drvPath")"; then
-			_err 1 "Failed evaluating Darwin system drvPath for ${CYAN} ${_cfg_key} ${RESET}"
+			err 1 "Failed evaluating Darwin system drvPath for ${CYAN} ${_cfg_key} ${RESET}"
     fi
 		logf "%b✅ success:%b eval passed %s\n" "$GREEN" "$RESET" "${_eval_ok}"
     return 0
   fi
 
-  _err 1 "No system configuration found for ${CYAN} ${_cfg_key} ${RESET}"
+  err 1 "No system configuration found for ${CYAN}${_cfg_key}${RESET}"
 }
 
 # Write a configuration attribute set to pass into the Nix flake.
@@ -496,18 +491,14 @@ write_attrs() {
 		if _write_home_alone "$(resolve_path "./make-attrs/home-alone/$user@$host.nix")"; then
 			_commit_config "${_home_alone_config}"
 		else
-			logf "\n%berror: %b could not write configuration: %b%s%b\n" \
-				"$RED" "$RESET" "$MAGENTA" "${_home_alone_config}" "$RESET"
-			exit 1
+			err 1 "Could not write configuration: ${CYAN}${_home_alone_config}${RESET}"
 		fi
 
 		else
 			if _write_system "$(resolve_path "./make-attrs/system/$user@$host.nix")"; then
 				_commit_config "$_system_config"
 			else
-				logf "\n%berror: %b could not write configuration: %b%s%b\n" \
-					"$RED" "$RESET" "$MAGENTA" "$_system_config" "$RESET"
-				exit 1
+				err 1 "Could not write configuration: ${CYAN}${_system_config}${RESET}"
 			fi
 	fi
 }
@@ -519,8 +510,7 @@ rebuild_attrs() {
 	if _attrs_file="$(_find_attrs_file)"; then
 		logf "Nix attribute file: %b%s%b\n" "${CYAN}" "${_attrs_file}" "${RESET}"
 	else
-		logf "\n%berror:%b Failed to read nix attribute file: %s\n" "${RED}" "${RESET}" "${_cfg_key}" >&2
-		return 1
+		err 1 "Failed to read nix attribute file: ${CYAN}${_cfg_key}${RESET}"
 	fi
 
 	_eval_vars "${_attrs_file}"
@@ -532,19 +522,12 @@ rebuild_attrs() {
 		if _write_home_alone "$(resolve_path "./make-attrs/home-alone/$user@$host.nix")"; then
 			_commit_config "$_home_alone_config"
 		else
-			logf "\n%berror: %b could not write configuration: %b%s%b\n" \
-				"$RED" "$RESET" "$MAGENTA" "$_home_alone_config" "$RESET"
-			exit 1
+			err 1 "Could not write configuration: ${CYAN}${_home_alone_config}${RESET}"
 		fi
 
 		else
-			if _write_system "$(resolve_path "./make-attrs/system/$user@$host.nix")"; then
-				_commit_config "$_system_config"
-			else
-				logf "\n%berror: %b could not write configuration: %b%s%b\n" \
-					"$RED" "$RESET" "$MAGENTA" "$_system_config" "$RESET"
-				exit 1
-			fi
+			err 1 "Could not write configuration: ${CYAN}${_system_config}${RESET}"
+		fi
 	fi
 }
 
@@ -559,7 +542,6 @@ case "$1" in
 		rebuild_attrs
 		;;
 	*)
-		logf "Makefile error: attrs target called without --check | --write | --rebuild" >&2
-		exit 1
+		err 1 "Makefile error: attrs target called without --check | --write | --rebuild"
 		;;
 esac
