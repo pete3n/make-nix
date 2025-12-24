@@ -25,7 +25,7 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		fi
 	}
 
-	# run a command as root (uses sudo unless already root)
+	# as_root uses sudo unless already root
 	as_root() {
 		if [ "$(id -u)" -eq 0 ]; then
 			"$@"
@@ -34,25 +34,32 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 		fi
 	}
 
-	_CLEANED=0
+	_cleaned=0
 	cleanup() {
-		[ "$_CLEANED" -eq 1 ] && return
-		_CLEANED=1
+		[ "${_cleaned}" -eq 1 ] && return
+		_cleaned=1
+		_script="${0##*/}" # Get the calling script basename, without requiring basename 
+		_status="${1:-0}"
+		_reason="${2:-'EXIT'}"
 
 		status=${1:-0}
 		reason=${2:-EXIT}
 		printf '\n[cleanup] script=%s reason=%s exit_code=%s\n' \
-			"${0##*/}" "$reason" "$status" >&2
+			"${_script}" "${_reason}" "${_status}" >&2
 		if ! is_truthy "${KEEP_LOGS:-}"; then
-			dir=${MAKE_NIX_TMPDIR:-}
-			if [ -n "$dir" ] && [ -d "$dir" ]; then
+			_dir="${MAKE_NIX_TMPDIR:-}"
+			if [ -n "${_dir}" ] && [ -d "${_dir}" ]; then
 				# Prevent deleting root paths if $dir gets truncated somehow
-				case "$dir" in "" | / | /tmp | /var/tmp) : ;; *) rm -rf -- "$dir" ;; esac
+				case "${_dir}" in 
+					""|/|/tmp|/var/tmp) : ;; 
+					*/make-nix.*) rm -rf -- "$_dir" ;; 
+				*) printf "common.sh [cleanup] failed to delete unexpected path: %s\n" "${_dir}" >&2 ;;
+			esac
 			fi
 		fi
 
 		# Do not 'exit' on EXIT trap; only exit on INT/TERM so the script stops.
-		[ "$reason" = EXIT ] || exit "$status"
+		[ "${_reason}" = "EXIT" ] || exit "${_status}"
 	}
 
 	has_nix() {
@@ -112,9 +119,9 @@ if [ -z "${_COMMON_SH_INCLUDED:-}" ]; then
 
 	resolve_path() {
 		# $1 = file path (can be relative, with ../, etc.)
-		dir="$(cd "$(dirname "$1")" && pwd)"
+		_dir="$(cd "$(dirname "$1")" && pwd)"
 		base="$(basename "$1")"
-		printf '%s/%s\n' "$dir" "$base"
+		printf '%s/%s\n' "$_dir" "$base"
 	}
 
 	is_deadlink() {
