@@ -73,7 +73,7 @@ for file in $clobber_list; do
 	fi
 done
 
-"$SCRIPT_DIR/attrs.sh --write"
+"$SCRIPT_DIR/attrs.sh" --write
 
 # Re-source env because attrs updates env
 # shellcheck disable=SC1090
