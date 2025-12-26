@@ -127,17 +127,39 @@ if [ -z "${_common_sourced:-}" ]; then
 
 	# Configure pathing for Nix/Nix-Daemon
 	source_nix() {
+		# Common locations across multi-user daemon installs and per-user installs
 		for _file in \
-			/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh \
-			/nix/var/nix/profiles/default/etc/profile.d/nix.sh
+			"$HOME/.nix-profile/etc/profile.d/nix.sh" \
+			"$HOME/.nix-profile/etc/profile.d/nix-daemon.sh" \
+			"/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh" \
+			"/nix/var/nix/profiles/default/etc/profile.d/nix.sh" \
+			"/etc/profile.d/nix.sh" \
+			"/etc/profile.d/nix-daemon.sh"
 		do
-			if [ -f "${_file}" ]; then
+			if [ -f "$_file" ]; then
 				# shellcheck disable=SC1090
-				. "${_file}"
-				return 0
+				. "$_file"
+				# If it worked, nix should now resolve
+				if command -v nix >/dev/null 2>&1; then
+					return 0
+				fi
 			fi
 		done
-		return 0
+
+		# Fallback: directly add expected bin paths (helps right after install)
+		for _bindir in \
+			"/run/current-system/sw/bin" \
+			"/nix/var/nix/profiles/default/bin" \
+			"$HOME/.nix-profile/bin"
+		do
+			case ":$PATH:" in
+				*":$_bindir:"*) : ;;
+				*) PATH="$_bindir:$PATH" ;;
+			esac
+		done
+		export PATH
+
+		command -v nix >/dev/null 2>&1
 	}
 
 	# Check for configuration tag match
