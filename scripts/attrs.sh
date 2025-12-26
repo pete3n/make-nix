@@ -441,15 +441,20 @@ check_attrs() {
 		_attr="${1}" # homeConfigurations | nixosConfigurations | darwinConfigurations
 		_user_host="${2}" # user@host
 		_flake_path="path:${flake_root}"
+		# Capture stdout only. Send stderr to a temp file so warnings don't poison the value.
+		_errfile="${MAKE_NIX_TMPDIR:-/tmp}/nix-eval.$$.err"
 
-		if ! _out=$(
+		_out=$(
 			NIX_CONFIG='extra-experimental-features = nix-command flakes' \
 			command nix eval --impure --json "${_flake_path}#${_attr}" \
-				--apply "config: builtins.hasAttr \"${_user_host}\" config" 2>&1
-		); then
-			err 1 "nix eval failed while checking \
-				${C_PATH}${_flake_path}${C_RST}${C_CFG}#${_attr}.${_user_host}${C_RST}:\n${_out}"
-		fi
+				--apply "config: builtins.hasAttr \"${_user_host}\" config" 2>"${_errfile}"
+		) || {
+			_err=$(cat "${_errfile}" 2>/dev/null || true)
+			rm -f "${_errfile}" 2>/dev/null || true
+			_msg="nix eval failed while checking ${C_PATH}${_flake_path}${C_RST}"
+			_msg="${_msg}${C_CFG}#${_attr}.${_user_host}${C_RST}:\n"
+			err 1 "${_msg}${_err}"
+		}
 
 		printf "%s\n" "${_out}"
 	}
@@ -462,7 +467,6 @@ check_attrs() {
     nix eval --no-warn-dirty --impure --raw "${_expr}"
 	}
 
-	logf "DEBUG hasAttr: %s\n" "$(_has_attr "homeConfigurations" "${_user_host}")"
   if [ "$(_has_attr "homeConfigurations" "${_user_host}")" != "true" ]; then
     err 1 "${C_CFG}homeConfigurations.${_user_host}${C_RST} not found in flake outputs" 
   fi
