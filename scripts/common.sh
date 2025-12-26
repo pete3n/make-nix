@@ -152,8 +152,8 @@ if [ -z "${_common_sourced:-}" ]; then
 			"/nix/var/nix/profiles/default/bin" \
 			"$HOME/.nix-profile/bin"
 		do
-			case ":$PATH:" in
-				*":$_bindir:"*) : ;;
+			case ":$PATH:" in # Uniformly wrap paths in ::
+				*":$_bindir:"*) : ;; # Don't duplicate path entries
 				*) PATH="$_bindir:$PATH" ;;
 			esac
 		done
