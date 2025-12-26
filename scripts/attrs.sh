@@ -451,7 +451,8 @@ check_attrs() {
 				${C_PATH}${_flake_path}${C_RST}${C_CFG}#${_attr}.${_cfg_key}${C_RST}:\n${_out}"
 		fi
 
-		printf '%s\n' "$_out"
+		logf "DEBUG hasAttr: %s\n" "${_out}"
+		printf "%s\n" "${_out}"
 	}
 
 	_eval_drv() {
