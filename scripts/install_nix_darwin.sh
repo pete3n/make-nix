@@ -1,4 +1,7 @@
 #!/usr/bin/env sh
+
+# Nix Darwin installation script
+
 set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -9,26 +12,34 @@ clobber_list="zshenv zshrc bashrc"
 restored=false
 restoration_list=""
 
+# Backup config files changed by the installer for restoration
 _backup_files() {
-	for file in $clobber_list; do
-		if [ -e "/etc/${file}" ]; then
-			logf "%binfo:%b backing up /etc/%s\n" "$C_CFG" "$C_RST" "$file"
-			sudo mv "/etc/$file" "/etc/${file}.before_darwin"
-		fi
-	done
-	if [ -f /etc/nix/nix.conf ]; then
-		sudo mv /etc/nix/nix.conf /etc/nix/nix.conf.before_darwin
-	fi
+  for _file in ${clobber_list}; do
+    if [ -e "/etc/${_file}" ]; then
+      logf "%b🗂  moving%b %b/etc/%s%b → %b/etc/%s.before_darwin%b\n" \
+        "${C_INFO}" "${C_RST}" "${C_PATH}" "${_file}" "${C_RST}" "${C_PATH}" "${_file}" "${C_RST}"
+      sudo mv "/etc/${_file}" "/etc/${_file}.before_darwin"
+      restoration_list="${restoration_list} ${_file}"
+    fi
+  done
+
+  if [ -f /etc/nix/nix.conf ]; then
+    logf "%b🗂  moving%b %b/etc/nix/nix.conf%b → %b/etc/nix/nix.conf.before_darwin%b\n" \
+      "${C_INFO}" "${C_RST}" "${C_PATH}" "${C_RST}" "${C_PATH}" "${C_RST}"
+    sudo mv /etc/nix/nix.conf /etc/nix/nix.conf.before_darwin
+    restoration_list="${restoration_list} nix.conf"
+  fi
 }
 
+# Restore modified configuration files on installation failure
 _restore_clobbered_files() {
-	if [ "$restored" = false ] && [ -n "$restoration_list" ]; then
-		logf "\n%binfo:%b restoring original files after failed install...\n" "$C_CFG" "$C_RST"
-		for file in $restoration_list; do
-			if [ -e "/etc/${file}.before_darwin" ]; then
-				logf "  ↩️  restoring /etc/%s\n" "$file"
-				if sudo cp "/etc/${file}.before_darwin" "/etc/$file"; then
-					sudo rm -f "/etc/${file}.before_darwin"
+	if [ "${restored}" = false ] && [ -n "${restoration_list}" ]; then
+		logf "\n%binfo:%b restoring original files after failed install...\n" "$C_INFO" "$C_RST"
+		for _file in ${restoration_list}; do
+			if [ -e "/etc/${_file}.before_darwin" ]; then
+				logf "\n%b ↩️%b restoring /etc/%s\n" "${_file}" "${C_INFO}" "${C_RST}"
+				if sudo cp "/etc/${_file}.before_darwin" "/etc/${_file}"; then
+					sudo rm -f "/etc/${_file}.before_darwin"
 				fi
 			fi
 		done
@@ -36,8 +47,13 @@ _restore_clobbered_files() {
 	fi
 }
 
-trap '_restore_clobbered_files' EXIT INT TERM QUIT
-trap 'cleanup 130 SIGNAL' INT TERM QUIT # one generic non-zero code for signals
+_on_signal() {
+  _restore_clobbered_files
+  cleanup 130 SIGNAL
+}
+
+trap '_restore_clobbered_files' EXIT
+trap '_on_signal' INT TERM QUIT
 
 _ensure_nix_daemon() {
 	if ! [ -x /nix/var/nix/profiles/default/bin/nix-daemon ]; then
@@ -67,7 +83,7 @@ logf "\n%binfo:%b backing up files before Nix-Darwin install...\n" "$C_CFG" "$C_
 for file in $clobber_list; do
 	if [ -e "/etc/$file" ]; then
 		logf "%b🗂  moving%b %b/etc/%s%b → %b/etc/%s.before_darwin%b\n" "$C_CFG" "$C_RST" \
-			"$MAGENTA" "$file" "$C_RST" "$MAGENTA" "$file" "$C_RST"
+			"$C_PATH" "$file" "$C_RST" "$C_PATH" "$file" "$C_RST"
 		sudo mv "/etc/$file" "/etc/${file}.before_darwin"
 		restoration_list="$restoration_list $file"
 	fi
