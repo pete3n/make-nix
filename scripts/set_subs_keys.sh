@@ -9,6 +9,9 @@ script_dir="$(cd "$(dirname "$0")" && pwd)"
 . "$script_dir/common.sh"
 
 nix_conf="/etc/nix/nix.conf"
+# Prefer drop-in config when available (works with installer-managed nix.conf symlinks).
+dropin_dir="/etc/nix/nix.conf.d"
+dropin_file="${dropin_dir}/50-make-nix.conf"
 
 trap 'cleanup 130 SIGNAL' INT TERM QUIT # one generic non-zero code for signals
 
@@ -18,6 +21,93 @@ if ! has_cmd "nix"; then
 		err 1 "nix not found. Run {$C_CMD}make install{$C_RST} to install it."
 	fi
 fi
+
+_csv_to_space() {
+  printf "%s" "$1" | tr ',' ' ' | tr -s ' '
+}
+
+# Remove any existing setting lines for a key, then append "key = value".
+# Preserves all other lines and comments.
+_update_conf_value() {
+  _file="$1"
+  _key="$2"
+  _value="$3"
+
+	_tmpdir="${MAKE_NIX_TMPDIR:-/tmp}"
+	[ -d "$_tmpdir" ] || _tmpdir="/tmp"
+	_tmp=$(mktemp "$_tmpdir/nixconf.XXXXXX") || return 1
+
+  # Keep everything except lines that define this key.
+  # Accepts either "key=..." or "key = ..." with any spaces.
+  if [ -f "$_file" ]; then
+    grep -v -e "^[[:space:]]*${_key}[[:space:]]*=" "$_file" >"$_tmp" || true
+  fi
+
+  # Append the desired setting
+  printf "%s = %s\n" "${_key}" "${_value}" >>"$_tmp"
+
+  as_root mv "$_tmp" "$_file"
+}
+
+_write_dropin_file() {
+  _target="$1"
+  _cache_urls=""
+  _trusted_keys=""
+
+  if is_truthy "${USE_CACHE:-}" && [ -n "${NIX_CACHE_URLS:-}" ]; then
+    _cache_urls=$(_csv_to_space "${NIX_CACHE_URLS}")
+  fi
+
+  if is_truthy "${USE_KEYS:-}" && [ -n "${TRUSTED_PUBLIC_KEYS:-}" ]; then
+    _trusted_keys=$(_csv_to_space "${TRUSTED_PUBLIC_KEYS}")
+  fi
+
+  logf "\n%binfo:%b writing Nix cache/key config to %b%s%b\n" \
+    "${C_INFO}" "${C_RST}" "${C_PATH}" "${_target}" "${C_RST}"
+
+  as_root sh -c "cat > \"${_target}\" <<'EOF'# Managed by make-nix (do not edit by hand) EOF"
+
+  if [ -n "${_cache_urls}" ]; then
+    as_root sh -c "printf '%s\n' \
+      \"substituters = ${_cache_urls}\" \
+      \"trusted-substituters = ${_cache_urls}\" \
+      >> \"${_target}\""
+  fi
+
+  if [ -n "${_trusted_keys}" ]; then
+    as_root sh -c "printf '%s\n' \
+      \"trusted-public-keys = ${_trusted_keys}\" \
+      >> \"${_target}\""
+  fi
+
+  as_root sh -c "printf '%s\n' 'download-buffer-size = 1G' >> \"${_target}\""
+}
+
+_overwrite_nix_conf() {
+  _file="$1"
+
+  as_root mkdir -p "$(dirname "${_file}")"
+  [ -f "${_file}" ] || as_root touch "${_file}"
+
+  if is_truthy "${USE_CACHE:-}" && [ -n "${NIX_CACHE_URLS:-}" ]; then
+    _cache_urls=$(_csv_to_space "${NIX_CACHE_URLS}")
+    logf "\n%binfo:%b updating %bsubstituters%b and %btrusted-substituters%b in %b%s%b\n" \
+      "${C_INFO}" "${C_RST}" "${C_CFG}" "${C_RST}" "${C_CFG}" "${C_RST}" "${C_PATH}" "${_file}" "${C_RST}"
+    _update_conf_value "${_file}" "substituters" "${_cache_urls}"
+    _update_conf_value "${_file}" "trusted-substituters" "${_cache_urls}"
+  fi
+
+  if is_truthy "${USE_KEYS:-}" && [ -n "${TRUSTED_PUBLIC_KEYS:-}" ]; then
+    _trusted_keys=$(_csv_to_space "${TRUSTED_PUBLIC_KEYS}")
+    logf "\n%binfo:%b updating %btrusted-public-keys%b in %b%s%b\n" \
+      "${C_INFO}" "${C_RST}" "${C_CFG}" "${C_RST}" "${C_PATH}" "${_file}" "${C_RST}"
+    _update_conf_value "${_file}" "trusted-public-keys" "${_trusted_keys}"
+  fi
+
+  logf "\n%binfo:%b ensuring %bdownload-buffer-size%b in %b%s%b\n" \
+    "${C_INFO}" "${C_RST}" "${C_CFG}" "${C_RST}" "${C_PATH}" "${_file}" "${C_RST}"
+  _update_conf_value "${_file}" "download-buffer-size" "1G"
+}
 
 logf "\n%b>>> Cache configuration started...%b\n" "$C_INFO" "$C_RST"
 
@@ -34,66 +124,23 @@ if is_truthy "${USE_KEYS:-}" && [ -z "${TRUSTED_PUBLIC_KEYS:-}" ]; then
 	exit 0 # Don't halt the installation
 fi
 
-_csv_to_space() {
-  printf "%s" "$1" | tr ',' ' ' | tr -s ' '
-}
-
-# Only modify nix.conf if it is a broken symlink (safe to repair).
-# A regular file or valid symlink indicates active Nix management.
-if ! is_deadlink "${nix_conf}"; then
-  logf "\n%b⚠️ warning:%b %b%s%b exists and is managed by Nix. Can't modify.\n" \
-		"${C_WARN}" "${C_RST}" "${C_PATH}" "${nix_conf}" "${C_RST}"
-	exit 0
+# Use drop-in dir if possible
+_use_dropin="false"
+if [ -d "${dropin_dir}" ] || as_root mkdir -p "${dropin_dir}" 2>/dev/null; then
+  _use_dropin="true"
 fi
 
-as_root mkdir -p "$(dirname "${nix_conf}")"
-[ -f "${nix_conf}" ] || as_root touch "${nix_conf}"
-
-# Replace or add a key/value in a config file
-_set_conf_value() {
-	_file="${1}"
-	_key="${2}"
-	_value="${3}"
-	if as_root sh -c grep -q "^${_key}[[:space:]]*=" "${_file}"; then
-		if sed --version >/dev/null 2>&1; then
-			# GNU sed
-			as_root sed -i "s|^${_key}[[:space:]]*=.*|${_key} = ${_value}|" "${_file}"
-		else
-			# BSD sed (macOS)
-			as_root sed -i "" "s|^${_key}[[:space:]]*=.*|${_key} = ${_value}|" "${_file}"
-		fi
-	else
-		printf "%s = %s\n" "${_key}" "${_value}" | as_root tee -a "${_file}"
-	fi
-}
-
-# trusted-public-keys in /etc/nix/nix.conf
-if [ -n "${TRUSTED_PUBLIC_KEYS:-}" ]; then
-	trusted_keys=$(_csv_to_space "${TRUSTED_PUBLIC_KEYS}")
-	logf "\n%binfo:%b setting %btrusted-public-keys%b = %s \nin %b%s%b\n" \
-		"${C_INFO}" "${C_RST}" "${C_CFG}" "${C_RST}" "${trusted_keys}" "${C_PATH}" "${nix_conf}" "${C_RST}"
-	_set_conf_value "${nix_conf}" "trusted-public-keys" "${trusted_keys}"
-fi
-
-# trusted-substituters in /etc/nix/nix.conf
-cache_urls=$(_csv_to_space "${NIX_CACHE_URLS}")
-logf "\n%binfo:%b setting %btrusted-substituters%b = %s \nin %b%s%b\n" \
-	"${C_INFO}" "${C_RST}" "${C_CFG}" "${C_RST}" "${cache_urls}" "${C_PATH}" "${nix_conf}" "${C_RST}"
-_set_conf_value "${nix_conf}" "trusted-substituters" "${cache_urls}"
-
-# substituters in /etc/nix/nix.conf (default caches used)
-logf "\n%binfo:%b setting %bsubstituters%b = %s \nin %b%s%b\n" \
-  "${C_INFO}" "${C_RST}" "${C_CFG}" "${C_RST}" "${cache_urls}" "${C_PATH}" "${nix_conf}" "${C_RST}"
-_set_conf_value "${nix_conf}" "substituters" "${cache_urls}"
-
-# Set download-buffer-size if not already set
-if ! as_root sh -c grep -q '^download-buffer-size[[:space:]]*=' "${nix_conf}"; then
-	printf "download-buffer-size = 1G\n" | as_root tee -a "${nix_conf}" >/dev/null
-	logf "\n%binfo:%b setting %bdownload-buffer-size%b = 1G \nin %b%s%b\n" \
-		"${C_INFO}" "${C_RST}" "${C_CFG}" "${C_RST}" "${C_PATH}" "${nix_conf}" "${C_RST}"
+if [ "${_use_dropin}" = "true" ]; then
+  _write_dropin_file "${dropin_file}"
 else
-	logf "\n%binfo:%b download-buffer-size already set in %s, not modifying.\n" \
-		"${C_INFO}" "${C_RST}" "${C_PATH}" "${nix_conf}" "${C_RST}"
+  # Fall back to nix.conf but don't edit Nix symlinks
+  if [ -L "${nix_conf}" ] && [ -e "${nix_conf}" ]; then
+    logf "\n%b⚠️ warning:%b %b%s%b is a managed symlink and no %b%s%b exists. Skipping cache/key config.\n" \
+      "${C_WARN}" "${C_RST}" "${C_PATH}" "${nix_conf}" "${C_RST}" "${C_PATH}" "${dropin_dir}" "${C_RST}"
+    exit 0
+	else
+		_overwrite_nix_conf "${nix_conf}"
+  fi
 fi
 
 # Restart daemon

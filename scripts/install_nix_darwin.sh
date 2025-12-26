@@ -13,18 +13,6 @@ backup_ext="before_darwin"
 restored="false"
 restoration_list=""
 
-# Backup config files changed by the installer for restoration
-_backup_files() {
-  for _file in ${clobber_list}; do
-    if [ -e "${_file}" ]; then
-      logf "%b🗂  moving%b %b%s → %s.%s%b\n" \
-        "${C_INFO}" "${C_RST}" "${C_PATH}" "${_file}" "${_file}" "${backup_ext}" "${C_RST}"
-      as_root mv "${_file}" "${_file}.${backup_ext}"
-      restoration_list="${restoration_list} ${_file}"
-    fi
-  done
-}
-
 # Restore modified configuration files on installation failure
 _restore_files() {
 	[ "${restored}" = "true" ] && return 0
@@ -58,30 +46,8 @@ _on_signal() {
   cleanup 130 SIGNAL
 }
 
-trap '_restore_clobbered_files' EXIT
+trap '_restore_files' EXIT
 trap '_on_signal' INT TERM QUIT
-
-_ensure_nix_daemon() {
-	if ! [ -x /nix/var/nix/profiles/default/bin/nix-daemon ]; then
-		err 1 "nix-daemon binary missing in default profile"
-	fi
-
-	as_root launchctl enable system/org.nixos.nix-daemon || true
-	as_root launchctl bootstrap system /Library/LaunchDaemons/org.nixos.nix-daemon.plist 2>/dev/null || true
-	as_root launchctl kickstart -k system/org.nixos.nix-daemon || true
-
-	# Wait for the socket
-	i=1
-	while [ $i -lt 20 ] && ! [ -S /nix/var/nix/daemon-socket/socket ]; do
-		i=$((i + 1))
-		sleep 0.1
-	done
-
-	if ! [ -S /nix/var/nix/daemon-socket/socket ]; then
-		as_root launchctl print system/org.nixos.nix-daemon | sed -n '1,120p' >&2 || true
-		err 1 "nix-daemon socket missing after bootstrap/kickstart"
-	fi
-}
 
 "$script_dir/attrs.sh" --write
 
@@ -89,7 +55,26 @@ _ensure_nix_daemon() {
 # shellcheck disable=SC1090
 . "$MAKE_NIX_ENV"
 
-_ensure_nix_daemon
+# Ensure the Nix Daemon exists and is running
+if ! [ -x /nix/var/nix/profiles/default/bin/nix-daemon ]; then
+	err 1 "nix-daemon binary missing in default profile"
+fi
+
+as_root launchctl enable system/org.nixos.nix-daemon || true
+as_root launchctl bootstrap system /Library/LaunchDaemons/org.nixos.nix-daemon.plist 2>/dev/null || true
+as_root launchctl kickstart -k system/org.nixos.nix-daemon || true
+
+# Wait for the socket
+i=1
+while [ $i -lt 20 ] && ! [ -S /nix/var/nix/daemon-socket/socket ]; do
+	i=$((i + 1))
+	sleep 0.1
+done
+
+if ! [ -S /nix/var/nix/daemon-socket/socket ]; then
+	as_root launchctl print system/org.nixos.nix-daemon | sed -n '1,120p' >&2 || true
+	err 1 "nix-daemon could not be started"
+fi
 
 if has_cmd "darwin-rebuild"; then
 	logf "\n%binfo:%b Nix-Darwin already appears to be installed. Skipping installation...\n" "${C_CFG}" "${C_RST}"
@@ -99,12 +84,20 @@ fi
 
 "$script_dir/attrs.sh" --check
 
+# Backup config files changed by the installer for restoration
 logf "\n%binfo:%b backing up files before Nix-Darwin install...\n" "${C_INFO}" "${C_RST}"
-_backup_files
+  for _file in ${clobber_list}; do
+    if [ -e "${_file}" ]; then
+      logf "%b🗂  moving%b %b%s → %s.%s%b\n" \
+        "${C_INFO}" "${C_RST}" "${C_PATH}" "${_file}" "${_file}" "${backup_ext}" "${C_RST}"
+      as_root mv "${_file}" "${_file}.${backup_ext}"
+      restoration_list="${restoration_list} ${_file}"
+    fi
+  done
 
 logf "\n%binfo:%b building Nix-Darwin with command:\n" "${C_INFO}" "${C_RST}"
 
-# Build args
+# Build command args
 set -- nix build \
   --option experimental-features "nix-command flakes" \
   --max-jobs auto \
@@ -113,7 +106,7 @@ set -- nix build \
 
 logf "%b" "${C_CMD}"
 
-# All args except the last
+# Print the command arguments, then the configuration arg
 _i=1
 _last=$#
 for _arg in "$@"; do
