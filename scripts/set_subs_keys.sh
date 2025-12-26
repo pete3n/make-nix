@@ -65,7 +65,9 @@ _write_dropin_file() {
   logf "\n%binfo:%b writing Nix cache/key config to %b%s%b\n" \
     "${C_INFO}" "${C_RST}" "${C_PATH}" "${_target}" "${C_RST}"
 
-  as_root sh -c "cat > \"${_target}\" <<'EOF'# Managed by make-nix (do not edit by hand) EOF"
+	{
+		printf '%s\n' '# Managed by make-nix (do not edit)'
+	} | as_root tee "${_target}" >/dev/null
 
   if [ -n "${_cache_urls}" ]; then
     as_root sh -c "printf '%s\n' \
