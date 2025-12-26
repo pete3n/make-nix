@@ -8,49 +8,53 @@ script_dir="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$script_dir/common.sh"
 
-clobber_list="zshenv zshrc bashrc"
+clobber_list="/etc/zshenv /etc/zshrc /etc/bashrc /etc/nix/nix.conf"
+backup_ext="before_darwin"
 restored="false"
 restoration_list=""
-nix_conf_path="/etc/nix/nix.conf"
-nix_conf_backup="${nix_conf_path}.before_darwin"
 
 # Backup config files changed by the installer for restoration
 _backup_files() {
   for _file in ${clobber_list}; do
-    if [ -e "/etc/${_file}" ]; then
-      logf "%b🗂  moving%b %b/etc/%s%b → %b/etc/%s.before_darwin%b\n" \
-        "${C_INFO}" "${C_RST}" "${C_PATH}" "${_file}" "${C_RST}" "${C_PATH}" "${_file}" "${C_RST}"
-      as_root mv "/etc/${_file}" "/etc/${_file}.before_darwin"
+    if [ -e "${_file}" ]; then
+      logf "%b🗂  moving%b %b%s → %s.%s%b\n" \
+        "${C_INFO}" "${C_RST}" "${C_PATH}" "${_file}" "${_file}" "${backup_ext}" "${C_RST}"
+      as_root mv "${_file}" "${_file}.${backup_ext}"
       restoration_list="${restoration_list} ${_file}"
     fi
   done
-
 }
 
 # Restore modified configuration files on installation failure
-_restore_clobbered_files() {
-	if [ "${restored}" = "false" ] && [ -n "${restoration_list}" ]; then
-		for _file in ${restoration_list}; do
-			if [ -e "/etc/${_file}.before_darwin" ]; then
-				logf "%b ↩️%b restoring /etc/%s\n" "${C_INFO}" "${C_RST}" "${_file}"
-				if as_root cp "/etc/${_file}.before_darwin" "/etc/${_file}"; then
-					as_root rm -f "/etc/${_file}.before_darwin"
-				fi
-			fi
+_restore_files() {
+	[ "${restored}" = "true" ] && return 0
+	[ -z "${restoration_list}" ] && { restored="true"; return 0; }
 
-			if [ -f "${nix_conf_path}" ]; then
-				logf "%b🗂  moving%b %b%s%b → %b%s%b\n" \
-				"${C_INFO}" "${C_RST}" "${C_PATH}" "${nix_conf_backup}" "${C_RST}" "${C_PATH}" "${nix_conf_path}" "${C_RST}"
-				as_root mv "${nix_conf_backup}" "${nix_conf_path}"
-				restoration_list="${restoration_list} nix.conf"
-			fi
-		done
-		restored="true"
-	fi
+	_failed=0
+
+	for _file in ${restoration_list}; do
+		_bak="${_file}.${backup_ext}" 
+		# No backup to restore
+		[ -e "${_bak}" ] || continue 
+		logf "%b ↩️%b restoring %s\n" "${C_INFO}" "${C_RST}" "${_file}"
+
+		# Try restore 
+		if as_root cp "${_bak}" "${_file}"; then
+			# Only remove backup on success
+			as_root rm -f "${_file}.${backup_ext}"
+		else
+			_failed=1
+			logf "%b⚠️ warning:%b failed to restore %s (leaving backup at %s)\n" \
+      "${C_WARN}" "${C_RST}" "${_file}" "${_bak}" >&2
+		fi
+	done
+	restored="true"
+	
+	return "${_failed}"
 }
 
 _on_signal() {
-  _restore_clobbered_files
+  _restore_files
   cleanup 130 SIGNAL
 }
 

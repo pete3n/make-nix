@@ -441,7 +441,7 @@ check_attrs() {
 		_attr="${1}" # homeConfigurations | nixosConfigurations | darwinConfigurations
 		_user_host="${2}" # user@host
 		_flake_path="path:${flake_root}"
-		# Capture stdout only. Send stderr to a temp file so warnings don't poison the value.
+		# Capture stdout only. Send stderr to a temp file so it doesn't pollute _out
 		_errfile="${MAKE_NIX_TMPDIR:-/tmp}/nix-eval.$$.err"
 
 		_out=$(

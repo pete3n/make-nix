@@ -23,13 +23,13 @@ logf "\n%b>>> Cache configuration started...%b\n" "$C_INFO" "$C_RST"
 
 # Warn if cache env URLs are missing
 if is_truthy "${USE_CACHE:-}" && [ -z "${NIX_CACHE_URLS:-}" ]; then
-	logf "\n%b⚠️ Warning:%b %bUSE_CACHE%b was enabled but no NIX_CACHE_URLS were set.\nCheck your make.env file.\n" \
+	logf "\n%b⚠️ warning:%b %bUSE_CACHE%b was enabled but no NIX_CACHE_URLS were set.\nCheck your make.env file.\n" \
 		"${C_WARN}" "${C_RST}" "${C_INFO}" "${C_RST}"
 	exit 0 # Don't halt the installation
 fi
 
 if is_truthy "${USE_KEYS:-}" && [ -z "${TRUSTED_PUBLIC_KEYS:-}" ]; then
-	logf "\n%b⚠️ Warning:%b %bUSE_KEYS%b was enabled but no TRUSTED_PUBLIC_KEYS were set.\nCheck your make.env file.\n" \
+	logf "\n%b⚠️ warning:%b %bUSE_KEYS%b was enabled but no TRUSTED_PUBLIC_KEYS were set.\nCheck your make.env file.\n" \
 		"${C_WARN}" "${C_RST}" "${C_INFO}" "${C_RST}"
 	exit 0 # Don't halt the installation
 fi
@@ -41,7 +41,7 @@ _csv_to_space() {
 # Only modify nix.conf if it is a broken symlink (safe to repair).
 # A regular file or valid symlink indicates active Nix management.
 if ! is_deadlink "${nix_conf}"; then
-  logf "\n%b⚠️ Warning:%b %b%s%b exists and is managed by Nix. Can't modify.\n" \
+  logf "\n%b⚠️ warning:%b %b%s%b exists and is managed by Nix. Can't modify.\n" \
 		"${C_WARN}" "${C_RST}" "${C_PATH}" "${nix_conf}" "${C_RST}"
 	exit 0
 fi
