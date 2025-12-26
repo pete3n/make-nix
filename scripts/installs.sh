@@ -58,7 +58,7 @@ _check_integrity() {
 		_msg="${_msg}Check the URL and hash values in your make.env file."
 		err 1 "${C_WARN}Integrity check failed!${C_RST}\n${_msg}"
 	else
-		logf "\n%b✅Integrity check passed.%b\n" "${C_OK}" "${C_RST}"
+		logf "\n%b✅ Integrity check passed.%b\n" "${C_OK}" "${C_RST}"
 		chmod +x "${MAKE_NIX_INSTALLER}"
 	fi
 }
