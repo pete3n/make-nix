@@ -426,12 +426,12 @@ _write_system() {
 # Load a configuration attribute set based on user and host names. 
 # Evaluate the configuration using Nix eval as appropriate for the configuraiton type.
 check_attrs() {
-	_cfg_key="${user}@${host}"
+	_user_host="${user}@${host}"
 	if _attrs_file="$(_find_attrs_file)"; then
 		logf "Nix attribute file: %b%s%b\n" "${C_PATH}" "${_attrs_file}" "${C_RST}"
 	else
 		err 1 "Nix attribute check failed, attrs file was not found for:\
-			${C_CFG}${_cfg_key}${C_RST}"
+			${C_CFG}${_user_host}${C_RST}"
 	fi
 
 	_eval_vars "${_attrs_file}"
@@ -439,19 +439,18 @@ check_attrs() {
 
 	_has_attr() {
 		_attr="${1}" # homeConfigurations | nixosConfigurations | darwinConfigurations
-		_cfg_key="${2}" # user@host
+		_user_host="${2}" # user@host
 		_flake_path="path:${flake_root}"
 
 		if ! _out=$(
 			NIX_CONFIG='extra-experimental-features = nix-command flakes' \
 			command nix eval --impure --json "${_flake_path}#${_attr}" \
-				--apply "config: builtins.hasAttr \"${_cfg_key}\" config" 2>&1
+				--apply "config: builtins.hasAttr \"${_user_host}\" config" 2>&1
 		); then
 			err 1 "nix eval failed while checking \
-				${C_PATH}${_flake_path}${C_RST}${C_CFG}#${_attr}.${_cfg_key}${C_RST}:\n${_out}"
+				${C_PATH}${_flake_path}${C_RST}${C_CFG}#${_attr}.${_user_host}${C_RST}:\n${_out}"
 		fi
 
-		logf "DEBUG hasAttr: %s\n" "${_out}"
 		printf "%s\n" "${_out}"
 	}
 
@@ -463,14 +462,15 @@ check_attrs() {
     nix eval --no-warn-dirty --impure --raw "${_expr}"
 	}
 
-  if [ "$(_has_attr "homeConfigurations" "${_cfg_key}")" != "true" ]; then
-    err 1 "${C_CFG}homeConfigurations.${_cfg_key}${C_RST} not found in flake outputs" 
+	logf "DEBUG hasAttr: %s\n" "$(_has_attr "homeConfigurations" "${_user_host}")"
+  if [ "$(_has_attr "homeConfigurations" "${_user_host}")" != "true" ]; then
+    err 1 "${C_CFG}homeConfigurations.${_user_host}${C_RST} not found in flake outputs" 
   fi
 
 	logf "\n%bChecking%b %bhomeConfigurations.%s%b ...\n" \
-		"${C_INFO}" "${C_RST}" "${C_CFG}" "${_cfg_key}" "${C_RST}"
-  if ! _eval_ok="$(_eval_drv ".#homeConfigurations.\"${_cfg_key}\".activationPackage.drvPath")"; then
-    err 1 "Failed evaluating home activation drvPath for: ${C_CFG} ${_cfg_key} ${C_RST}"
+		"${C_INFO}" "${C_RST}" "${C_CFG}" "${_user_host}" "${C_RST}"
+  if ! _eval_ok="$(_eval_drv ".#homeConfigurations.\"${_user_host}\".activationPackage.drvPath")"; then
+    err 1 "Failed evaluating home activation drvPath for: ${C_CFG} ${_user_host} ${C_RST}"
   fi
 	logf "%b✅ success:%b eval passed %s\n" "$C_OK" "$C_RST" "${_eval_ok}"
 
@@ -480,26 +480,26 @@ check_attrs() {
     return 0
   fi
 
-  if [ "$(_has_attr "nixosConfigurations" "${_cfg_key}")" = "true" ]; then
+  if [ "$(_has_attr "nixosConfigurations" "${_user_host}")" = "true" ]; then
     logf "\n%bChecking%b %bnixosConfigurations.%s%b ...\n" \
-			"${C_INFO}" "${C_RST}" "${C_CFG}" "${_cfg_key}" "${C_RST}"
-    if ! _eval_ok="$(_eval_drv ".#nixosConfigurations.\"${_cfg_key}\".config.system.build.toplevel.drvPath")"; then
-			err 1 "Failed evaluating NixOS toplevel drvPath for ${C_CFG} ${_cfg_key} ${C_RST}"
+			"${C_INFO}" "${C_RST}" "${C_CFG}" "${_user_host}" "${C_RST}"
+    if ! _eval_ok="$(_eval_drv ".#nixosConfigurations.\"${_user_host}\".config.system.build.toplevel.drvPath")"; then
+			err 1 "Failed evaluating NixOS toplevel drvPath for ${C_CFG} ${_user_host} ${C_RST}"
     fi
 		logf "%b✅ success:%b eval passed %s\n" "$C_OK" "$C_RST" "${_eval_ok}"
 		return 0
   fi
 
-  if [ "$(_has_attr "darwinConfigurations" "${_cfg_key}")" = "true" ]; then
-    logf "\n%bChecking%b %b darwinConfigurations.%s%b ...\n" "${C_INFO}" "${C_RST}" "${C_CFG}" "${_cfg_key}" "${C_RST}"
-		if ! _eval_ok="$(_eval_drv ".#darwinConfigurations.\"${_cfg_key}\".system.drvPath")"; then
-			err 1 "Failed evaluating Darwin system drvPath for ${C_CFG} ${_cfg_key} ${C_RST}"
+  if [ "$(_has_attr "darwinConfigurations" "${_user_host}")" = "true" ]; then
+    logf "\n%bChecking%b %b darwinConfigurations.%s%b ...\n" "${C_INFO}" "${C_RST}" "${C_CFG}" "${_user_host}" "${C_RST}"
+		if ! _eval_ok="$(_eval_drv ".#darwinConfigurations.\"${_user_host}\".system.drvPath")"; then
+			err 1 "Failed evaluating Darwin system drvPath for ${C_CFG} ${_user_host} ${C_RST}"
     fi
 		logf "%b✅ success:%b eval passed %s\n" "$C_OK" "$C_RST" "${_eval_ok}"
     return 0
   fi
 
-  err 1 "No system configuration found for ${C_CFG}${_cfg_key}${C_RST}"
+  err 1 "No system configuration found for ${C_CFG}${_user_host}${C_RST}"
 }
 
 # Write a configuration attribute set to pass into the Nix flake.
@@ -535,11 +535,11 @@ write_attrs() {
 # Load a configuration attribute set based on user and host names. 
 # Modify it with any set env vars and re-write it to pass into the Nix flake.
 rebuild_attrs() { 
-	_cfg_key="${user}@${host}"
+	_user_host="${user}@${host}"
 	if _attrs_file="$(_find_attrs_file)"; then
 		logf "Nix attribute file: %b%s%b\n" "${C_CFG}" "${_attrs_file}" "${C_RST}"
 	else
-		err 1 "Failed to read nix attribute file: ${C_CFG}${_cfg_key}${C_RST}"
+		err 1 "Failed to read nix attribute file: ${C_CFG}${_attrs_file}${C_RST}"
 	fi
 
 	_eval_vars "${_attrs_file}"
