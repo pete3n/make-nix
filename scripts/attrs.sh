@@ -355,13 +355,13 @@ _write_system() {
 	_system_config="${1}"
 	logf "\n%binfo:%b writing %b%s%b with:\n" \
 		"${C_INFO}" "${C_RST}" "${C_PATH}" "${_system_config}" "${C_RST}"
-	logf '  user              = "%s"\n' "{$user}"
-	logf '  host              = "%s"\n' "$host"
-	logf '  system            = "%s"\n' "$system"
-	logf "  isHomeAlone       = %s\n" "$is_home_alone"
-	logf "  useHomebrew       = %s\n" "$use_homebrew"
-	logf "  useCache          = %s\n" "$use_cache"
-	logf "  useKeys           = %s\n" "$use_keys"
+	logf '  user              = "%s"\n' "${user}"
+	logf '  host              = "%s"\n' "${host}"
+	logf '  system            = "%s"\n' "${system}"
+	logf "  isHomeAlone       = %s\n" "${is_home_alone}"
+	logf "  useHomebrew       = %s\n" "${use_homebrew}"
+	logf "  useCache          = %s\n" "${use_cache}"
+	logf "  useKeys           = %s\n" "${use_keys}"
 	logf "  tags              = ["
 	if [ -n "${tags}" ]; then
 		set -f
@@ -388,13 +388,13 @@ _write_system() {
 
 	{
 		printf "{ ... }:\n{\n"
-		printf '  user = "%s";\n' "$user"
-		printf '  host = "%s";\n' "$host"
-		printf '  system = "%s";\n' "$system"
-		printf "  isHomeAlone = %s;\n" "$is_home_alone"
-		printf "  useHomebrew = %s;\n" "$use_homebrew"
-		printf "  useCache = %s;\n" "$use_cache"
-		printf "  useKeys = %s;\n" "$use_keys"
+		printf '  user = "%s";\n' "${user}"
+		printf '  host = "%s";\n' "${host}"
+		printf '  system = "%s";\n' "${system}"
+		printf "  isHomeAlone = %s;\n" "${is_home_alone}"
+		printf "  useHomebrew = %s;\n" "${use_homebrew}"
+		printf "  useCache = %s;\n" "${use_cache}"
+		printf "  useKeys = %s;\n" "${use_keys}"
 		printf "  tags = ["
 		if [ -n "${tags}" ]; then
 			set -f
@@ -420,7 +420,7 @@ _write_system() {
 		printf " ];\n"
 
 		printf "}\n"
-	} >"$_system_config"
+	} >"${_system_config}"
 }
 
 # Load a configuration attribute set based on user and host names. 
