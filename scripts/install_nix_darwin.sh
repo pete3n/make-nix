@@ -25,12 +25,6 @@ _backup_files() {
     fi
   done
 
-  if [ -f "${nix_conf_path}" ]; then
-		logf "%b🗂  moving%b %b%s%b → %b%s%b\n" \
-		"${C_INFO}" "${C_RST}" "${C_PATH}" "${nix_conf_path}" "${C_RST}" "${C_PATH}" "${nix_conf_backup}" "${C_RST}"
-    as_root mv "${nix_conf_path}" "${nix_conf_backup}"
-    restoration_list="${restoration_list} nix.conf"
-  fi
 }
 
 # Restore modified configuration files on installation failure
@@ -42,6 +36,13 @@ _restore_clobbered_files() {
 				if as_root cp "/etc/${_file}.before_darwin" "/etc/${_file}"; then
 					as_root rm -f "/etc/${_file}.before_darwin"
 				fi
+			fi
+
+			if [ -f "${nix_conf_path}" ]; then
+				logf "%b🗂  moving%b %b%s%b → %b%s%b\n" \
+				"${C_INFO}" "${C_RST}" "${C_PATH}" "${nix_conf_backup}" "${C_RST}" "${C_PATH}" "${nix_conf_path}" "${C_RST}"
+				as_root mv "${nix_conf_backup}" "${nix_conf_path}"
+				restoration_list="${restoration_list} nix.conf"
 			fi
 		done
 		restored="true"
@@ -105,7 +106,6 @@ set -- nix build \
   --max-jobs auto \
   --cores 0 \
   ".#darwinConfigurations.${TGT_USER}@${TGT_HOST}.system"
-
 
 logf "%b" "${C_CMD}"
 
