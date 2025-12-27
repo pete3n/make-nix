@@ -46,6 +46,10 @@ endef
 # Utility targets.
 #
 
+.PHONY: validate-args
+validate-args:
+	@sh scripts/validate_args.sh "$(MAKECMDGOALS)"
+
 .PHONY: set-env
 set-env:
 	@sh scripts/set_env.sh
@@ -53,6 +57,10 @@ set-env:
 .PHONY: check-deps
 check-deps:
 	@sh scripts/check_deps.sh "$(MAKECMDGOALS)"
+
+.PHONY: pre-checks
+pre-checks: validate-args set-env check-deps
+
 .PHONY: clean
 clean:
 	@sh scripts/clean.sh
@@ -69,109 +77,89 @@ show-help:
 #
 
 .PHONY: install
-install: set-env check-deps installs
+install: pre-checks installs
+
+.PHONY: install-all
+install-all: installs
 
 .PHONY: installs
 installs:
 	@sh scripts/installs.sh -F $(IS_LAST)
 
 .PHONY: uninstall
-uninstall: set-env uninstalls
+uninstall: pre-checks uninstalls
 
 .PHONY: uninstalls
 uninstalls:
 	@sh scripts/uninstalls.sh -F $(IS_LAST)
 
 #
-# Configuration targets.
+# Check targets.
 #
 
-# Single-target home configuration.
-.PHONY: home
-home: set-env check-deps write-nix-attrs build-home activate-home check-dirty-warn clean
-
-# Single-target NixOS or Nix-Darwin system configuration.
-.PHONY: system
-system: set-env check-deps write-nix-attrs build-system activate-system check-dirty-warn set-spec-boot clean
-
-# Alias all-config.
-.PHONY: all
-all: all-config
-
-# Execute both system and home targets.
-.PHONY: all-config
-all-config: set-env check-deps write-nix-attrs build-system activate-system check-dirty-warn \
-	build-home activate-home check-dirty-warn set-spec-boot clean
-
-# Home target used by all-config (environment setup and cleanup called by all-config.)
-.PHONY: all-home
-all-home: build-home activate-home check-dirty-warn
-
-# System target used by all-config (environment setup and cleanup called by all-config.)
-.PHONY: all-system
-all-system: build-system activate-system check-dirty-warn set-spec-boot
-
-.PHONY: test
-test: set-env check-deps check-nix-attrs check-dirty-warn clean
-
-# Alias for test
 .PHONY: check
-check: test
+check: check-all
 
-.PHONY: rebuild-home rebuild-system rebuild-all rebuild
+.PHONY: check-all
+check-all: pre-checks check-nix-attrs clean
 
-rebuild: rebuild-all
+.PHONY: check-home
+check-home: pre-checks check-nix-attrs-home clean
 
-rebuild-home: set-env check-deps rebuild-nix-attrs build-home activate-home check-dirty-warn clean
-
-rebuild-system: set-env check-deps rebuild-nix-attrs build-system activate-system check-dirty-warn set-spec-boot clean
-
-rebuild-all: set-env check-deps check-nix-attrs rebuild-nix-attrs build-system activate-system check-dirty-warn \
-	build-home activate-home check-dirty-warn set-spec-boot clean
-
-#
-# Configuration utility targets
-#
+.PHONY: check-system
+check-system: pre-checks check-nix-attrs-system clean
 
 # Check previous configuration based on username and hostname
 .PHONY: check-nix-attrs
 check-nix-attrs:
-	@sh "scripts/attrs.sh" --check
+	@sh "scripts/attrs.sh" --check-all
+
+# Check previous home configuration based on username and hostname
+.PHONY: check-nix-attrs-home
+check-nix-attrs-home:
+	@sh "scripts/attrs.sh" --check-home
+
+# Check previous system configuration based on username and hostname
+.PHONY: check-nix-attrs-system
+check-nix-attrs-system:
+	@sh "scripts/attrs.sh" --check-system
+
+#
+# Build targets.
+#
 
 # Pass imperative configuration attributes from make to flake.nix
 .PHONY: write-nix-attrs
 write-nix-attrs:
 	@sh "scripts/attrs.sh" --write
 
-# Rebuild previous attributes based on username and hostname
-.PHONY: rebuild-nix-attrs
-rebuild-nix-attrs:
-	@sh "scripts/attrs.sh" --rebuild
+.PHONY: build
+build: build-all
 
-# Build flake-based Home-manager configurations for Linux or Darwin systems.
+.PHONY: build-all
+build-all: pre-checks write-nix-attrs build-system-all build-home-all clean
+
+.PHONY: build-system
+build-system: pre-checks write-nix-attrs system-build check-dirty-warn set-spec-boot clean
+
+.PHONY: build-system-all
+build-system-all: system-build check-dirty-warn
+
 .PHONY: build-home
-build-home:
-	@sh scripts/home.sh -F $(IS_LAST) --build
+build-system: pre-checks write-nix-attrs home-build check-dirty-warn set-spec-boot clean
 
-# Activate flake-based Home-manager configurations for Linux or Darwin systems.
-.PHONY: activate-home
-activate-home:
-	@sh scripts/home.sh -F $(IS_LAST) --activate
+.PHONY: build-home-all
+build-home-all: home-build check-dirty-warn
 
 # Build flake-based system configurations for Linux or Darwin systems.
-.PHONY: build-system
-build-system:
+.PHONY: system-build
+system-build:
 	@sh scripts/system.sh -F $(IS_LAST) --build
 
-# Activate flake-based system configurations for Linux or Darwin systems.
-.PHONY: activate-system
-activate-system:
-	@sh scripts/system.sh -F $(IS_LAST) --activate
-
-# Set the default boot menu option to the first specified specialisation for a system.
-.PHONY: set-spec-boot
-set-spec-boot:
-	@sh scripts/set_spec_boot.sh
+# Build flake-based Home-manager configurations for Linux or Darwin systems.
+.PHONY: home-build
+home-build:
+	@sh scripts/home.sh -F $(IS_LAST) --build
 
 # Check for a dirty git tree and warn on a failed build about the confusing
 # missing path error. I should not have to write this...
@@ -179,7 +167,52 @@ set-spec-boot:
 check-dirty-warn:
 	@sh scripts/check_dirty_warn.sh
 
+.PHONY: set-spec-boot
+set-spec-boot:
+	@sh scripts/set_spec_boot.sh
+
+#
+# Switch targets.
+#
+
+.PHONY: switch
+switch: switch-all
+
+.PHONY: switch-all
+switch-all: pre-checks build-system-all build-home-all activate-all clean
+
+.PHONY: switch-system
+switch-system: pre-checks write-nix-attrs build-system check-dirty-warn activate-system set-spec-boot clean
+
+.PHONY: switch-home
+switch-home: pre-checks write-nix-attrs build-home check-dirty-warn activate-home clean
+
+#
+# Activate targets.
+#
+
+.PHONY: activate-all
+activate-all: activate-system activate-home
+
+# Activate flake-based system configurations for Linux or Darwin systems.
+.PHONY: activate-system
+activate-system:
+	@sh scripts/system.sh -F $(IS_LAST) --activate
+
+# Activate flake-based Home-manager configurations for Linux or Darwin systems.
+.PHONY: activate-home
+activate-home:
+	@sh scripts/home.sh -F $(IS_LAST) --activate
+
+.PHONY: test
+test: set-env check-deps check-nix-attrs check-dirty-warn clean
+# Set the default boot menu option to the first specified specialisation for a system.
+
+.PHONY: all
+all: pre-checks install-all write-nix-attrs build-system-all build-home-all activate-all set-spec-boot clean
+
 %:
 	@printf "Unknown target: '$@'\n"
-	@printf "Valid targets: help install uninstall check home system all rebuild rebuild-all rebuild-home rebuild-system\n"
+	@printf "Valid targets: help all install check switch update uninstall\n"
+	@printf "Valid sub-targets: check-system check-home build-system build-home switch-system switch-home\n"
 	@false
