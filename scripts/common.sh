@@ -21,13 +21,15 @@ if [ -z "${_common_sourced:-}" ]; then
 		shift || true
 
 		_msg=$*
+		_c_err=${C_ERR-}
+		_c_rst=${C_RST-}
 
 		# Print to stderr (render \n and any ANSI sequences included in _msg)
 		if [ -n "${MAKE_NIX_LOG:-}" ]; then
 			# Show on stderr, and append plain text to log
-			printf "%b\n" "${C_ERR}error:${C_RST} ${_msg}" | tee -a "$MAKE_NIX_LOG" >&2
+			printf "%b\n" "${_c_err}error:${_c_rst} ${_msg}" | tee -a "$MAKE_NIX_LOG" >&2
 		else
-			printf "%b\n" "${C_ERR}error:${C_RST} ${_msg}" >&2
+			printf "%b\n" "${_c_rst}error:${_c_rst} ${_msg}" >&2
 		fi
 
 		cleanup "${_rc}" "ERR"
