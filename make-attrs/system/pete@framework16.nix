@@ -7,6 +7,6 @@
   useHomebrew = false;
   useCache = false;
   useKeys = false;
-  tags = [ ];
+  tags = [ "hyprland" "poweruser" ];
   specialisations = [ ];
 }
