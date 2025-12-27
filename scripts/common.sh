@@ -143,7 +143,7 @@ if [ -z "${_common_sourced:-}" ]; then
 		[ -S /nix/var/nix/daemon-socket/socket ]
 	}
 
-	# Attempt to source the nix binary, and fail if unable
+	# Attempt to source the nix binary
 	source_nix() {
 		# Common locations across multi-user daemon installs and per-user installs
 		for _file in \
@@ -157,10 +157,6 @@ if [ -z "${_common_sourced:-}" ]; then
 			if [ -f "$_file" ]; then
 				# shellcheck disable=SC1090
 				. "$_file"
-				# If it worked, nix should now resolve
-				if command -v nix >/dev/null 2>&1; then
-					return 0
-				fi
 				break # Only source the first match
 			fi
 		done
@@ -179,11 +175,20 @@ if [ -z "${_common_sourced:-}" ]; then
 			fi
 		done
 		export PATH
+		return 0
+	}
 
-		if command -v nix >/dev/null 2>&1; then
-			return 0
-		fi
-		err 1 "Could not find a Nix binary. Run make install to ensure it is installed."
+	# Attempt to source the darwin-rebuild 
+	source_darwin() {
+		_bindir="/run/current-system/sw/bin"
+		{ [ -d "${_bindir}" ] && [ -x "${_bindir}/darwin-rebuild" ]; } || return 1
+		case ":$PATH:" in
+			*":$_bindir:"*) : ;;
+			*) PATH="$_bindir:$PATH" ;;
+		esac
+
+		export PATH
+		return 0
 	}
 
 	# Check for configuration tag match
