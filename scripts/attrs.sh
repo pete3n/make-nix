@@ -569,6 +569,8 @@ write_attrs() {
 	else
 		err 1 "Could not write configuration: ${C_CFG}${_system_config}${C_RST}"
 	fi
+
+	return 0
 }
 
 case "$1" in
