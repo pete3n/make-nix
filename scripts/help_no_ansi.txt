@@ -28,7 +28,7 @@ Option flags (These are boolean, assigning any truthy value will enable them):
 Truthy values are 1 yes Yes YES true True TRUE on On ON y Y
 
 Install option flags (install):
-  DETERMINATE=true  - Install Nix using the Determinate Systems installer.
+  USE_DETERMINATE=true  - Install Nix using the Determinate Systems installer.
 
   INSTALL_DARWIN=true   - Install Nix-Darwin for MacOS.
 
@@ -57,7 +57,7 @@ Usage examples:
     make install SINGLE_USER=Y
 
   - Install Nix-Darwin using the Determinate Systems installer:
-    make install DETERMINATE=1 INSTALL_DARWIN=y
+    make install USE_DETERMINATE=1 INSTALL_DARWIN=y
 
   - Build and activate the home-manager configuration for the current user using a standalone home-manager configuration; autodetect hostname and system type:
     make home HOME_ALONE=true

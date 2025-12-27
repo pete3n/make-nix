@@ -45,7 +45,7 @@ write_line "  ${CYAN}SPECS${RESET}    - Comma separated list of NixOS system spe
 write_line "${BLUE}Option flags${RESET} (These are boolean, assigning ${BOLD}any truthy${RESET} value will enable them):"
 write_line "Truthy values are 1 yes Yes YES true True TRUE on On ON y Y\n"
 write_line "Install option flags (install):"
-write_line "  ${BLUE}DETERMINATE${RESET}${RED}=${RESET}true  - Install Nix using the Determinate Systems installer.\n"
+write_line "  ${BLUE}USE_DETERMINATE${RESET}${RED}=${RESET}true  - Install Nix using the Determinate Systems installer.\n"
 write_line "  ${BLUE}INSTALL_DARWIN${RESET}${RED}=${RESET}true   - Install Nix-Darwin for MacOS.\n"
 write_line "  ${BLUE}USE_HOMEBREW${RESET}${RED}=${RESET}true - Install Homebrew.\n"
 write_line "  ${BLUE}SINGLE_USER${RESET}${RED}=${RESET}true  - Install Nix for single-user mode (default installer only).\n"
@@ -67,7 +67,7 @@ write_line "  ${GREEN}- Install Nix using the default installer for single-user 
 write_line "    ${RED}make${RESET} ${BOLD}install${RESET} ${BLUE}SINGLE_USER${RESET}${RED}=${RESET}Y\n"
 
 write_line "  ${GREEN}- Install Nix-Darwin using the Determinate Systems installer:"
-write_line "    ${RED}make${RESET} ${BOLD}install${RESET} ${BLUE}DETERMINATE${RESET}${RED}=${RESET}1 ${BLUE}INSTALL_DARWIN${RESET}${RED}=${RESET}y\n"
+write_line "    ${RED}make${RESET} ${BOLD}install${RESET} ${BLUE}USE_DETERMINATE${RESET}${RED}=${RESET}1 ${BLUE}INSTALL_DARWIN${RESET}${RED}=${RESET}y\n"
 
 write_line "  ${GREEN}- Build and activate the home-manager configuration for the current user using a standalone home-manager configuration; autodetect hostname and system type:${RESET}"
 write_line "    ${RED}make${RESET} ${BOLD}home${RESET} ${BLUE}HOME_ALONE${RESET}${RED}=${RESET}true\n"

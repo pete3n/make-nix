@@ -64,24 +64,24 @@ _check_integrity() {
 }
 
 # Only the determinate installer works with SELinux
-if [ -z "${DETERMINATE:-}" ]; then
+if [ -z "${USE_DETERMINATE:-}" ]; then
 	if has_cmd "getenforce"; then
 		case "$(getenforce 2>/dev/null)" in
 		"Enforcing"|"Permissive")
 			logf "\n%binfo:%b SELinux detected (%s). Using Determinate Systems installer.\n" \
 				"${C_INFO:-}" "${C_RST:-}" "$(getenforce)"
-			DETERMINATE="true"
+			USE_DETERMINATE="true"
 			;;
 		esac
 	elif [ -f /sys/fs/selinux/enforce ] && [ "$(cat /sys/fs/selinux/enforce 2>/dev/null)" = "1" ]; then
 		logf "\n%binfo:%b SELinux detected (sysfs).  Using Determinate Systems installer.\n" \
 			"${C_INFO:-}" "${C_RST:-}"
-		DETERMINATE="true"
+		USE_DETERMINATE="true"
 	fi
 fi
 
 # Integrity checks
-if is_truthy "${DETERMINATE:-}"; then
+if is_truthy "${USE_DETERMINATE:-}"; then
 	logf "\n%b>>> Verifying Determinate Systems installer integrity...%b\n" "${C_INFO}" "${C_RST}"
 	_check_integrity "${DETERMINATE_INSTALL_URL}" "${DETERMINATE_INSTALL_HASH}"
 else
@@ -92,7 +92,7 @@ fi
 # Launch installers
 logf "\n%b>>> Launching installer...%b\n" "${C_INFO}" "${C_RST}"
 
-if is_truthy "${DETERMINATE:-}"; then
+if is_truthy "${USE_DETERMINATE:-}"; then
 	set -- "${DETERMINATE_INSTALL_MODE}"
 else
 	if is_truthy "${SINGLE_USER:-}"; then

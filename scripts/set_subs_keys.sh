@@ -18,7 +18,7 @@ trap 'cleanup 130 SIGNAL' INT TERM QUIT # one generic non-zero code for signals
 if ! has_cmd "nix"; then
 	source_nix
 	if ! has_cmd "nix"; then
-		err 1 "nix not found. Run {$C_CMD}make install{$C_RST} to install it."
+		err 1 "nix not found. Run ${C_CMD}make install${C_RST} to install it."
 	fi
 fi
 
@@ -26,7 +26,7 @@ _csv_to_space() {
   printf "%s" "$1" | tr ',' ' ' | tr -s ' '
 }
 
-logf "\n%b>>> Cache configuration started...%b\n" "$C_INFO" "$C_RST"
+logf "\n%b>>> Cache configuration started...%b\n" "${C_INFO}" "${C_RST}"
 
 # Warn if cache env URLs are missing
 if is_truthy "${USE_CACHE:-}" && [ -z "${NIX_CACHE_URLS:-}" ]; then
@@ -36,37 +36,32 @@ if is_truthy "${USE_CACHE:-}" && [ -z "${NIX_CACHE_URLS:-}" ]; then
 fi
 
 if is_truthy "${USE_KEYS:-}" && [ -z "${TRUSTED_PUBLIC_KEYS:-}" ]; then
-	logf "\n%b⚠️ warning:%b %bUSE_KEYS%b was enabled but no TRUSTED_PUBLIC_KEYS were set.\nCheck your make.env file.\n" \
-		"${C_WARN}" "${C_RST}" "${C_INFO}" "${C_RST}"
+	_msg="\n${C_WARN}⚠️ warning:${C_RST} ${C_INFO}USE_KEYS${C_RST} was enabled " 
+	_msg="${_msg}but no TRUSTED_PUBLIC_KEYS were set.\nCheck your make.env file.\n"
+	logf "%b" "${_msg}"
 	exit 0 # Don't halt the installation
 fi
 
 as_root mkdir -p "${conf_d}"
-
 
 _tmpdir="${MAKE_NIX_TMPDIR:-/tmp}"
 [ -d "$_tmpdir" ] || _tmpdir="/tmp"
 _tmp=$(mktemp "$_tmpdir/nixconf.XXXXXX") || return 1
 
 {
-  printf '%s\n' "# Managed by make-nix (do not edit by hand)"
-  printf '%s\n' ""
+  printf "%s\n\n" "# Managed by make-nix (do not edit by hand)"
 
   if is_truthy "${USE_CACHE:-}" && [ -n "${NIX_CACHE_URLS:-}" ]; then
     _cache_urls=$(_csv_to_space "${NIX_CACHE_URLS}")
-    printf 'substituters = %s\n' "${_cache_urls}"
-    # Optional: only keep this if you really want it
-    printf 'trusted-substituters = %s\n' "${_cache_urls}"
+    printf "trusted-substituters = %s\n" "${_cache_urls}"
   fi
 
   if is_truthy "${USE_KEYS:-}" && [ -n "${TRUSTED_PUBLIC_KEYS:-}" ]; then
     _keys=$(_csv_to_space "${TRUSTED_PUBLIC_KEYS}")
-    printf 'trusted-public-keys = %s\n' "${_keys}"
+    printf "trusted-public-keys = %s\n" "${_keys}"
   fi
 
-  # Nice-to-have default; harmless if already elsewhere
-  printf '\n'
-  printf 'download-buffer-size = 1G\n'
+  printf "\ndownload-buffer-size = 1G\n"
 } > "${_tmp}"
 
 as_root cp "${_tmp}" "${dropin_conf}"

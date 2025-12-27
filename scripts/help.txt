@@ -4,8 +4,8 @@ Usage:
 [0;31mmake[0m [1m<help|install|home|system|all|test>[0m
 [[1;36mTGT_USER[0m[0;31m=[0m<user>]
 [[1;36mTGT_HOST[0m[0;31m=[0m<host>]
-[[1;36mCFG_TAGS[0m[0;31m=[0m<tag1>[0;31m,[0m<tag2>[0;31m,[0m<tag3>[0;31m,[0m...]
 [[1;36mTGT_SYSTEM[0m[0;31m=[0m<system>]
+[[1;36mCFG_TAGS[0m[0;31m=[0m<tag1>[0;31m,[0m<tag2>[0;31m,[0m<tag3>[0;31m,[0m...]
 [[1;36mSPECS[0m[0;31m=[0m<spc1>[0;31m,[0m<spc2>[0;31m,[0m<spc3>[0;31m,[0m...]
 [[1;34mOPTION FLAGS[0m]
 

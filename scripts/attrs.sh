@@ -182,8 +182,8 @@ _set_vars() {
 	
 	# Set is_linux for easy condition checks without string comparison.
 	case "${system-}" in
-		*-linux) is_linux=true ;;
-		*-darwin) is_linux=false ;;
+		*-linux) is_linux="true" ;;
+		*-darwin) is_linux="false" ;;
 		"")
 			err 1 "Cannot determine system type"
 			;;
@@ -250,6 +250,8 @@ _eval_vars() {
 
 	is_home_alone="$(_nix_eval "builtins.toString (${_base}.isHomeAlone or false)")"
 	_make_bool is_home_alone
+	is_linux="$(_nix_eval "builtins.toString (${_base}.isLinux or false)")"
+	_make_bool is_linux
 	use_homebrew="$(_nix_eval "builtins.toString (${_base}.useHomebrew or false)")"
 	_make_bool use_homebrew
 	use_keys="$(_nix_eval "builtins.toString (${_base}.useKeys or false)")"
@@ -262,14 +264,15 @@ _eval_vars() {
 
 	_fmt="\n${C_INFO}Reading attributes:${C_RST}\n"
 	_fmt="${_fmt} user: %b%s%b\n host: %b%s%b\n system: %b%s%b\n"
-	_fmt="${_fmt} is_home_alone: %b%s%b\n use_homebrew: %b%s%b\n"
+	_fmt="${_fmt} is_linux: %b%s%b\n is_home_alone: %b%s%b\n use_homebrew: %b%s%b\n"
 	_fmt="${_fmt} use_keys: %b%s%b\n use_cache: %b%s%b\n"
 	_fmt="${_fmt} tags: %b%s%b\n specs: %b%s%b\n"
 
 	logf "$_fmt" \
-		"${C_CFG}" "${user}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}" "${C_CFG}" "${system}" "${C_RST}" \
-		"${C_CFG}" "${is_home_alone}" "${C_RST}" "${C_CFG}" "${use_homebrew}" "${C_RST}" \
-		"${C_CFG}" "${use_keys}" "${C_RST}" "${C_CFG}" "${use_cache}" "${C_RST}" \
+		"${C_CFG}" "${user}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"\
+		"${C_CFG}" "${system}" "${C_RST}" "${C_CFG}" "${is_linux}" "${C_RST}"\
+		"${C_CFG}" "${is_home_alone}" "${C_RST}" "${C_CFG}" "${use_homebrew}" "${C_RST}"\
+		"${C_CFG}" "${use_keys}" "${C_RST}" "${C_CFG}" "${use_cache}" "${C_RST}"\
 		"${C_CFG}" "${tags}" "${C_RST}" "${C_CFG}" "${specs}" "${C_RST}"
 }
 
@@ -426,12 +429,14 @@ _write_system() {
 # Load a configuration attribute set based on user and host names. 
 # Evaluate the configuration using Nix eval as appropriate for the configuraiton type.
 check_attrs() {
+	_checks="${1}"
 	_user_host="${user}@${host}"
 	if _attrs_file="$(_find_attrs_file)"; then
 		logf "Nix attribute file: %b%s%b\n" "${C_PATH}" "${_attrs_file}" "${C_RST}"
 	else
-		err 1 "Nix attribute check failed, attrs file was not found for:\
-			${C_CFG}${_user_host}${C_RST}"
+		_msg="Nix attribute check failed, attrs file was not found for: "
+		_msg="${_msg}${C_CFG}${_user_host}${C_RST}"
+		err 1 "${_msg}"
 	fi
 
 	_eval_vars "${_attrs_file}"
@@ -467,24 +472,31 @@ check_attrs() {
     nix eval --no-warn-dirty --impure --raw "${_expr}"
 	}
 
-  if [ "$(_has_attr "homeConfigurations" "${_user_host}")" != "true" ]; then
+  if [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-home" ] && \
+		[ "$(_has_attr "homeConfigurations" "${_user_host}")" != "true" ]; then
     err 1 "${C_CFG}homeConfigurations.${_user_host}${C_RST} not found in flake outputs" 
   fi
 
-	logf "\n%bChecking%b %bhomeConfigurations.%s%b ...\n" \
+  if [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-home" ]; then
+		logf "\n%bChecking%b %bhomeConfigurations.%s%b ...\n" \
 		"${C_INFO}" "${C_RST}" "${C_CFG}" "${_user_host}" "${C_RST}"
-  if ! _eval_ok="$(_eval_drv ".#homeConfigurations.\"${_user_host}\".activationPackage.drvPath")"; then
-    err 1 "Failed evaluating home activation drvPath for: ${C_CFG} ${_user_host} ${C_RST}"
-  fi
-	logf "%b✅ success:%b eval passed %s\n" "$C_OK" "$C_RST" "${_eval_ok}"
+		if ! _eval_ok="$(_eval_drv ".#homeConfigurations.\"${_user_host}\".activationPackage.drvPath")"; then
+			err 1 "Failed evaluating home activation drvPath for: ${C_CFG} ${_user_host} ${C_RST}"
+		fi
+		logf "%b✅ success:%b eval passed %s\n" "$C_OK" "$C_RST" "${_eval_ok}"
+	fi
 
-  # Don't attempt to evaluate a system configuration for a home-alone target.
-  if [ "${is_home_alone:-false}" = "true" ]; then
-    logf "\nHome-alone configuration: skipping system configuration checks.\n"
+  if [ "${is_home_alone:-false}" = "true" ] || [ "${_checks}" = "check-home" ]; then
     return 0
   fi
 
-  if [ "$(_has_attr "nixosConfigurations" "${_user_host}")" = "true" ]; then
+  if [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ] && \
+	[ "${is_linux}" = "true" ] && [ "$(_has_attr "nixosConfigurations" "${_user_host}")" != "true" ]; then
+    err 1 "${C_CFG}nixosConfigurations.${_user_host}${C_RST} not found in flake outputs" 
+  fi
+
+  if [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ] && \
+ 	[ "${is_linux}" = "true" ] &&	[ "$(_has_attr "nixosConfigurations" "${_user_host}")" = "true" ]; then
     logf "\n%bChecking%b %bnixosConfigurations.%s%b ...\n" \
 			"${C_INFO}" "${C_RST}" "${C_CFG}" "${_user_host}" "${C_RST}"
     if ! _eval_ok="$(_eval_drv ".#nixosConfigurations.\"${_user_host}\".config.system.build.toplevel.drvPath")"; then
@@ -494,7 +506,13 @@ check_attrs() {
 		return 0
   fi
 
-  if [ "$(_has_attr "darwinConfigurations" "${_user_host}")" = "true" ]; then
+  if [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ] && \
+	[ "${is_linux}" = "false" ] && [ "$(_has_attr "darwinConfigurations" "${_user_host}")" != "true" ]; then
+    err 1 "${C_CFG}darwinConfigurations.${_user_host}${C_RST} not found in flake outputs" 
+  fi
+  
+	if [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ] && \
+  [ "${is_linux}" = "false" ] && [ "$(_has_attr "darwinConfigurations" "${_user_host}")" = "true" ]; then
     logf "\n%bChecking%b %b darwinConfigurations.%s%b ...\n" "${C_INFO}" "${C_RST}" "${C_CFG}" "${_user_host}" "${C_RST}"
 		if ! _eval_ok="$(_eval_drv ".#darwinConfigurations.\"${_user_host}\".system.drvPath")"; then
 			err 1 "Failed evaluating Darwin system drvPath for ${C_CFG} ${_user_host} ${C_RST}"
@@ -508,16 +526,30 @@ check_attrs() {
 
 # Write a configuration attribute set to pass into the Nix flake.
 write_attrs() {
-	# NixOS or Nix-Darwin indicate we will be using a system configuration 
-	# Installing Nix-Darwin also indicates we will be using a system configuration
-	if has_cmd "nix" || has_cmd "darwin-rebuild" || is_truthy "${INSTALL_DARWIN:-}"; then
-		is_home_alone=false
-	else
-		is_home_alone=true
+	_user_host="${user}@${host}"
+	
+	# Attempt to load an existing configuration first
+	# Modify it with any set env vars and re-write it to pass into the Nix flake.
+	_rebuild="false"
+	if _attrs_file="$(_find_attrs_file)"; then
+		_rebuild="true"
+		logf "Nix attribute file: %b%s%b\n" "${C_CFG}" "${_attrs_file}" "${C_RST}"
+		_eval_vars "${_attrs_file}"
+		_set_vars "rebuild" # Override attribute file with new command line vars
+		_write_env
 	fi
 
-	_set_vars "write"
-	_write_env
+	if [ "${_rebuild}" = "false" ]; then
+		# NixOS or Nix-Darwin indicate we will be using a system configuration 
+		# Installing Nix-Darwin also indicates we will be using a system configuration
+		if has_cmd "nix" || has_cmd "darwin-rebuild" || is_truthy "${INSTALL_DARWIN:-}"; then
+			is_home_alone=false
+		else
+			is_home_alone=true
+		fi
+		_set_vars "write"
+		_write_env
+	fi
 
 	logf "\n%b>>> Writing Nix configuration.%b\n" "$C_INFO" "$C_RST"
 	if [ "${is_home_alone}" = true ]; then
@@ -529,55 +561,27 @@ write_attrs() {
 
 		else
 			if _write_system "$(resolve_path "./make-attrs/system/$user@$host.nix")"; then
-				_commit_config "$_system_config"
+				_commit_config "${_system_config}"
 			else
 				err 1 "Could not write configuration: ${C_CFG}${_system_config}${C_RST}"
 			fi
 	fi
 }
 
-# Load a configuration attribute set based on user and host names. 
-# Modify it with any set env vars and re-write it to pass into the Nix flake.
-rebuild_attrs() { 
-	_user_host="${user}@${host}"
-	if _attrs_file="$(_find_attrs_file)"; then
-		logf "Nix attribute file: %b%s%b\n" "${C_CFG}" "${_attrs_file}" "${C_RST}"
-	else
-		err 1 "Failed to read nix attribute file: ${C_CFG}${_attrs_file}${C_RST}"
-	fi
-
-	_eval_vars "${_attrs_file}"
-	_set_vars "rebuild" # Override attribute file with new command line vars
-	_write_env
-
-	logf "\n%b>>> Writing Nix configuration.%b\n" "$C_INFO" "$C_RST"
-	if [ "$is_home_alone" = true ]; then
-		if _write_home_alone "$(resolve_path "./make-attrs/home-alone/$user@$host.nix")"; then
-			_commit_config "$_home_alone_config"
-		else
-			err 1 "Could not write configuration: ${C_CFG}${_home_alone_config}${C_RST}"
-		fi
-
-	else
-		if _write_system "$(resolve_path "./make-attrs/system/$user@$host.nix")"; then
-			_commit_config "$_system_config"
-		else
-			err 1 "Could not write configuration: ${C_CFG}${_system_config}${C_RST}"
-		fi
-	fi
-}
-
 case "$1" in
-	--check)
-		check_attrs
+	--check-all)
+		check_attrs "check-all"
+		;;
+	--check-home)
+		check_attrs "check-home"
+		;;
+	--check-system)
+		check_attrs "check-system"
 		;;
 	--write)
 		write_attrs
 		;;
-	--rebuild)
-		rebuild_attrs
-		;;
 	*)
-		err 1 "Makefile error: attrs target called without --check | --write | --rebuild"
+		err 1 "Makefile error: attrs target called without --check-all|home|system | --write"
 		;;
 esac
