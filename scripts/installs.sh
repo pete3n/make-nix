@@ -27,6 +27,11 @@ _script_dir="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$_script_dir/common.sh"
 
+_install_nix=""
+_install_darwin=""
+_install_homebrew=""
+_install_nixgl=""
+
 _cleanup_on_exit() {
   status=$?
   if [ "$status" -ne 0 ] && [ "${is_final_goal:-0}" -eq 1 ]; then
@@ -99,60 +104,85 @@ _launch_darwin_install() {
 		sh "${_script_dir}/install_nix_darwin.sh"
 }
 
-# Exit early if Nix is installed and we are not installing Darwin
-if has_cmd "nix" && ! is_truthy "${INSTALL_DARWIN:-}"; then
+_launch_nix_install() {
+	# Only the determinate installer works with SELinux
+	if [ -z "${USE_DETERMINATE:-}" ]; then
+		if has_cmd "getenforce"; then
+			case "$(getenforce 2>/dev/null)" in
+			"Enforcing"|"Permissive")
+				logf "\n%binfo:%b SELinux detected (%s). Using Determinate Systems installer.\n" \
+					"${C_INFO:-}" "${C_RST:-}" "$(getenforce)"
+				USE_DETERMINATE="true"
+				;;
+			esac
+		elif [ -f /sys/fs/selinux/enforce ] && [ "$(cat /sys/fs/selinux/enforce 2>/dev/null)" = "1" ]; then
+			logf "\n%binfo:%b SELinux detected (sysfs).  Using Determinate Systems installer.\n" \
+				"${C_INFO:-}" "${C_RST:-}"
+			USE_DETERMINATE="true"
+		fi
+	fi
+
+	# Integrity checks
+	if is_truthy "${USE_DETERMINATE:-}"; then
+		logf "\n%b>>> Verifying Determinate Systems installer integrity...%b\n" "${C_INFO}" "${C_RST}"
+		_check_integrity "${DETERMINATE_INSTALL_URL}" "${DETERMINATE_INSTALL_HASH}"
+	else
+		logf "\n%b>>> Verifying Nix installer integrity...%b\n" "${C_INFO}" "${C_RST}"
+		_check_integrity "${NIX_INSTALL_URL}" "${NIX_INSTALL_HASH}"
+	fi
+
+	# Launch installers
+	logf "\n%b>>> Launching installer...%b\n" "${C_INFO}" "${C_RST}"
+
+	if is_truthy "${USE_DETERMINATE:-}"; then
+		set -- "${DETERMINATE_INSTALL_MODE}"
+	else
+		if is_truthy "${SINGLE_USER:-}"; then
+			set -- "--no-daemon"
+		else
+			set -- "${NIX_INSTALL_MODE}"
+		fi
+	fi
+
+	if [ -f "${MAKE_NIX_INSTALLER}" ]; then
+		sh "${MAKE_NIX_INSTALLER}" "$@"
+
+		# Make nix available in the current shell after install for follow-on targets
+		source_nix
+
+	else
+		err 1 "Could not execute ${C_PATH}${MAKE_NIX_INSTALLER}${C_RST}"
+	fi
+}
+
+_install_nix="false"
+if ! has_cmd "nix"; then
+	source_nix
+	if ! has_cmd "nix"; then
+		_install_nix="true"
+	fi
+fi
+
+_install_darwin="false"
+if is_truthy "${INSTALL_DARWIN:-}"; then
+	_install_darwin="true"
+fi
+
+_install_homebrew="false"
+if is_truthy "${USE_HOMEBREW:-}"; then
+	_install_homebrew="true"
+fi
+
+_install_nixgl="false"
+if has_tag hyprland && is_truthy "${HOME_ALONE:-}" && is_truthy "${IS_LINUX}"; then
+	_install_nixgl="true"
+fi
+
+if [ "${_install_nix}" = "false" ]; then
 	logf "\n%binfo:%b Nix found in PATH; skipping Nix installation...\n" "${C_INFO}" "${C_RST}"
 	logf "If you want to re-install, please run 'make uninstall' first.\n"
-	exit 0
-fi
-
-# Only the determinate installer works with SELinux
-if [ -z "${USE_DETERMINATE:-}" ]; then
-	if has_cmd "getenforce"; then
-		case "$(getenforce 2>/dev/null)" in
-		"Enforcing"|"Permissive")
-			logf "\n%binfo:%b SELinux detected (%s). Using Determinate Systems installer.\n" \
-				"${C_INFO:-}" "${C_RST:-}" "$(getenforce)"
-			USE_DETERMINATE="true"
-			;;
-		esac
-	elif [ -f /sys/fs/selinux/enforce ] && [ "$(cat /sys/fs/selinux/enforce 2>/dev/null)" = "1" ]; then
-		logf "\n%binfo:%b SELinux detected (sysfs).  Using Determinate Systems installer.\n" \
-			"${C_INFO:-}" "${C_RST:-}"
-		USE_DETERMINATE="true"
-	fi
-fi
-
-# Integrity checks
-if is_truthy "${USE_DETERMINATE:-}"; then
-	logf "\n%b>>> Verifying Determinate Systems installer integrity...%b\n" "${C_INFO}" "${C_RST}"
-	_check_integrity "${DETERMINATE_INSTALL_URL}" "${DETERMINATE_INSTALL_HASH}"
 else
-	logf "\n%b>>> Verifying Nix installer integrity...%b\n" "${C_INFO}" "${C_RST}"
-	_check_integrity "${NIX_INSTALL_URL}" "${NIX_INSTALL_HASH}"
-fi
-
-# Launch installers
-logf "\n%b>>> Launching installer...%b\n" "${C_INFO}" "${C_RST}"
-
-if is_truthy "${USE_DETERMINATE:-}"; then
-	set -- "${DETERMINATE_INSTALL_MODE}"
-else
-	if is_truthy "${SINGLE_USER:-}"; then
-		set -- "--no-daemon"
-	else
-		set -- "${NIX_INSTALL_MODE}"
-	fi
-fi
-
-if [ -f "${MAKE_NIX_INSTALLER}" ]; then
-	sh "${MAKE_NIX_INSTALLER}" "$@"
-
-	# Make nix available in the current shell after install for follow-on targets
-	source_nix
-
-else
-	err 1 "Could not execute ${C_PATH}${MAKE_NIX_INSTALLER}${C_RST}"
+	_launch_nix_install 
 fi
 
 # Set user-defined binary cache URLs and Nix trusted public keys from make.env.
@@ -161,14 +191,18 @@ if is_truthy "${USE_KEYS:-}" || is_truthy "${USE_CACHE:-}"; then
 	sh "${_script_dir}/set_subs_keys.sh"
 fi
 
-if is_truthy "${USE_HOMEBREW:-}"; then
-	_launch_homebrew_install
+# Install homebrew before Darwin because it can be reference in the Darwin system config
+if [ "${_install_homebrew}" = "true" ]; then
+	_launch_homebrew_install 
 fi
 
-if is_truthy "${INSTALL_DARWIN:-}"; then
-	_launch_darwin_install 
+if [ "${_install_darwin}" = "true" ]; then
+	_launch_darwin_install
 fi
 
-if has_tag hyprland && is_truthy "${HOME_ALONE:-}" && is_truthy "${IS_LINUX}"; then
-	printf "HYPRLAND_SETUP=true\n" >> "${MAKE_NIX_ENV}"
+# TODO: Implement nixgl installer to support Hyprland on home-alone nix configs
+if [ "${_install_nixgl}" = "true" ]; then
+	_launch_nixgl_install
 fi
+
+#	printf "HYPRLAND_SETUP=true\n" >> "${MAKE_NIX_ENV}"
