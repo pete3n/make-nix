@@ -26,7 +26,7 @@ for _bool in \
     err 1 "${_bool} was provided but was empty. Expected: true/false, yes/no, on/off, 1/0"
   fi
 
-  if ! is_truthy "${_val}"; then
+  if ! is_truthy "${_val}" && ! is_falsey "${_val}"; then
 		_msg="Invalid boolean value for ${_bool}: ${_val}\n"
     printf "\n%s %s %s Expected one of: true/false, yes/no, on/off, 1/0\n"\
 			"${_msg}" "${_bool}" "${_val}"

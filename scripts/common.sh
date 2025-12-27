@@ -58,6 +58,13 @@ if [ -z "${_common_sourced:-}" ]; then
 		esac
 	}
 
+	is_falsey() {
+		case "${1:-}" in
+		'0'|'false'|'False'|'FALSE'|'no'|'No'|'NO'|'off'|'Off'|'OFF'|'n'|'N') return 0 ;;
+		*) return 1 ;;
+		esac
+	}
+
 	# Ensure commands are present and are executable files.
 	has_cmd() {
 		_cmd_name=${1:?}
