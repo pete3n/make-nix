@@ -102,6 +102,9 @@ _launch_darwin_install() {
 			fi
 		fi
 		sh "${_script_dir}/install_nix_darwin.sh"
+
+		# Make darwin-rebuild available immediately
+		source_darwin
 }
 
 _launch_nix_install() {
