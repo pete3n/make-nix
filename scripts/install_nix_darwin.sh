@@ -82,7 +82,7 @@ if has_cmd "darwin-rebuild"; then
 	exit 0 # Allow continuing to other targets
 fi
 
-"$script_dir/attrs.sh" --check
+"$script_dir/attrs.sh" --check-all
 
 # Backup config files changed by the installer for restoration
 logf "\n%binfo:%b backing up files before Nix-Darwin install...\n" "${C_INFO}" "${C_RST}"
