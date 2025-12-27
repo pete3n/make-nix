@@ -60,9 +60,18 @@ if [ -z "${_common_sourced:-}" ]; then
 
 	# Ensure commands are present and are executable files.
 	has_cmd() {
-		_cmd_name="${1}"
-		_cmd_path=$(command -v "${_cmd_name}" 2>/dev/null) || return 1
-		[ -n "$_cmd_path" ] && [ -f "$_cmd_path" ] && [ -x "$_cmd_path" ]
+		_cmd_name=${1:?}
+
+		if _cmd_path=$(command -v -- "$_cmd_name" 2>/dev/null); then
+			# command -v can return non-path strings in some cases (shell builtins/functions).
+			# If it looks like a path, require it to be an executable file.
+			case "$_cmd_path" in
+				/*) [ -f "$_cmd_path" ] && [ -x "$_cmd_path" ] ;;
+				*) return 1 ;;
+			esac
+		else
+			return 1
+		fi
 	}
 
 	# Prevent duplicate/unecessary sudo calls
