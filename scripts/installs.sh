@@ -81,11 +81,7 @@ _launch_homebrew_install() {
 	logf "\n%binfo:%bVerifying Homebrew installer integrity...\n" "${C_INFO}" "${C_RST}"
 	# Overwrites previous mktmp installer
 	_check_integrity "${HOMEBREW_INSTALL_URL}" "${HOMEBREW_INSTALL_HASH}"
-	if has_cmd "bash"; then
-		bash -c "${MAKE_NIX_INSTALLER}"
-	else
-		err 1 "bash was not found. This is required for Homebrew installation.\n" "${C_ERR}" "${C_RST}"
-	fi
+	bash -c "${MAKE_NIX_INSTALLER}"
 }
 
 _launch_darwin_install() {
