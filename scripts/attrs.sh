@@ -68,7 +68,7 @@ _validate_ident() {
 
 # Either use a hostname provided from commandline args or default to current hostname
 if [ -z "${TGT_HOST:-}" ]; then
-	host="$(hostname -s)"
+	host="$(uname -n)"
 	if [ -z "${host}" ]; then
 		err 1 "Could not determine local hostname"
 	fi
