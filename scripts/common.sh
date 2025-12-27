@@ -136,7 +136,7 @@ if [ -z "${_common_sourced:-}" ]; then
 		[ -S /nix/var/nix/daemon-socket/socket ]
 	}
 
-	# Configure pathing for Nix/Nix-Daemon
+	# Attempt to source the nix binary, and fail if unable
 	source_nix() {
 		# Common locations across multi-user daemon installs and per-user installs
 		for _file in \
@@ -176,7 +176,7 @@ if [ -z "${_common_sourced:-}" ]; then
 		if command -v nix >/dev/null 2>&1; then
 			return 0
 		fi
-		return 1
+		err 1 "Could not find a Nix binary. Run make install to ensure it is installed."
 	}
 
 	# Check for configuration tag match
