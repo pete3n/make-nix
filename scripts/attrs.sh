@@ -472,7 +472,7 @@ check_attrs() {
     nix eval --no-warn-dirty --impure --raw "${_expr}"
 	}
 
-  if [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-home" ] && \
+  if { [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-home" ]; } && \
 		[ "$(_has_attr "homeConfigurations" "${_user_host}")" != "true" ]; then
     err 1 "${C_CFG}homeConfigurations.${_user_host}${C_RST} not found in flake outputs" 
   fi
@@ -490,12 +490,12 @@ check_attrs() {
     return 0
   fi
 
-  if [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ] && \
+  if { [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ]; } && \
 	[ "${is_linux}" = "true" ] && [ "$(_has_attr "nixosConfigurations" "${_user_host}")" != "true" ]; then
     err 1 "${C_CFG}nixosConfigurations.${_user_host}${C_RST} not found in flake outputs" 
   fi
 
-  if [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ] && \
+  if { [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ]; } && \
  	[ "${is_linux}" = "true" ] &&	[ "$(_has_attr "nixosConfigurations" "${_user_host}")" = "true" ]; then
     logf "\n%bChecking%b %bnixosConfigurations.%s%b ...\n" \
 			"${C_INFO}" "${C_RST}" "${C_CFG}" "${_user_host}" "${C_RST}"
@@ -506,12 +506,12 @@ check_attrs() {
 		return 0
   fi
 
-  if [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ] && \
+  if { [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ]; } && \
 	[ "${is_linux}" = "false" ] && [ "$(_has_attr "darwinConfigurations" "${_user_host}")" != "true" ]; then
     err 1 "${C_CFG}darwinConfigurations.${_user_host}${C_RST} not found in flake outputs" 
   fi
   
-	if [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ] && \
+	if { [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ]; } && \
   [ "${is_linux}" = "false" ] && [ "$(_has_attr "darwinConfigurations" "${_user_host}")" = "true" ]; then
     logf "\n%bChecking%b %b darwinConfigurations.%s%b ...\n" "${C_INFO}" "${C_RST}" "${C_CFG}" "${_user_host}" "${C_RST}"
 		if ! _eval_ok="$(_eval_drv ".#darwinConfigurations.\"${_user_host}\".system.drvPath")"; then
