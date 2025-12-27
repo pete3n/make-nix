@@ -67,7 +67,16 @@ _launch_homebrew_install() {
 	if [ "${UNAME_S:-}" != "Darwin" ]; then
 		err 1 "Homebrew can only be installed on MacOS.\n"
 	fi
-	
+
+	if [ -x "/usr/local/bin/brew" ] || has_cmd "brew"; then
+		logf "Homebrew already installed. Skipping install.\n"
+		return 0
+	fi
+
+	if ! has_cmd "bash"; then
+		err 1 "bash was not found. This is required for Homebrew installation.\n"
+	fi
+
 	logf "\n%b>>> Installing Homebrew...%b\n" "${C_INFO}" "${C_RST}"
 	logf "\n%binfo:%bVerifying Homebrew installer integrity...\n" "${C_INFO}" "${C_RST}"
 	# Overwrites previous mktmp installer
