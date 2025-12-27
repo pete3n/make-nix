@@ -23,7 +23,7 @@ fi
 if ! has_cmd "nix"; then
 	source_nix
 	if ! has_cmd "nix"; then
-		err 1 "nix not found in PATH: ${PATH}\nInstall with make install."
+		err 1 "nix not found in PATH. Install with make install."
 	fi
 fi
 
@@ -556,19 +556,18 @@ write_attrs() {
 	fi
 
 	logf "\n%b>>> Writing Nix configuration.%b\n" "$C_INFO" "$C_RST"
-	if [ "${is_home_alone}" = true ]; then
-		if _write_home_alone "$(resolve_path "./make-attrs/home-alone/$user@$host.nix")"; then
+	if [ "${is_home_alone}" = "true" ]; then
+		if _write_home_alone "$(resolve_path "./make-attrs/home-alone/${user}@${host}.nix")"; then
 			_commit_config "${_home_alone_config}"
 		else
 			err 1 "Could not write configuration: ${C_CFG}${_home_alone_config}${C_RST}"
 		fi
+	fi
 
-		else
-			if _write_system "$(resolve_path "./make-attrs/system/$user@$host.nix")"; then
-				_commit_config "${_system_config}"
-			else
-				err 1 "Could not write configuration: ${C_CFG}${_system_config}${C_RST}"
-			fi
+	if _write_system "$(resolve_path "./make-attrs/system/${user}@${host}.nix")"; then
+		_commit_config "${_system_config}"
+	else
+		err 1 "Could not write configuration: ${C_CFG}${_system_config}${C_RST}"
 	fi
 }
 
