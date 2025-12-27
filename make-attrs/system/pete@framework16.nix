@@ -8,5 +8,5 @@
   useCache = false;
   useKeys = false;
   tags = [ "hyprland" "poweruser" ];
-  specialisations = [ ];
+  specialisations = [ "wayland_dgpu" ];
 }
