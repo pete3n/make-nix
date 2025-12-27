@@ -91,7 +91,7 @@ These are **boolean**; assigning any _truthy_ value will enable them.
 
 #### **Install Flags**
 
-- `DETERMINATE=true` – Install Nix using the Determinate Systems installer.
+- `USE_DETERMINATE=true` – Install Nix using the Determinate Systems installer.
 - `INSTALL_DARWIN=true` – Install Nix-Darwin for macOS.
 - `SINGLE_USER=true` – Install Nix for single-user mode (default installer only).
 - `USE_CACHE=true` – Use the NIX_CACHE_URLS list from the make.env file as a proxy
@@ -118,7 +118,7 @@ These are **boolean**; assigning any _truthy_ value will enable them.
 make install SINGLE_USER=Y
 
 # Install Nix-Darwin using the Determinate Systems installer:
-make install DETERMINATE=1 INSTALL_DARWIN=y
+make install USE_DETERMINATE=1 INSTALL_DARWIN=y
 
 # Build and activate the home-manager config using a standalone configuration:
 make home HOME_ALONE=true
