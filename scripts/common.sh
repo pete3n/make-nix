@@ -154,23 +154,29 @@ if [ -z "${_common_sourced:-}" ]; then
 				if command -v nix >/dev/null 2>&1; then
 					return 0
 				fi
+				break # Only source the first match
 			fi
 		done
 
-		# Fallback: directly add expected bin paths (helps right after install)
+		# Fallback: directly add expected bin paths
 		for _bindir in \
 			"/run/current-system/sw/bin" \
 			"/nix/var/nix/profiles/default/bin" \
 			"$HOME/.nix-profile/bin"
 		do
-			case ":$PATH:" in # Uniformly wrap paths in ::
-				*":$_bindir:"*) : ;; # Don't duplicate path entries
-				*) PATH="$_bindir:$PATH" ;;
-			esac
+			if [ -x "${_bindir}/nix" ]; then
+				case ":$PATH:" in
+					*":$_bindir:"*) : ;;
+					*) PATH="$_bindir:$PATH" ;;
+				esac
+			fi
 		done
 		export PATH
 
-		command -v nix >/dev/null 2>&1
+		if command -v nix >/dev/null 2>&1; then
+			return 0
+		fi
+		return 1
 	}
 
 	# Check for configuration tag match
