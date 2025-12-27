@@ -63,6 +63,44 @@ _check_integrity() {
 	fi
 }
 
+_launch_homebrew_install() {
+	if [ "${UNAME_S:-}" != "Darwin" ]; then
+		err 1 "Homebrew can only be installed on MacOS.\n"
+	fi
+	
+	logf "\n%b>>> Installing Homebrew...%b\n" "${C_INFO}" "${C_RST}"
+	logf "\n%binfo:%bVerifying Homebrew installer integrity...\n" "${C_INFO}" "${C_RST}"
+	# Overwrites previous mktmp installer
+	_check_integrity "${HOMEBREW_INSTALL_URL}" "${HOMEBREW_INSTALL_HASH}"
+	if has_cmd "bash"; then
+		bash -c "${MAKE_NIX_INSTALLER}"
+	else
+		err 1 "bash was not found. This is required for Homebrew installation.\n" "${C_ERR}" "${C_RST}"
+	fi
+}
+
+_launch_darwin_install() {
+	if [ "${UNAME_S:-}" != "Darwin" ]; then
+		err 1 "Darwin can only be installed on MacOS.\n"
+	fi
+		logf "\n%b>>> Installing nix-darwin...%b\n" "${C_INFO}" "${C_RST}"
+		
+		if ! has_cmd "nix"; then
+			source_nix
+			if ! has_cmd "nix"; then
+				err 1 "nix not found. Run ${C_CMD}make install${C_RST} to install it."
+			fi
+		fi
+		sh "${_script_dir}/install_nix_darwin.sh"
+}
+
+# Exit early if Nix is installed and we are not installing Darwin
+if has_cmd "nix" && ! is_truthy "${INSTALL_DARWIN:-}"; then
+	logf "\n%binfo:%b Nix found in PATH; skipping Nix installation...\n" "${C_INFO}" "${C_RST}"
+	logf "If you want to re-install, please run 'make uninstall' first.\n"
+	exit 0
+fi
+
 # Only the determinate installer works with SELinux
 if [ -z "${USE_DETERMINATE:-}" ]; then
 	if has_cmd "getenforce"; then
@@ -102,36 +140,14 @@ else
 	fi
 fi
 
-if has_cmd "nix"; then
-	logf "\n%binfo:%b Nix found in PATH; skipping Nix installation...\n" "${C_INFO}" "${C_RST}"
-	logf "If you want to re-install, please run 'make uninstall' first.\n"
+if [ -f "${MAKE_NIX_INSTALLER}" ]; then
+	sh "${MAKE_NIX_INSTALLER}" "$@"
+
+	# Make nix available in the current shell after install for follow-on targets
+	source_nix
+
 else
-	if [ -f "${MAKE_NIX_INSTALLER}" ]; then
-		sh "${MAKE_NIX_INSTALLER}" "$@"
-
-		# Make nix available immediately in the current shell
-		source_nix
-
-	else
-		err 1 "Could not execute ${C_PATH}${MAKE_NIX_INSTALLER}${C_RST}"
-	fi
-fi
-
-# Enabled flakes (Required before Nix-Darwin install)
-nix_conf="$HOME/.config/nix/nix.conf"
-features="experimental-features = nix-command flakes"
-
-if [ -f "${nix_conf}" ]; then
-	if ! grep -qF "nix-command flakes" "${nix_conf}"; then
-		logf "\n%b>>> Enabling flakes...%b\n" "${C_INFO}" "${C_RST}"
-		logf "\n%binfo:%b appending %s to %b%s%b\n" "${C_INFO}" "${C_RST}" "${features}" \
-			"${C_PATH}" "${nix_conf}" "${C_RST}"
-		printf "%s\n" "${features}" >>"${nix_conf}"
-	fi
-else
-	logf "\n%b>>> Creating nix.conf with experimental features enabled...%b\n" "${C_INFO}" "${C_RST}"
-	mkdir -p "$(dirname "${nix_conf}")"
-	printf "%s\n" "${features}" > "${nix_conf}"
+	err 1 "Could not execute ${C_PATH}${MAKE_NIX_INSTALLER}${C_RST}"
 fi
 
 # Set user-defined binary cache URLs and Nix trusted public keys from make.env.
@@ -140,36 +156,12 @@ if is_truthy "${USE_KEYS:-}" || is_truthy "${USE_CACHE:-}"; then
 	sh "${_script_dir}/set_subs_keys.sh"
 fi
 
-# Optional Homebrew install
-if is_truthy "${USE_HOMEBREW:-}" && [ "${UNAME_S}" = "Darwin" ]; then
-	logf "\n%b>>> Installing Homebrew...%b\n" "${C_INFO}" "${C_RST}"
-	logf "\n%binfo:%bVerifying Homebrew installer integrity...\n" "${C_INFO}" "${C_RST}"
-	# Overwrites previous mktmp installer
-	_check_integrity "${HOMEBREW_INSTALL_URL}" "${HOMEBREW_INSTALL_HASH}"
-	if has_cmd "bash"; then
-		bash -c "${MAKE_NIX_INSTALLER}"
-	else
-		err 1 "bash was not found. This is required for Homebrew installation.\n" "${C_ERR}" "${C_RST}"
-	fi
+if is_truthy "${USE_HOMEBREW:-}"; then
+	_launch_homebrew_install
 fi
 
-# Optional Nix-Darwin install
 if is_truthy "${INSTALL_DARWIN:-}"; then
-	if [ "${UNAME_S:-}" = "Darwin" ]; then
-		logf "\n%b>>> Installing nix-darwin...%b\n" "${C_INFO}" "${C_RST}"
-		
-		if ! has_cmd "nix"; then
-			source_nix
-			if ! has_cmd "nix"; then
-				err 1 "nix not found. Run ${C_CMD}make install${C_RST} to install it."
-			fi
-		fi
-		sh "${_script_dir}/install_nix_darwin.sh"
-
-	else
-		logf "\n%binfo:%b Skipping nix-darwin install: macOS not detected.\n" "${C_INFO}" "${C_RST}"
-		exit 0
-	fi
+	_launch_darwin_install 
 fi
 
 if has_tag hyprland && is_truthy "${HOME_ALONE:-}" && is_truthy "${IS_LINUX}"; then
