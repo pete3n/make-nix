@@ -231,16 +231,18 @@ if [ -z "${_common_sourced:-}" ]; then
 	# Attempt to source the darwin-rebuild 
 	source_darwin() {
 		_bindir="/run/current-system/sw/bin"
-		{ [ -d "${_bindir}" ] && [ -x "${_bindir}/darwin-rebuild" ]; } || return 1
-		case ":$PATH:" in
-			*":$_bindir:"*) : ;;
-			*) PATH="$_bindir:$PATH" ;;
-		esac
 
-		export PATH
+		# If nix-darwin isn't present, do nothing (do NOT fail under set -e)
+		if [ -d "${_bindir}" ] && { [ -x "${_bindir}/darwin-rebuild" ] || [ -x "${_bindir}/darwin-uninstaller" ]; }; then
+			case ":$PATH:" in
+				*":${_bindir}:"*) : ;;
+				*) PATH="${_bindir}:$PATH" ;;
+			esac
+			export PATH
+		fi
+
 		return 0
 	}
-
 	# Check for configuration tag match
 	has_tag() {
 		_tag="${1}"
