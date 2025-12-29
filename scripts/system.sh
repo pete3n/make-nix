@@ -37,9 +37,9 @@ _build_nixos() {
 	set -- "$@" --out-link "result-${host}-nixos" \
 		"path:${flake_root}#nixosConfigurations.\"${_flake_key}\".config.system.build.toplevel"
 
-	print_cmd -- as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
+	print_cmd -- NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
 
-	if as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
+	if NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
 		logf "\n%b✓ Nixos build success.%b\n" "${C_OK}" "${C_RST}"
 		logf "\n%binfo:%b Output in %b./result-%s-nixos%b\n" \
 			"${C_INFO}" "${C_RST}" "${C_PATH}" "${host}" "${C_RST}"
@@ -64,9 +64,9 @@ _build_darwin() {
 	set -- "$@" --out-link "result-${host}-darwin" \
 		"${flake_root}#darwinConfigurations.\"${_flake_key}\".system"
 
-	print_cmd -- as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
+	print_cmd -- NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
 
-	if as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
+	if NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
 		logf "\n%b✓ Nix-Darwin build success.%b\n" "${C_OK}" "${C_RST}"
 		logf "\n%binfo:%b Output in %b./result-%s-darwin%b\n" \
 			"${C_INFO}" "${C_RST}" "${C_PATH}" "${host}" "${C_RST}"
