@@ -3,9 +3,8 @@
 # Handle attribute file creation and rebuild/check previous attribute files
 
 set -eu
-script_dir="$(cd "$(dirname "$0")" && pwd)"
-flake_root="$(cd "${script_dir}/.." && pwd)"
 
+script_dir="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 . "$script_dir/common.sh" || {
 	printf "ERROR: attrs.sh failed to source common.sh from %s\n" \
@@ -13,11 +12,7 @@ flake_root="$(cd "${script_dir}/.." && pwd)"
 	exit 1
 }
 
-# Run cleanup if available for INT TERM or QUIT 
-# Pass SIGINT as reason for cleanup
-if command -v cleanup >/dev/null 2>&1; then
-	trap 'cleanup 130 SIGNAL' INT TERM QUIT
-fi
+trap 'cleanup 130 "SIGNAL"' INT TERM QUIT
 
 # All functions require the Nix binary
 if ! has_cmd "nix"; then
@@ -27,6 +22,9 @@ if ! has_cmd "nix"; then
 	fi
 fi
 
+flake_root="$(cd "${script_dir}/.." && pwd)"
+prog="${0##*/}"
+mode=""
 user=""
 host=""
 system=""
@@ -37,19 +35,6 @@ use_keys=""
 use_cache=""
 tags=""
 specs=""
-
-_write_env() {
-	printf "TGT_HOST=%s\n" "$host"
-	printf "TGT_USER=%s\n" "$user"
-  printf "TGT_SYSTEM=%s\n" "$system"
-  printf "IS_LINUX=%s\n" "$is_linux"
-  printf "HOME_ALONE=%s\n" "${is_home_alone:-}"
-  printf "CFG_TAGS=%s\n" "${tags:-}"
-  printf "SPECS=%s\n" "${specs:-}"
-  printf "USE_HOMEBREW=%s\n" "${use_homebrew:-}"
-  printf "USE_CACHE=%s\n" "${use_cache:-}"
-  printf "USE_KEYS=%s\n" "${use_keys:-}"
-} >> "${MAKE_NIX_ENV}"
 
 # Avoid special chars in host and user names
 _validate_ident() {
@@ -107,6 +92,20 @@ _find_attrs_file() {
 
 	return 1
 }
+
+# Write out vars to env file to persist across scripts
+_write_env() {
+	printf "TGT_HOST=%s\n" "$host"
+	printf "TGT_USER=%s\n" "$user"
+  printf "TGT_SYSTEM=%s\n" "$system"
+  printf "IS_LINUX=%s\n" "$is_linux"
+  printf "HOME_ALONE=%s\n" "${is_home_alone:-}"
+  printf "CFG_TAGS=%s\n" "${tags:-}"
+  printf "SPECS=%s\n" "${specs:-}"
+  printf "USE_HOMEBREW=%s\n" "${use_homebrew:-}"
+  printf "USE_CACHE=%s\n" "${use_cache:-}"
+  printf "USE_KEYS=%s\n" "${use_keys:-}"
+} >> "${MAKE_NIX_ENV}"
 
 # Set global configuration vars based on env variables or autodetected defaults
 # Autodetected values should only be used when 
@@ -434,12 +433,12 @@ _write_system() {
 # Evaluate the configuration using Nix eval as appropriate for the configuraiton type.
 check_attrs() {
 	_checks="${1}"
-	_user_host="${user}@${host}"
+	_flake_key="${user}@${host}"
 	if _attrs_file="$(_find_attrs_file)"; then
 		logf "Nix attribute file: %b%s%b\n" "${C_PATH}" "${_attrs_file}" "${C_RST}"
 	else
 		_msg="Nix attribute check failed, attrs file was not found for: "
-		_msg="${_msg}${C_CFG}${_user_host}${C_RST}"
+		_msg="${_msg}${C_CFG}${_flake_key}${C_RST}"
 		err 1 "${_msg}"
 	fi
 
@@ -448,7 +447,7 @@ check_attrs() {
 
 	_has_attr() {
 		_attr="${1}" # homeConfigurations | nixosConfigurations | darwinConfigurations
-		_user_host="${2}" # user@host
+		_flake_key="${2}" # user@host
 		_flake_path="path:${flake_root}"
 		# Capture stdout only. Send stderr to a temp file so it doesn't pollute _out
 		_errfile="${MAKE_NIX_TMPDIR:-/tmp}/nix-eval.$$.err"
@@ -456,12 +455,12 @@ check_attrs() {
 		_out=$(
 			NIX_CONFIG='extra-experimental-features = nix-command flakes' \
 			command nix eval --impure --json "${_flake_path}#${_attr}" \
-				--apply "config: builtins.hasAttr \"${_user_host}\" config" 2>"${_errfile}"
+				--apply "config: builtins.hasAttr \"${_flake_key}\" config" 2>"${_errfile}"
 		) || {
 			_err=$(cat "${_errfile}" 2>/dev/null || true)
 			rm -f "${_errfile}" 2>/dev/null || true
 			_msg="nix eval failed while checking ${C_PATH}${_flake_path}${C_RST}"
-			_msg="${_msg}${C_CFG}#${_attr}.${_user_host}${C_RST}:\n"
+			_msg="${_msg}${C_CFG}#${_attr}.${_flake_key}${C_RST}:\n"
 			err 1 "${_msg}${_err}"
 		}
 
@@ -470,22 +469,24 @@ check_attrs() {
 
 	_eval_drv() {
 		_expr="${1}"
-		logf "\n%bEval command:%b NIX_CONFIG='extra-experimental-features = nix-command flakes' nix eval --no-warn-dirty --impure --raw %b%s%b\n" \
-    "${C_INFO}" "${C_RST}" "${C_CFG}" "${_expr}" "${C_RST}"
-		NIX_CONFIG='extra-experimental-features = nix-command flakes' \
-    nix eval --no-warn-dirty --impure --raw "${_expr}"
+		_msg="\n%bEval command:%b %bNIX_CONFIG='extra-experimental-features = nix-command flakes'"
+		_msg="${_msg} nix eval --no-warn-dirty --impure --raw%b %b%s%b\n"
+		logf "${_msg}" "${C_INFO}" "${C_RST}" "${C_CMD}" "${C_RST}" "${C_CFG}" "${_expr}" "${C_RST}"
+		_drv_path="$(NIX_CONFIG='extra-experimental-features = nix-command flakes' \
+			nix eval --no-warn-dirty --impure --raw "${_expr}")"
+		logf "Output derivation: \n%b%s%b\n" "${C_PATH}" "${_drv_path}" "${C_RST}"
 	}
 
   if { [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-home" ]; } && \
-		[ "$(_has_attr "homeConfigurations" "${_user_host}")" != "true" ]; then
-    err 1 "${C_CFG}homeConfigurations.${_user_host}${C_RST} not found in flake outputs" 
+		[ "$(_has_attr "homeConfigurations" "${_flake_key}")" != "true" ]; then
+    err 1 "${C_CFG}homeConfigurations.${_flake_key}${C_RST} not found in flake outputs" 
   fi
 
   if [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-home" ]; then
 		logf "\n%bChecking%b %bhomeConfigurations.%s%b ...\n" \
-		"${C_INFO}" "${C_RST}" "${C_CFG}" "${_user_host}" "${C_RST}"
-		if ! _eval_ok="$(_eval_drv ".#homeConfigurations.\"${_user_host}\".activationPackage.drvPath")"; then
-			err 1 "Failed evaluating home activation drvPath for: ${C_CFG} ${_user_host} ${C_RST}"
+		"${C_INFO}" "${C_RST}" "${C_CFG}" "${_flake_key}" "${C_RST}"
+		if ! _eval_ok="$(_eval_drv ".#homeConfigurations.\"${_flake_key}\".activationPackage.drvPath")"; then
+			err 1 "Failed evaluating home activation drvPath for: ${C_CFG} ${_flake_key} ${C_RST}"
 		fi
 		logf "%b✅ success:%b eval passed %s\n" "$C_OK" "$C_RST" "${_eval_ok}"
 	fi
@@ -495,42 +496,42 @@ check_attrs() {
   fi
 
   if { [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ]; } && \
-	[ "${is_linux}" = "true" ] && [ "$(_has_attr "nixosConfigurations" "${_user_host}")" != "true" ]; then
-    err 1 "${C_CFG}nixosConfigurations.${_user_host}${C_RST} not found in flake outputs" 
+	[ "${is_linux}" = "true" ] && [ "$(_has_attr "nixosConfigurations" "${_flake_key}")" != "true" ]; then
+    err 1 "${C_CFG}nixosConfigurations.${_flake_key}${C_RST} not found in flake outputs" 
   fi
 
   if { [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ]; } && \
- 	[ "${is_linux}" = "true" ] &&	[ "$(_has_attr "nixosConfigurations" "${_user_host}")" = "true" ]; then
+ 	[ "${is_linux}" = "true" ] &&	[ "$(_has_attr "nixosConfigurations" "${_flake_key}")" = "true" ]; then
     logf "\n%bChecking%b %bnixosConfigurations.%s%b ...\n" \
-			"${C_INFO}" "${C_RST}" "${C_CFG}" "${_user_host}" "${C_RST}"
-    if ! _eval_ok="$(_eval_drv ".#nixosConfigurations.\"${_user_host}\".config.system.build.toplevel.drvPath")"; then
-			err 1 "Failed evaluating NixOS toplevel drvPath for ${C_CFG} ${_user_host} ${C_RST}"
+			"${C_INFO}" "${C_RST}" "${C_CFG}" "${_flake_key}" "${C_RST}"
+    if ! _eval_ok="$(_eval_drv ".#nixosConfigurations.\"${_flake_key}\".config.system.build.toplevel.drvPath")"; then
+			err 1 "Failed evaluating NixOS toplevel drvPath for ${C_CFG} ${_flake_key} ${C_RST}"
     fi
 		logf "%b✅ success:%b eval passed %s\n" "$C_OK" "$C_RST" "${_eval_ok}"
 		return 0
   fi
 
   if { [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ]; } && \
-	[ "${is_linux}" = "false" ] && [ "$(_has_attr "darwinConfigurations" "${_user_host}")" != "true" ]; then
-    err 1 "${C_CFG}darwinConfigurations.${_user_host}${C_RST} not found in flake outputs" 
+	[ "${is_linux}" = "false" ] && [ "$(_has_attr "darwinConfigurations" "${_flake_key}")" != "true" ]; then
+    err 1 "${C_CFG}darwinConfigurations.${_flake_key}${C_RST} not found in flake outputs" 
   fi
   
 	if { [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ]; } && \
-  [ "${is_linux}" = "false" ] && [ "$(_has_attr "darwinConfigurations" "${_user_host}")" = "true" ]; then
-    logf "\n%bChecking%b %b darwinConfigurations.%s%b ...\n" "${C_INFO}" "${C_RST}" "${C_CFG}" "${_user_host}" "${C_RST}"
-		if ! _eval_ok="$(_eval_drv ".#darwinConfigurations.\"${_user_host}\".system.drvPath")"; then
-			err 1 "Failed evaluating Darwin system drvPath for ${C_CFG} ${_user_host} ${C_RST}"
+  [ "${is_linux}" = "false" ] && [ "$(_has_attr "darwinConfigurations" "${_flake_key}")" = "true" ]; then
+    logf "\n%bChecking%b %b darwinConfigurations.%s%b ...\n" "${C_INFO}" "${C_RST}" "${C_CFG}" "${_flake_key}" "${C_RST}"
+		if ! _eval_ok="$(_eval_drv ".#darwinConfigurations.\"${_flake_key}\".system.drvPath")"; then
+			err 1 "Failed evaluating Darwin system drvPath for ${C_CFG} ${_flake_key} ${C_RST}"
     fi
 		logf "%b✅ success:%b eval passed %s\n" "$C_OK" "$C_RST" "${_eval_ok}"
     return 0
   fi
 
-  err 1 "No system configuration found for ${C_CFG}${_user_host}${C_RST}"
+  err 1 "No system configuration found for ${C_CFG}${_flake_key}${C_RST}"
 }
 
 # Write a configuration attribute set to pass into the Nix flake.
 write_attrs() {
-	_user_host="${user}@${host}"
+	_flake_key="${user}@${host}"
 	
 	# Attempt to load an existing configuration first
 	# Modify it with any set env vars and re-write it to pass into the Nix flake.
@@ -573,20 +574,35 @@ write_attrs() {
 	return 0
 }
 
-case "$1" in
-	--check-all)
-		check_attrs "check-all"
-		;;
-	--check-home)
-		check_attrs "check-home"
-		;;
-	--check-system)
-		check_attrs "check-system"
-		;;
-	--write)
-		write_attrs
-		;;
-	*)
-		err 1 "Makefile error: attrs target called without --check-all|home|system | --write"
-		;;
+prog="${0##*/}"
+mode=""
+
+while [ $# -gt 0 ]; do
+  case "${1}" in
+    --check-all)   [ -z "${mode}" ] || err 2 "${prog}: duplicate mode (${mode})"; 
+			mode="check-all"; shift ;;
+    --check-system)   [ -z "${mode}" ] || err 2 "${prog}: duplicate mode (${mode})"; 
+			mode="check-system"; shift ;;
+    --check-home)   [ -z "${mode}" ] || err 2 "${prog}: duplicate mode (${mode})";
+			mode="check-home"; shift ;;
+    --write)   [ -z "${mode}" ] || err 2 "${prog}: duplicate mode (${mode})"; 
+			mode="write"; shift ;;
+    --) shift; break ;;
+    -?*) err 2 "${prog}: invalid option: $1" ;;
+    *) break ;;
+  esac
+done
+
+[ -n "$mode" ] || err 2 "${prog}: no mode specified (use --build or --switch)"
+[ $# -eq 0 ] || err 2 "${prog}: unexpected argument: $1"
+
+case "${mode}" in
+	check-all)
+		check_attrs ${mode} exit $? ;;
+	check-system)
+		check_attrs ${mode} exit $? ;;
+	check-home)
+		check_attrs ${mode} exit $? ;;
+	write)
+		write_attrs exit $? ;;
 esac

@@ -1,51 +1,23 @@
 #!/usr/bin/env sh
+
+# Install launcher for Nix, Nix-Darwin, Homebrew, and Nixgl
+
 set -eu
 
-is_final_goal=0
-
-while getopts ':F:' opt; do
-  case "$opt" in
-    F)
-      case "$OPTARG" in
-        0|1) is_final_goal=$OPTARG ;;
-        *) printf '%s: invalid -F value: %s (expected 0 or 1)\n' "${0##*/}" "$OPTARG" >&2; exit 2 ;;
-      esac
-      ;;
-    :)
-      printf '%s: option -%s requires an argument\n' "${0##*/}" "$OPTARG" >&2
-      exit 2
-      ;;
-    \?)
-      printf '%s: invalid option -- %s\n' "${0##*/}" "$OPTARG" >&2
-      exit 2
-      ;;
-  esac
-done
-shift $((OPTIND - 1))
-
-_script_dir="$(cd "$(dirname "$0")" && pwd)"
+script_dir="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
-. "$_script_dir/common.sh"
-
-_install_nix=""
-_install_darwin=""
-_install_homebrew=""
-_install_nixgl=""
-
-_cleanup_on_exit() {
-  status=$?
-  if [ "$status" -ne 0 ] && [ "${is_final_goal:-0}" -eq 1 ]; then
-    cleanup "$status" "ERROR"
-  fi
-  exit "$status"
+. "$script_dir/common.sh" || {
+	printf "ERROR: attrs.sh failed to source common.sh from %s\n" \
+	"${script_dir}/installs.sh" >&2
+	exit 1
 }
 
-trap '_cleanup_on_exit' 0
+trap 'cleanup 130 "SIGNAL"' INT TERM QUIT
 
-trap '
-  [ "${is_final_goal:-0}" -eq 1 ] && cleanup 130 SIGNAL
-  exit 130
-' INT TERM QUIT
+install_nix=""
+install_darwin=""
+install_homebrew=""
+install_nixgl=""
 
 _check_integrity() {
 	_url="${1}"
@@ -101,7 +73,7 @@ _launch_darwin_install() {
 				err 1 "nix not found. Run ${C_CMD}make install${C_RST} to install it."
 			fi
 		fi
-		sh "${_script_dir}/install_nix_darwin.sh"
+		sh "${script_dir}/install_nix_darwin.sh"
 
 		# Make darwin-rebuild available immediately
 		source_darwin
@@ -158,30 +130,30 @@ _launch_nix_install() {
 	fi
 }
 
-_install_nix="false"
+install_nix="false"
 if ! has_cmd "nix"; then
 	source_nix
 	if ! has_cmd "nix"; then
-		_install_nix="true"
+		install_nix="true"
 	fi
 fi
 
-_install_darwin="false"
-if is_truthy "${INSTALL_DARWIN:-}"; then
-	_install_darwin="true"
-fi
-
-_install_homebrew="false"
+install_homebrew="false"
 if is_truthy "${USE_HOMEBREW:-}"; then
-	_install_homebrew="true"
+	install_homebrew="true"
 fi
 
-_install_nixgl="false"
+install_darwin="false"
+if is_truthy "${INSTALL_DARWIN:-}"; then
+	install_darwin="true"
+fi
+
+install_nixgl="false"
 if has_tag hyprland && is_truthy "${HOME_ALONE:-}" && is_truthy "${IS_LINUX}"; then
-	_install_nixgl="true"
+	install_nixgl="true"
 fi
 
-if [ "${_install_nix}" = "false" ]; then
+if [ "${install_nix}" = "false" ]; then
 	logf "\n%binfo:%b Nix found in PATH; skipping Nix installation...\n" "${C_INFO}" "${C_RST}"
 	logf "If you want to re-install, please run 'make uninstall' first.\n"
 else
@@ -191,20 +163,20 @@ fi
 # Set user-defined binary cache URLs and Nix trusted public keys from make.env.
 # This is set before Nix-Darwin install so it can take advantage of caching.
 if is_truthy "${USE_KEYS:-}" || is_truthy "${USE_CACHE:-}"; then
-	sh "${_script_dir}/set_subs_keys.sh"
+	sh "${script_dir}/set_subs_keys.sh"
 fi
 
 # Install homebrew before Darwin because it can be reference in the Darwin system config
-if [ "${_install_homebrew}" = "true" ]; then
+if [ "${install_homebrew}" = "true" ]; then
 	_launch_homebrew_install 
 fi
 
-if [ "${_install_darwin}" = "true" ]; then
+if [ "${install_darwin}" = "true" ]; then
 	_launch_darwin_install
 fi
 
 # TODO: Implement nixgl installer to support Hyprland on home-alone nix configs
-if [ "${_install_nixgl}" = "true" ]; then
+if [ "${install_nixgl}" = "true" ]; then
 	_launch_nixgl_install
 fi
 

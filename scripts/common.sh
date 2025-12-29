@@ -15,24 +15,64 @@ if [ -z "${_common_sourced:-}" ]; then
 		exit 1
 	}
 
-	# Error handler to provide ANSI colored message and call cleanup
+	cleaned="false"
+	# Cleanup temporary files
+	cleanup() {
+		[ "${cleaned}" = "true" ] && return 0
+		cleaned="true"
+
+		_script="${0##*/}" # Get the calling script basename, without requiring basename 
+		_status="${1:-0}"
+		_reason="${2:-EXIT}"
+
+		_cleanup_dir() {
+			_dir="${1}"
+
+			rm -rf -- "${_dir}" 2>/dev/null && return 0
+
+			printf "%s\n" "warning: failed to remove temp dir: ${_dir}" >&2
+			return 0
+		}
+
+		{ printf '\n[cleanup] called by %s with reason=%s and exit code=%s\n' \
+			"${_script}" "${_reason}" "${_status}" >&2; } || : 
+
+		if ! is_truthy "${KEEP_LOGS:-}"; then
+			_dir="${MAKE_NIX_TMPDIR:-}"
+			if [ -n "${_dir}" ] && [ -d "${_dir}" ]; then
+				# Prevent deleting root paths if $dir gets truncated somehow
+				case "${_dir}" in 
+					""|/|/tmp|/var/tmp) : ;; 
+					*/make-nix.*) _cleanup_dir "${_dir}" ;; 
+					*) { printf "common.sh [cleanup] failed to delete unexpected path: %s\n" \
+							"${_dir}" >&2; 
+						} || : ;;
+				esac
+			fi
+		fi
+
+		# Prevent recursive calling of cleanup
+		# Do not 'exit' on EXIT trap. Only exit on signals.
+		[ "${_reason}" = "EXIT" ] || exit "${_status}"
+	}
+
+	# Error handler to provide ANSI colored messages (if enabled) and cleanup
 	err() {
 		_rc=${1:-1}
 		shift || true
 
-		_msg=$*
+		_msg="$*"
 		_c_err=${C_ERR-}
 		_c_rst=${C_RST-}
 
-		# Print to stderr (render \n and any ANSI sequences included in _msg)
+		# Log if possible (defensively with nop to avoid set -e exit)
 		if [ -n "${MAKE_NIX_LOG:-}" ]; then
-			# Show on stderr, and append plain text to log
-			printf "%b\n" "${_c_err}error:${_c_rst} ${_msg}" | tee -a "$MAKE_NIX_LOG" >&2
+			{ printf "%b\n" "${_c_err}error:${_c_rst} ${_msg}" | tee -a "$MAKE_NIX_LOG" >&2; } || :
 		else
-			printf "%b\n" "${_c_rst}error:${_c_rst} ${_msg}" >&2
+			{ printf "%b\n" "${_c_err}error:${_c_rst} ${_msg}" >&2; } || :
 		fi
 
-		cleanup "${_rc}" "ERR"
+		cleanup "${_rc}" "ERR" || :
 		exit "${_rc}"
 	}
 
@@ -81,6 +121,44 @@ if [ -z "${_common_sourced:-}" ]; then
 		fi
 	}
 
+	# Print a command (argv) with ANSI coloring.
+	# - Everything prints in C_CMD
+	# - The last arg (or a chosen arg) prints in C_CFG
+	# Usage:
+	#   print_cmd "$@"                 # highlight last arg
+	#   print_cmd --idx N -- "$@"      # highlight argv[N] (1-based)
+	print_cmd() {
+		_idx=""
+
+		if [ "${1:-}" = "--idx" ]; then
+			_idx="${2:-}"
+			shift 2 || true
+		fi
+
+		[ "${1:-}" = "--" ] && shift || true
+
+		_argc=$#
+
+		# Guard against unset or non-numeric index
+		case "${_idx:-}" in
+			''|*[!0-9]*) _idx="${_argc}" ;;
+		esac
+
+		logf "%b" "${C_CMD}"
+
+		_i=1
+		for _arg in "$@"; do
+			if [ "${_i}" -eq "${_idx}" ]; then
+				logf "%b%s%b " "${C_CFG}" "${_arg}" "${C_CMD}"
+			else
+				logf "%s " "${_arg}"
+			fi
+			_i=$((_i + 1))
+		done
+
+		logf "%b\n" "${C_RST}"
+	}
+
 	# Prevent duplicate/unecessary sudo calls
 	as_root() {
 		if [ "$(id -u)" -eq 0 ]; then
@@ -88,34 +166,6 @@ if [ -z "${_common_sourced:-}" ]; then
 		else
 			sudo "$@"
 		fi
-	}
-
-	_cleaned="false"
-	# Cleanup temporary files
-	cleanup() {
-		[ "${_cleaned}" = "true" ] && return
-		_cleaned="true"
-		_script="${0##*/}" # Get the calling script basename, without requiring basename 
-		_status="${1:-0}"
-		_reason="${2:-EXIT}"
-
-		printf '\n[cleanup] script=%s reason=%s exit_code=%s\n' \
-			"${_script}" "${_reason}" "${_status}" >&2
-		if ! is_truthy "${KEEP_LOGS:-}"; then
-			_dir="${MAKE_NIX_TMPDIR:-}"
-			if [ -n "${_dir}" ] && [ -d "${_dir}" ]; then
-				# Prevent deleting root paths if $dir gets truncated somehow
-				case "${_dir}" in 
-					""|/|/tmp|/var/tmp) : ;; 
-					*/make-nix.*) rm -rf "${_dir}" ;; 
-					*) printf "common.sh [cleanup] failed to delete unexpected path: %s\n" "${_dir}" >&2 ;;
-				esac
-			fi
-		fi
-
-		# Prevent recursive calling of cleanup
-		# Do not 'exit' on EXIT trap; only exit on INT/TERM so the script stops.
-		[ "${_reason}" = "EXIT" ] || exit "${_status}"
 	}
 
 	# Check system for active nix-daemon 

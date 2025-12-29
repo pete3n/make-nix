@@ -1,72 +1,176 @@
 #!/usr/bin/env sh
+
+# Functions for building and switching NixOS or Nix-Darwin system configurations.
+
 set -eu
 
-IS_FINAL_GOAL=0
-mode=""  # "build" or "activate"
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck disable=SC1091
+. "$script_dir/common.sh" || {
+	printf "ERROR: system.sh failed to source common.sh from %s\n" \
+	"${script_dir}/common.sh" >&2
+	exit 1
+}
 
-while [ $# -gt 0 ]; do
-  case "$1" in
-    -F)
-      [ $# -ge 2 ] || { printf '%s: -F requires an argument\n' "${0##*/}" >&2; exit 2; }
-      case "$2" in 0|1) IS_FINAL_GOAL=$2 ;; *) printf '%s: invalid -F value: %s\n' "${0##*/}" "$2" >&2; exit 2 ;; esac
-      shift 2
-      ;;
-    -F[01])
-      IS_FINAL_GOAL=${1#-F}
-      shift
-      ;;
-    --build)
-      [ -z "$mode" ] || { printf '%s: duplicate mode (--build/--activate)\n' "${0##*/}" >&2; exit 2; }
-      mode="build"; shift
-      ;;
-    --activate)
-      [ -z "$mode" ] || { printf '%s: duplicate mode (--build/--activate)\n' "${0##*/}" >&2; exit 2; }
-      mode="activate"; shift
-      ;;
-    --) shift; break ;;
-    -*) printf '%s: invalid option: %s\n' "${0##*/}" "$1" >&2; exit 2 ;;
-    *)  break ;;
-  esac
-done
+trap 'cleanup 130 "SIGNAL"' INT TERM QUIT
 
-[ "$#" -eq 0 ] || { printf '%s: unexpected argument: %s\n' "${0##*/}" "$1" >&2; exit 2; }
+flake_root="$(cd "${script_dir}/.." && pwd)"
+prog=""
+mode=""
+user=""
+host=""
+is_linux=""
+dry_switch=""
 
-if [ -z "$mode" ]; then
-  printf '%s: error: no mode specified; use --build or --activate\n' "${0##*/}" >&2
-  exit 1
-fi
+# Build system (nixos)
+_build_nixos() {
+	_flake_key="${user}@${host}"
+	logf "\n%b>>> Building system configuration for:%b %b%s%b\n" \
+		"${C_INFO}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"
 
-clobber_list="zshenv zshrc bashrc"
-backup_files() {
-	for file in $clobber_list; do
-		if [ -e "/etc/${file}" ]; then
-			logf "%binfo:%b backing up %b/etc/%s%b\n" "$BLUE" "$RESET" "$MAGENTA" "$file" "$RESET"
-			sudo mv "/etc/$file" "/etc/${file}.before_darwin"
-		fi
-	done
-	if [ -f /etc/nix/nix.conf ]; then
-		sudo mv /etc/nix/nix.conf /etc/nix/nix.conf.before_darwin
+	if [ "${dry_switch}" = "--dry-run" ]; then
+		logf "\n%binfo: DRY_RUN%b: no result output will be created.\n" "${C_INFO}" "${C_RST}"
+	fi
+ 
+	set -- nix build --max-jobs auto --cores 0 
+	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
+	set -- "$@" --out-link "result-${host}-nixos" \
+		"path:${flake_root}#nixosConfigurations.\"${_flake_key}\".config.system.build.toplevel"
+
+	print_cmd -- as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
+
+	if as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
+		logf "\n%b✓ Nixos build success.%b\n" "${C_OK}" "${C_RST}"
+		logf "\n%binfo:%b Output in %b./result-%s-nixos%b\n" \
+			"${C_INFO}" "${C_RST}" "${C_PATH}" "${host}" "${C_RST}"
+		return 0
+	else
+		err 1 "Nixos build failed."
 	fi
 }
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-# shellcheck disable=SC1091
-. "$SCRIPT_DIR/common.sh"
+# Build system (nix-darwin)
+_build_darwin() {
+	_flake_key="${user}@${host}"
+	logf "\n%b>>> Building system configuration for:%b %b%s%b\n" \
+		"${C_INFO}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"
 
-cleanup_on_exit() {
-  status=$?
-  if [ "$status" -ne 0 ] && [ "${IS_FINAL_GOAL:-0}" -eq 1 ]; then
-    cleanup "$status" ERROR
-  fi
-  exit "$status"
+	if [ "${dry_switch}" = "--dry-run" ]; then
+		logf "\n%binfo: DRY_RUN%b: no result output will be created.\n" "${C_INFO}" "${C_RST}"
+	fi
+	
+	set -- nix build --max-jobs auto --cores 0
+	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
+	set -- "$@" --out-link "result-${host}-darwin" \
+		"${flake_root}#darwinConfigurations.\"${_flake_key}\".system"
+
+	print_cmd -- as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
+
+	if as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
+		logf "\n%b✓ Nix-Darwin build success.%b\n" "${C_OK}" "${C_RST}"
+		logf "\n%binfo:%b Output in %b./result-%s-darwin%b\n" \
+			"${C_INFO}" "${C_RST}" "${C_PATH}" "${host}" "${C_RST}"
+		return 0
+	else
+		err 1 "Nix-Darwin build failed."
+	fi
 }
 
-trap 'cleanup_on_exit' 0
+# Switch system configuration (nixos)
+_switch_nixos() {
+	_flake_key="${user}@${host}"
+	_result_bin="./result-${host}-nixos/sw/bin/nixos-rebuild"
+	_rebuild_bin=""
 
-trap '
-  [ "${IS_FINAL_GOAL:-0}" -eq 1 ] && cleanup 130 SIGNAL
-  exit 130
-' INT TERM QUIT
+	if has_cmd "nixos-rebuild"; then
+		_rebuild_bin="nixos-rebuild"
+	fi
+
+ 	if [ -x "${_result_bin}" ]; then
+		_rebuild_bin="${_result_bin}"
+	fi
+
+	if [ -z "${_rebuild_bin}" ]; then
+		logf "\n%binfo:%b nixos-rebuild binary not found...\n" "${C_INFO}" "${C_RST}"
+		_build_nixos
+		if [ -x "${_result_bin}" ]; then
+			_rebuild_bin="${_result_bin}"
+		fi
+	fi
+
+	if [ -z "${_rebuild_bin}" ]; then
+		err 1 "Could not locate nixos-rebuild binary."
+	fi
+
+	if [ "${dry_switch}" = "--dry-run" ]; then
+		logf "\n%binfo: DRY_RUN%b: configuration will not be switched...\n" "${C_INFO}" "${C_RST}"
+		return 0
+	fi
+
+	logf "\n%b>>> Switching%b NixOS system configuration for %b%s%b\n" \
+		"${C_INFO}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"
+
+	set -- "${_rebuild_bin}" switch \
+  --option experimental-features "nix-command flakes" \
+	--flake "path:${flake_root}#${_flake_key}"
+	
+	print_cmd -- as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
+
+	if as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
+		logf "\n%b✓ NixOS configuration switch success.%b\n" "${C_OK}" "${C_RST}"
+		return 0
+	else
+		err 1 "Switch failed."
+	fi
+}
+
+# Switch system configuration (darwin)
+_switch_darwin() {
+	_flake_key="${user}@${host}"
+	_result_bin="./result-${host}-darwin/sw/bin/darwin-rebuild"
+	_rebuild_bin=""
+
+	if has_cmd "darwin-rebuild"; then
+		_rebuild_bin="darwin-rebuild"
+	fi
+
+ 	if [ -x "${_result_bin}" ]; then
+		_rebuild_bin="${_result_bin}"
+	fi
+
+	if [ -z "${_rebuild_bin}" ]; then
+		logf "\n%binfo:%b darwin-rebuild binary not found...\n" "${C_INFO}" "${C_RST}"
+		_build_darwin
+		if [ -x "${_result_bin}" ]; then
+			_rebuild_bin="${_result_bin}"
+		fi
+	fi
+
+	if [ -z "${_rebuild_bin}" ]; then
+		err 1 "Could not locate nixos-rebuild binary."
+	fi
+
+	if [ "${dry_switch}" = "--dry-run" ]; then
+		logf "\n%binfo: DRY_RUN%b: configuration will not be switched...\n" "${C_INFO}" "${C_RST}"
+		return 0
+	fi
+
+	logf "\n%b>>> Switching%b Nix-Darwin system configuration for %b%s%b\n" \
+		"${C_INFO}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"
+
+	set -- "${_rebuild_bin}" switch \
+  --option experimental-features "nix-command flakes" \
+	--flake "path:${flake_root}#${_flake_key}"
+
+	print_cmd -- as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
+
+	if as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
+		logf "\n%b✓ Nix-Darwin switched system configuration.%b\n" "${C_OK}" "${C_RST}"
+		return 0
+	else
+		err 1 "Switch failed."
+	fi
+}
 
 if ! has_cmd "nix"; then
 	source_nix
@@ -75,159 +179,59 @@ if ! has_cmd "nix"; then
 	fi
 fi
 
-if [ -z "${TGT_SYSTEM:-}" ]; then
-	logf "\n%berror:%b Could not determine target system platform.\n" "$RED" "$RESET"
-	exit 1
+if [ -z "${TGT_USER:-}" ]; then
+	err 1 "User is not set."
+else
+	user="${TGT_USER}"
+fi
+
+if [ -z "${TGT_HOST:-}" ]; then
+	err 1 "Host is not set."
+else
+	host="${TGT_HOST}"
 fi
 
 if [ -z "${IS_LINUX:-}" ]; then
-	logf "\n%berror:%b Could not determine if target system is Linux or Darwin.\n" "$RED" "$RESET"
-	exit 1
+	err 1 "Could not determine if target system is Linux or Darwin.\n"
+else
+	is_linux="${IS_LINUX}"
 fi
 
-user="${TGT_USER:? error: user must be set.}"
-host="${TGT_HOST:? error: host must be set.}"
-: "${USE_SCRIPT:=false}"
-
-if [ -z "$mode" ]; then
-	logf "\n%berror:%b No mode was passed. Use --build or --activate.\n" "$RED" "$RESET"
-	exit 1
-fi
-
-base_darwin_build_cmd="nix build .#darwinConfigurations.${user}@${host}.system"
-base_darwin_build_print_cmd="nix build .#darwinConfigurations.${CYAN}${user}${RESET}@${CYAN}${host}${RESET}.system"
-base_darwin_activate_cmd="sudo ./result/sw/bin/darwin-rebuild switch --flake .#${user}@${host}"
-base_darwin_activate_print_cmd="sudo ./result/sw/bin/darwin-rebuild switch --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
-
-base_linux_build_cmd="nix build .#nixosConfigurations.${user}@${host}.config.system.build.toplevel"
-base_linux_build_print_cmd="nix build .#nixosConfigurations.${CYAN}${user}@${host}${RESET}.config.system.build.toplevel"
-base_linux_activate_cmd="sudo ./result/sw/bin/nixos-rebuild switch --flake .#${user}@${host}"
-base_linux_activate_print_cmd="sudo ./result/sw/bin/nixos-rebuild switch --flake .#${CYAN}${user}@${host}${RESET}"
-
-nix_cmd_switch="--extra-experimental-features nix-command"
-flake_switch="--extra-experimental-features flakes"
-dry_switch=""
 if is_truthy "${DRY_RUN:-}"; then
 	dry_switch="--dry-run"
 fi
-dry_print_switch="${BLUE}${dry_switch}${RESET}"
 
-build() {
-	base_cmd=$1
-	print_cmd=$2
-	switches=$3
-	print_switches=$4
-	build_cmd="${base_cmd} ${switches}"
-	print_cmd="${print_cmd} ${print_switches}"
-	rcfile="$(mktemp)"
+mode=""
+prog="${0##*/}"
 
-	if ! has_cmd "nix"; then
-		source_nix
-		if ! has_cmd "nix"; then
-			err 1 "nix not found. Run {$C_CMD}make install{$C_RST} to install it."
-		fi
-	fi
+while [ $# -gt 0 ]; do
+  case "${1}" in
+    --build)   [ -z "$mode" ] || err 2 "${prog}: duplicate mode (${mode})"; mode="build"; shift ;;
+    --switch)  [ -z "$mode" ] || err 2 "${prog}: duplicate mode (${mode})"; mode="switch"; shift ;;
+    --) shift; break ;;
+    -?*) err 2 "${prog}: invalid option: $1" ;;
+    *) break ;;
+  esac
+done
 
-	logf "\n%b>>> Building system configuration for:%b\n" "$BLUE" "$RESET"
-	logf "%b%s%b host %b%s%b\n" "$CYAN" "$TGT_SYSTEM" "$RESET" \
-		"$CYAN" "$host" "$RESET"
-	logf "\n%bBuild command:%b %b\n\n" "$BLUE" "$RESET" "$print_cmd"
+[ -n "$mode" ] || err 2 "${prog}: no mode specified (use --build or --switch)"
+[ $# -eq 0 ] || err 2 "${prog}: unexpected argument: $1"
 
-	if is_truthy "${USE_SCRIPT:-}"; then
-		script -a -q -c "$build_cmd; printf '%s\n' \$? > \"$rcfile\"" "$MAKE_NIX_LOG"
-	else
-		# Wrap in subshell to capture exit code to a file
-		(
-			eval "$build_cmd"
-			printf "%s\n" "$?" >"$rcfile"
-		) 2>&1 | tee "$MAKE_NIX_LOG"
-	fi
-
-	rc=$(cat "$rcfile")
-	rm -f "$rcfile"
-	if ! [ "$rc" -eq 0 ]; then
-		logf "\n%berror:%b system configuration build failed. Halting make-nix.\n" "$RED" "$RESET"
-		sh "$SCRIPT_DIR/check_dirty_warn.sh"
-		exit "$rc"
-	else
-		return 0
-	fi
-}
-
-activate() {
-	activate_cmd=$1
-	print_cmd=$2
-	rcfile="$(mktemp)"
-
-	if ! has_cmd "nix"; then
-		source_nix
-		if ! has_cmd "nix"; then
-			err 1 "nix not found. Run {$C_CMD}make install{$C_RST} to install it."
-		fi
-	fi
-
-	if [ "$UNAME_S" = "Linux" ] && ! has_cmd "nixos-rebuild"; then
-		logf "\n%berror:%b cannot activate a NixOS system configuration on Linux without %bnixos-rebuild%b.\n" \
-			"$RED" "$RESET" "$RED" "$RESET"
-	fi
-
-	if [ "$UNAME_S" = "Darwin" ] && ! has_cmd "darwin-rebuild"; then
-		logf "\n%berror:%b cannot activate a Nix-Darwin system configuration on Darwin without darwin-rebuild.\n" \
-			"$RED" "$RESET" "$RED" "$RESET"
-	fi
-
-	logf "\n%b>>> Activating%b system configuration for %b%s%b host %b%s%b\n" \
-		"$BLUE" "$RESET" "$CYAN" "$TGT_SYSTEM" "$RESET" "$CYAN" "$host" "$RESET"
-	logf "\n%bActivate command:%b %b\n\n" "$BLUE" "$RESET" "$print_cmd"
-
-	if is_truthy "${USE_SCRIPT:-}"; then
-		script -a -q -c "$activate_cmd; printf '%s\n' \$? > \"$rcfile\"" "$MAKE_NIX_LOG"
-	else
-		# Wrap in subshell to capture exit code to a file
-		(
-			eval "$activate_cmd"
-			printf "%s\n" "$?" >"$rcfile"
-		) 2>&1 | tee "$MAKE_NIX_LOG"
-	fi
-
-	rc=$(cat "$rcfile")
-	rm -f "$rcfile"
-	if ! [ "$rc" -eq 0 ]; then
-		logf "\n%berror:%b system configuraiton activation failed. Halting make-nix.\n" "$RED" "$RESET"
-		exit "$rc"
-	else
-		return 0
-	fi
-}
-
-if is_truthy "${IS_LINUX:-}"; then
-	if [ "$mode" = "build" ]; then
-		build "$base_linux_build_cmd" "$base_linux_build_print_cmd" \
-			"${dry_switch} ${nix_cmd_switch} ${flake_switch}" \
-			"${dry_print_switch} ${nix_cmd_switch} ${flake_switch}"
-	elif [ "$mode" = "activate" ]; then
-		if [ "$dry_switch" = "--dry-run" ]; then
-			logf "\n%bDRY_RUN%b %btrue%b: skipping system activation...\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
-			exit 0
-		fi
-		backup_files
-		activate "$base_linux_activate_cmd" "$base_linux_activate_print_cmd"
-	else
-		logf "\n%berror:%b Neither --build nor --activate was called for.\n" "$RED" "$RESET"
-	fi
-else
-	if [ "$mode" = "build" ]; then
-		build "$base_darwin_build_cmd" "$base_darwin_build_print_cmd" \
-			"${dry_switch} ${nix_cmd_switch} ${flake_switch}" \
-			"${dry_print_switch} ${nix_cmd_switch} ${flake_switch}"
-	elif [ "$mode" = "activate" ]; then
-		if [ "$dry_switch" = "--dry-run" ]; then
-			logf "\n%bDRY_RUN%b %btrue%b: skipping system activation...\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
-			exit 0
-		fi
-		backup_files
-		activate "$base_darwin_activate_cmd" "$base_darwin_activate_print_cmd"
-	else
-		logf "\n%berror:%b Neither --build nor --activate was called for.\n" "$RED" "$RESET"
-	fi
-fi
+case "${mode}" in
+  build)
+    if [ "${is_linux}" = "true" ]; then
+      _build_nixos
+    else
+      _build_darwin
+    fi
+    exit $?
+    ;;
+  switch)
+    if [ "${is_linux}" = "true" ]; then
+      _switch_nixos
+    else
+      _switch_darwin
+    fi
+    exit $?
+    ;;
+esac

@@ -1,64 +1,101 @@
 #!/usr/bin/env sh
+
+# Functions for building and switching standalone Home-manager configurations.
+
 set -eu
 
-# defaults
-IS_FINAL_GOAL=0
-mode=""  # "build" or "activate"
-
-# parse flags
-while [ $# -gt 0 ]; do
-  case "$1" in
-    -F)
-      [ $# -ge 2 ] || { printf '%s: -F requires an argument\n' "${0##*/}" >&2; exit 2; }
-      case "$2" in 0|1) IS_FINAL_GOAL=$2 ;; *) printf '%s: invalid -F value: %s\n' "${0##*/}" "$2" >&2; exit 2 ;; esac
-      shift 2
-      ;;
-    -F[01])
-      IS_FINAL_GOAL=${1#-F}
-      shift
-      ;;
-    --build)
-      [ -z "$mode" ] || { printf '%s: duplicate mode (--build/--activate)\n' "${0##*/}" >&2; exit 2; }
-      mode="build"; shift
-      ;;
-    --activate)
-      [ -z "$mode" ] || { printf '%s: duplicate mode (--build/--activate)\n' "${0##*/}" >&2; exit 2; }
-      mode="activate"; shift
-      ;;
-    --) shift; break ;;
-    -*) printf '%s: invalid option: %s\n' "${0##*/}" "$1" >&2; exit 2 ;;
-    *)  break ;;
-  esac
-done
-
-# no stray positional args allowed (optional; keep if you expect none)
-[ "$#" -eq 0 ] || { printf '%s: unexpected argument: %s\n' "${0##*/}" "$1" >&2; exit 2; }
-
-# ensure a mode was chosen
-if [ -z "$mode" ]; then
-  # if common.sh isn't sourced yet, use printf instead of logf
-  printf '%s: error: no mode specified; use --build or --activate\n' "${0##*/}" >&2
-  exit 1
-fi
-
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+script_dir="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
-. "$SCRIPT_DIR/common.sh"
-
-cleanup_on_exit() {
-  status=$?
-  if [ "$status" -ne 0 ] && [ "${IS_FINAL_GOAL:-0}" -eq 1 ]; then
-    cleanup "$status" ERROR
-  fi
-  exit "$status"
+. "$script_dir/common.sh" || {
+	printf "ERROR: home.sh failed to source common.sh from %s\n" \
+	"${script_dir}/common.sh" >&2
+	exit 1
 }
 
-trap 'cleanup_on_exit' 0
+trap 'cleanup 130 "SIGNAL"' INT TERM QUIT
 
-trap '
-  [ "${IS_FINAL_GOAL:-0}" -eq 1 ] && cleanup 130 SIGNAL
-  exit 130
-' INT TERM QUIT
+flake_root="$(cd "${script_dir}/.." && pwd)"
+prog=""
+mode=""
+user=""
+host=""
+dry_switch=""
+
+# Build Home-manager config
+_build_home() {
+  _flake_key="${user}@${host}"
+
+  logf "\n%b>>> Building home configuration for:%b %b%s%b\n" \
+    "${C_INFO}" "${C_RST}" "${C_CFG}" "${_flake_key}" "${C_RST}"
+
+  [ "${dry_switch}" = "--dry-run" ] && \
+    logf "\n%binfo: DRY_RUN%b: no result output will be created.\n" "${C_INFO}" "${C_RST}"
+
+  set -- nix build --max-jobs auto --cores 0
+  [ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
+  set -- "$@" --out-link "result-${_flake_key}-home" \
+    "path:${flake_root}#homeConfigurations.\"${_flake_key}\".activationPackage"
+
+  print_cmd NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
+  NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@" || err 1 "Home build failed."
+
+  logf "\n%b✓ Home build success.%b\n" "${C_OK}" "${C_RST}"
+  logf "\n%binfo:%b Output in %b./result-%s-home%b\n" \
+    "${C_INFO}" "${C_RST}" "${C_PATH}" "${_flake_key}" "${C_RST}"
+}
+
+# Switch Home-manager config
+_activate_home() {
+  _key="${user}@${host}"
+  _activate="./result-${_key}-home/activate"
+
+  [ "${dry_switch}" = "--dry-run" ] && {
+    logf "\n%binfo: DRY_RUN%b: skipping home activation...\n" "${C_INFO}" "${C_RST}"
+    return 0
+  }
+
+  [ -x "${_activate}" ] || err 1 "Home activation script not found: ${C_PATH}${_activate}${C_RST}"
+
+  logf "\n%b>>> Activating home configuration for:%b %b%s%b\n" \
+    "${C_INFO}" "${C_RST}" "${C_CFG}" "${_key}" "${C_RST}"
+
+  print_cmd "${_activate}"
+  "${_activate}" || err 1 "Home activation failed."
+}
+
+_switch_home() {
+	_flake_key="${user}@${host}"
+	_backup_ext="hm-backup"
+	_hm_cmd=""
+
+	if has_cmd home-manager; then
+		set -- home-manager
+	else
+		# Online only from Nixpkgs
+		set -- nix run nixpkgs#home-manager --
+	fi
+
+	logf "\n%b>>> Building home configuration for:%b %b%s%b\n" \
+		"${C_INFO}" "${C_RST}" "${C_CFG}" "${user}@${host}" "${C_RST}"
+
+	if [ "${dry_switch}" = "--dry-run" ]; then
+		logf "\n%binfo: DRY_RUN%b: no result output will be created.\n" "${C_INFO}" "${C_RST}"
+	fi
+ 
+	set -- "$@" switch -b "${_backup_ext}" \
+		--max-jobs auto --cores 0 
+	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
+	set -- "$@" --flake "path:${flake_root}#${_flake_key}"
+
+	print_cmd -- env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
+
+	if env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
+		logf "\n%b✓ Home-manager configuration switch success.%b\n" "${C_OK}" "${C_RST}"
+		return 0
+	else
+		err 1 "Switch failed."
+	fi
+}
 
 if ! has_cmd "nix"; then
 	source_nix
@@ -67,132 +104,50 @@ if ! has_cmd "nix"; then
 	fi
 fi
 
-if [ -z "${TGT_SYSTEM:-}" ]; then
-	logf "\n%berror:%b Could not determine target system platform.\n" "$RED" "$RESET"
-	exit 1
+if [ -z "${TGT_USER:-}" ]; then
+	err 1 "User is not set."
+else
+	user="${TGT_USER}"
 fi
 
-if [ -z "${IS_LINUX:-}" ]; then
-	logf "\n%berror:%b Could not determine if target system is Linux or Darwin.\n" "$RED" "$RESET"
-	exit 1
+if [ -z "${TGT_HOST:-}" ]; then
+	err 1 "Host is not set."
+else
+	host="${TGT_HOST}"
 fi
 
-user="${TGT_USER:? error: user must be set.}"
-host="${TGT_HOST:? error: host must be set.}"
-: "${USE_SCRIPT:=false}"
-
-if [ -z "$mode" ]; then
-	logf "\n%berror:%b No mode was passed. Use --build or --activate.\n" "$RED" "$RESET"
-	exit 1
-fi
-
-backup_prefix="backup-before-nix-hm"
-base_build_cmd="NIX_CONFIG='extra-experimental-features = nix-command flakes' command nix run nixpkgs#home-manager -- build -b ${backup_prefix} --flake .#${user}@${host}"
-base_build_print_cmd="NIX_CONFIG='extra-experimental-features = nix-command flakes' command nix run nixpkgs#home-manager -- build -b ${backup_prefix} --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
-base_activate_cmd="NIX_CONFIG='extra-experimental-features = nix-command flakes' command nix run nixpkgs#home-manager -- switch -b ${backup_prefix} --flake .#${user}@${host}"
-base_activate_print_cmd="NIX_CONFIG='extra-experimental-features = nix-command flakes' command nix run nixpkgs#home-manager -- switch -b ${backup_prefix} --flake .#${CYAN}${user}${RESET}@${CYAN}${host}${RESET}"
-
-dry_switch=""
 if is_truthy "${DRY_RUN:-}"; then
 	dry_switch="--dry-run"
 fi
-dry_print_switch="${BLUE}${dry_switch}${RESET}"
 
-build() {
-	base_cmd=$1
-	print_cmd=$2
-	switches=$3
-	print_switches=$4
-	build_cmd="${base_cmd} ${switches}"
-	print_cmd="${print_cmd} ${print_switches}"
-	rcfile="$(mktemp)"
+mode=""
+prog="${0##*/}"
 
-	logf "\n%b>>> Building Nix Home-manager configuration for:%b\n" "$BLUE" "$RESET"
-	logf "%b%s%b on %b%s%b host %b%b%b\n" "$CYAN" "$user" "$RESET" "$CYAN" "$TGT_SYSTEM" "$RESET" \
-		"$CYAN" "$host" "$RESET"
-	logf "\n%bBuild command:%b %b\n\n" "$BLUE" "$RESET" "$print_cmd"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --activate)   [ -z "$mode" ] || err 2 "${prog}: duplicate mode (${mode})"; mode="activate"; shift ;;
+    --build)   [ -z "$mode" ] || err 2 "${prog}: duplicate mode (${mode})"; mode="build"; shift ;;
+    --switch)  [ -z "$mode" ] || err 2 "${prog}: duplicate mode (${mode})"; mode="switch"; shift ;;
+    --) shift; break ;;
+    -?*) err 2 "${prog}: invalid option: $1" ;;
+    *) break ;;
+  esac
+done
 
-	if ! has_cmd "nix"; then
-		source_nix
-		if ! has_cmd "nix"; then
-			printf "\n%berror:%b Nix not detected. Cannot continue.\n" "$RED" "$RESET"
-			exit 1
-		fi
-	fi
+[ -n "$mode" ] || err 2 "${prog}: no mode specified (use --build or --switch)"
+[ $# -eq 0 ] || err 2 "${prog}: unexpected argument: $1"
 
-	if is_truthy "${USE_SCRIPT:-}"; then
-		script -a -q -c "$build_cmd; printf '%s\n' \$? > \"$rcfile\"" "$MAKE_NIX_LOG"
-	else
-		# Wrap in subshell to capture exit code to a file
-		(
-			eval "$build_cmd"
-			printf "%s\n" "$?" >"$rcfile"
-		) 2>&1 | tee "$MAKE_NIX_LOG"
-	fi
-
-	rc=$(cat "$rcfile")
-	rm -f "$rcfile"
-	if ! [ "$rc" -eq 0 ]; then
-		logf "\n%berror:%b home configuraiton build failed. Halting make-nix.\n" "$RED" "$RESET"
-		sh "$SCRIPT_DIR/check_dirty_warn.sh"
-		exit "$rc"
-	else
-		return 0
-	fi
-}
-
-activate() {
-	activate_cmd=$1
-	print_cmd=$2
-	rcfile="$(mktemp)"
-
-	logf "\n%b>>> Activating Nix Home-manager configuration for:\n"
-	logf "%b%s%b on %b%s%b host %b%s%b %b%s%b\n" "$CYAN" "$user" "$RESET" \
-		"$CYAN" "$TGT_SYSTEM" "$RESET" "$CYAN" "$host" "$RESET"
-	logf "\n%bActivation command:%b %b\n\n" "$BLUE" "$RESET" "$print_cmd"
-
-	if ! has_cmd "nix"; then
-		source_nix
-		if ! has_cmd "nix"; then
-			err 1 "nix not found. Run {$C_CMD}make install{$C_RST} to install it."
-		fi
-	fi
-
-	if is_truthy "${USE_SCRIPT:-}"; then
-		script -a -q -c "$activate_cmd; printf '%s\n' \$? > \"$rcfile\"" "$MAKE_NIX_LOG"
-	else
-		# Wrap in subshell to capture exit code to a file
-		(
-			eval "$activate_cmd"
-			printf "%s\n" "$?" >"$rcfile"
-		) 2>&1 | tee "$MAKE_NIX_LOG"
-	fi
-	
-	rc=$(cat "$rcfile")
-	rm -f "$rcfile"
-	if ! [ "$rc" -eq 0 ]; then
-		logf "\n%berror:%b home configuraiton activation failed. Halting make-nix.\n" "$RED" "$RESET"
-		exit "$rc"
-	else
-		return 0
-	fi
-}
-
-if [ "$mode" = "build" ]; then
-	if build "$base_build_cmd" "$base_build_print_cmd" "$dry_switch" "$dry_print_switch"; then
-		logf "%b✅ success:%b home build complete.\n" "$GREEN" "$RESET"
-	fi
-elif [ "$mode" = "activate" ]; then
-	if [ "$dry_switch" = "--dry-run" ]; then
-		logf "\n%bDRY_RUN%b %btrue%b: skipping home activation...\n" "$BLUE" "$RESET" "$GREEN" "$RESET"
-		exit 0
-	fi
-	if activate "$base_activate_cmd" "$base_activate_print_cmd"; then
-		logf "%b✅ success:%b home activation complete.\n" "$GREEN" "$RESET"
-		if [ "${HYPRLAND_SETUP:-}" = true ]; then
-			sh "$SCRIPT_DIR/hyprland_setup.sh"
-		fi
-	fi
-else
-	logf "\n%berror:%b Neither --build nor --activate was called for.\n" "$RED" "$RESET"
-fi
+case "${mode}" in 
+	activate)
+		_activate_home
+		exit $?
+		;;
+	build)
+		_build_home
+		exit $?
+		;;
+	switch)
+		_switch_home
+		exit $?
+		;;
+esac
