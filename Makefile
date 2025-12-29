@@ -38,10 +38,6 @@ ifeq ($(origin MAKE_NIX_ENV), undefined)
   $(shell printf "UNAME_S=%s\n" "$(shell uname -s)" >> "$(MAKE_NIX_ENV)")
 endif
 
-define IS_LAST
-$(if $(filter $@,$(lastword $(MAKECMDGOALS))),1,0)
-endef
-
 #
 # Utility targets.
 #
@@ -66,32 +62,32 @@ clean:
 	@sh scripts/clean.sh
 
 .PHONY: help
-help: set-env show-help clean
+help: set-env show-help
 
 .PHONY: show-help
 show-help:
-	@sh scripts/print_help.sh -F $(IS_LAST)
+	@sh scripts/print_help.sh
 
 #
 # Install/uninstall targets.
 #
 
 .PHONY: install
-install: pre-checks installs
+install: pre-checks install-sh clean
 
 .PHONY: install-all
-install-all: installs
+install-all: install-sh
 
-.PHONY: installs
-installs:
-	@sh scripts/installs.sh -F $(IS_LAST)
+.PHONY: install-sh
+install-sh:
+	@sh scripts/installs.sh
 
 .PHONY: uninstall
-uninstall: pre-checks uninstalls
+uninstall: pre-checks uninstall-sh
 
-.PHONY: uninstalls
-uninstalls:
-	@sh scripts/uninstalls.sh -F $(IS_LAST)
+.PHONY: uninstall-sh
+uninstall-sh:
+	@sh scripts/uninstalls.sh
 
 #
 # Check targets.
@@ -140,31 +136,31 @@ build: build-all
 build-all: pre-checks write-nix-attrs build-system-all build-home-all clean
 
 .PHONY: build-system
-build-system: pre-checks write-nix-attrs system-build check-dirty-warn set-spec-boot clean
+build-system: pre-checks write-nix-attrs build-system-sh check-dirty-warn clean
 
 .PHONY: build-system-all
-build-system-all: system-build check-dirty-warn
+build-system-all: build-system-sh check-dirty-warn
 
 .PHONY: build-home
-build-system: pre-checks write-nix-attrs home-build check-dirty-warn set-spec-boot clean
+build-home: pre-checks write-nix-attrs build-home-sh check-dirty-warn clean
 
 .PHONY: build-home-all
-build-home-all: home-build check-dirty-warn
+build-home-all: build-home-sh check-dirty-warn
 
 # Build flake-based system configurations for Linux or Darwin systems.
-.PHONY: system-build
-system-build:
-	@sh scripts/system.sh -F $(IS_LAST) --build
+.PHONY: build-system-sh
+build-system-sh:
+	@sh scripts/system.sh --build
 
 # Build flake-based Home-manager configurations for Linux or Darwin systems.
-.PHONY: home-build
-home-build:
-	@sh scripts/home.sh -F $(IS_LAST) --build
+.PHONY: build-home-sh
+build-home-sh:
+	@sh scripts/home.sh --build
 
 # Check for a dirty git tree and warn on a failed build about the confusing
 # missing path error. I should not have to write this...
 .PHONY: check-dirty-warn
-check-dirty-warn:
+check-dirty-warn-sh:
 	@sh scripts/check_dirty_warn.sh
 
 .PHONY: set-spec-boot
@@ -179,37 +175,44 @@ set-spec-boot:
 switch: switch-all
 
 .PHONY: switch-all
-switch-all: pre-checks build-system-all build-home-all activate-all clean
+switch-all: pre-checks write-nix-attrs build-system-all build-home-all switch-system-sh switch-home-sh clean
 
 .PHONY: switch-system
-switch-system: pre-checks write-nix-attrs build-system check-dirty-warn activate-system set-spec-boot clean
+switch-system: pre-checks write-nix-attrs switch-system-sh check-dirty-warn set-spec-boot clean
 
 .PHONY: switch-home
-switch-home: pre-checks write-nix-attrs build-home check-dirty-warn activate-home clean
+switch-home: pre-checks write-nix-attrs switch-home-sh check-dirty-warn clean
 
-#
-# Activate targets.
-#
+# No pre-checks, write-nix-attrs, or clean for all target
+.PHONY: switch-system-all
+switch-all: build-system-all switch-system-sh
 
-.PHONY: activate-all
-activate-all: activate-system activate-home
+# No pre-checks, write-nix-attrs, or clean for all target
+.PHONY: switch-home-all
+switch-all: build-home-all switch-home-sh
 
-# Activate flake-based system configurations for Linux or Darwin systems.
-.PHONY: activate-system
-activate-system:
-	@sh scripts/system.sh -F $(IS_LAST) --activate
+# Build and activate flake-based system configurations for Linux or Darwin systems.
+.PHONY: switch-system-sh
+switch-system-sh:
+	@sh scripts/system.sh --switch
 
 # Activate flake-based Home-manager configurations for Linux or Darwin systems.
-.PHONY: activate-home
-activate-home:
-	@sh scripts/home.sh -F $(IS_LAST) --activate
+.PHONY: activate-home-sh
+activate-home-sh:
+	@sh scripts/home.sh --activate
+
+# Build and activate flake-based Home-manager configurations for Linux or Darwin systems.
+.PHONY: switch-home-sh
+switch-home-sh:
+	@sh scripts/home.sh --switch
 
 .PHONY: test
-test: set-env check-deps check-nix-attrs check-dirty-warn clean
+test: pre-checks check-nix-attrs check-dirty-warn
 # Set the default boot menu option to the first specified specialisation for a system.
 
 .PHONY: all
-all: pre-checks install-all write-nix-attrs build-system-all build-home-all activate-all set-spec-boot clean
+all: pre-checks install-all write-nix-attrs build-system-all build-home-all \
+	switch-system-all switch-home-all set-spec-boot
 
 %:
 	@printf "Unknown target: '$@'\n"
