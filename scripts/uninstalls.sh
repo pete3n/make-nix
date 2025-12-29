@@ -455,9 +455,6 @@ if [ "${UNAME_S:-}" = "Darwin" ]; then
 
 	if has_cmd "darwin-uninstaller"; then
 		as_root darwin-uninstaller
-	else
-		set -- nix run nix-darwin#darwin-uninstaller
-		as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
 	fi 
 
 	if has_nix_daemon || nix_daemon_socket_up; then
