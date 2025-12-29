@@ -16,15 +16,15 @@ trap 'cleanup 130 "SIGNAL"' INT TERM QUIT
 
 # Non-destructive restoration function
 _safe_restore() {
-  _orig="$1"
-  _bak="$2"
+  _bak="$1"   # backup file path (source)
+  _orig="$2"  # original file path (destination)
 
   [ -e "${_bak}" ] || return 0
 
   logf "%b ↩️%b restoring %s\n" "${C_INFO}" "${C_RST}" "${_orig}"
 
-  if as_root cp -p -- "${_bak}" "${_orig}"; then
-    if as_root rm -f -- "${_bak}"; then
+  if as_root cp -p "${_bak}" "${_orig}"; then
+    if as_root rm -f "${_bak}"; then
       : # ok
     else
       logf "%b⚠️ warning:%b restored %s but failed to remove backup %s\n" \
@@ -93,15 +93,15 @@ _cleanup_nix_files() {
 
 		# No backup
 		elif [ -f "${_original_file}" ] && grep -iq 'Nix' "${_original_file}"; then
-			tmp_file="$(mktemp)"
-			as_root sh -c "sed '/^# Nix\$/,/^# End Nix\$/d' '${_original_file}'" >"${tmp_file}"
+			_tmp_file="$(mktemp)"
+			as_root sh -c "sed '/^# Nix\$/,/^# End Nix\$/d' '${_original_file}' > '${_tmp_file}'"
 
-			if ! cmp -s "${_original_file}" "${tmp_file}"; then
+			if ! cmp -s "${_original_file}" "${_tmp_file}"; then
 				logf "%binfo:%b removing Nix entries from %b%s%b\n" "${C_INFO}" "${C_RST}" \
 					"${C_PATH}" "${_original_file}" "${C_RST}"
 				as_root cp "${_original_file}" "${_original_file}.bak"
 
-				if ! as_root cp "${tmp_file}" "${_original_file}"; then
+				if ! as_root cp "${_tmp_file}" "${_original_file}"; then
 					_is_success="false"
 					logf "\n%binfo:%b could not modify: %b%s%b\n" \
 						"${C_INFO}" "${C_RST}" "${C_PATH}" "${_original_file}" "${C_RST}"
@@ -111,7 +111,7 @@ _cleanup_nix_files() {
 				diff -u "${_original_file}.bak" "${_original_file}" || true
 			fi
 
-			rm -f "${tmp_file}"
+			rm -f "${_tmp_file}"
 		fi
 	done
 
@@ -300,7 +300,6 @@ _nix_multi_user_uninstall_darwin() {
 
 		rm -f "${_tmp_fstab}"
 	else
-		_is_success="false"
 		logf "%bwarning: %b%b/etc/fstab%b does not exist.\n" \
 			"${C_WARN}" "${C_RST}" "${C_PATH}" "${C_RST}"
 	fi
@@ -342,8 +341,8 @@ _nix_multi_user_uninstall_darwin() {
 
 	[ -d "${_user_home}" ] || err 1 "User home does not exist: '${_user_home}'"
 	
-	_nix_files="/etc/nix /var/root/.nix-profile /var/root/.nix-defexpr" \
-	_nix_files="${_nix_files} /var/root/.nix-channels ${_user_home}/.nix-profile" \
+	_nix_files="/etc/nix /var/root/.nix-profile /var/root/.nix-defexpr"
+	_nix_files="${_nix_files} /var/root/.nix-channels ${_user_home}/.nix-profile"
 	_nix_files="${_nix_files} ${_user_home}/.nix-defexpr ${_user_home}/.nix-channels"
 
 	for _file in $_nix_files; do
@@ -380,9 +379,10 @@ _nix_multi_user_uninstall_darwin() {
 _nix_single_user_uninstall() {
 	_is_success="true"
 	_err_log=$(mktemp)
+	_user_home="$(_get_user_home)"
 
 	logf "\n%binfo:%b delete Nix files...\n" "${C_INFO}" "${C_RST}"
-	_nix_files="/nix ~/.nix-channels ~/.nix-defexpr ~/.nix-profile"
+	_nix_files="/nix ${_user_home}/.nix-channels ${_user_home}/.nix-defexpr ${_user_home}/.nix-profile"
 
 	for _file in ${_nix_files}; do
 		logf "\n%binfo:%b deleting: %b%s%b\n" \
@@ -448,20 +448,17 @@ esac
 logf "\n%b>>> Starting uninstaller...%b\n" "${C_INFO}" "${C_RST}"
 
 # Check for Nix-Darwin first because we need to remove it before removing Nix.
-if [ "${UNAME_S}" = "Darwin" ]; then
+if [ "${UNAME_S:-}" = "Darwin" ]; then
 	if ! has_cmd "darwin-uninstaller"; then
 		source_darwin
 	fi
 
 	if has_cmd "darwin-uninstaller"; then
-		# Try provided uninstaller first if it is available
-		if as_root darwin-uninstaller || set -- nix run nix-darwin#darwin-uninstaller
-			as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
-			logf "\n%b✅ success:%b nix-darwin uninstall complete.\n" "${C_OK}" "${C_RST}"
-		else
-			err 1 "failed to uninstall nix-darwin."
-		fi
-	fi
+		as_root darwin-uninstaller
+	else
+		set -- nix run nix-darwin#darwin-uninstaller
+		as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
+	fi 
 
 	if has_nix_daemon || nix_daemon_socket_up; then
 		logf "\n%binfo:%b nix-daemon (multi-user) detected.\n" "${C_INFO}" "${C_RST}"
@@ -479,7 +476,7 @@ if [ "${UNAME_S}" = "Darwin" ]; then
 	fi
 fi
 
-if [ "$UNAME_S" = "Linux" ]; then
+if [ "${UNAME_S:-}" = "Linux" ]; then
   if has_nix_daemon || nix_daemon_socket_up; then
     logf "\n%binfo:%b nix-daemon (multi-user) detected.\n" "${C_INFO}" "${C_RST}"
     _nix_multi_user_uninstall_linux && _cleanup_nix_files
