@@ -31,7 +31,7 @@ _build_home() {
   [ "${dry_switch}" = "--dry-run" ] && \
     logf "\n%binfo: DRY_RUN%b: no result output will be created.\n" "${C_INFO}" "${C_RST}"
 
-  set -- nix build --max-jobs auto --cores 0
+  set -- nix build --max-jobs auto --cores 0 --verbose
   [ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
   set -- "$@" --out-link "result-${_flake_key}-home" \
     "path:${flake_root}#homeConfigurations.\"${_flake_key}\".activationPackage"
@@ -40,8 +40,8 @@ _build_home() {
   NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@" || err 1 "Home build failed."
 
   logf "\n%b✓ Home build success.%b\n" "${C_OK}" "${C_RST}"
-  logf "\n%binfo:%b Output in %b./result-%s-home%b\n" \
-    "${C_INFO}" "${C_RST}" "${C_PATH}" "${_flake_key}" "${C_RST}"
+  logf "\n%bOutput in:\n%b %b%s/result-%s-home%b\n" \
+    "${C_INFO}" "${C_RST}" "${C_PATH}" "${flake_root}" "${_flake_key}" "${C_RST}"
 }
 
 # Switch Home-manager config
