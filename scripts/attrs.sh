@@ -429,66 +429,103 @@ _write_system() {
 	} >"${_system_config}"
 }
 
-# Load a configuration attribute set based on user and host names. 
-# Evaluate the configuration using Nix eval as appropriate for the configuraiton type.
-check_attrs() {
-	_checks="${1}"
+# Read the Nix attribute file and update the env vars
+read_attrs() {
 	_flake_key="${user}@${host}"
 	if _attrs_file="$(_find_attrs_file)"; then
 		logf "Nix attribute file: %b%s%b\n" "${C_PATH}" "${_attrs_file}" "${C_RST}"
 	else
-		_msg="Nix attribute check failed, attrs file was not found for: "
+		_msg="Failed to read Nix attributes, attrs file was not found for: "
 		_msg="${_msg}${C_CFG}${_flake_key}${C_RST}"
 		err 1 "${_msg}"
 	fi
 
 	_eval_vars "${_attrs_file}"
 	_write_env
+}
 
+# Load a configuration attribute set based on user and host names. 
+# Evaluate the configuration using Nix eval as appropriate for the configuraiton type.
+check_attrs() {
+	_checks="${1}"
+	read_attrs
+
+	# Determine if flake has an attribute; returns "true" or "false"
 	_has_attr() {
-		_attr="${1}" # homeConfigurations | nixosConfigurations | darwinConfigurations
-		_flake_key="${2}" # user@host
+		_attr="${1}"	# homeConfigurations | nixosConfigurations | darwinConfigurations
+		_flake_key="${2}"	# user@host
 		_flake_path="path:${flake_root}"
-		# Capture stdout only. Send stderr to a temp file so it doesn't pollute _out
-		_errfile="${MAKE_NIX_TMPDIR:-/tmp}/nix-eval.$$.err"
 
-		_out=$(
+		if ! _out="$(
 			NIX_CONFIG='extra-experimental-features = nix-command flakes' \
-			command nix eval --impure --json "${_flake_path}#${_attr}" \
-				--apply "config: builtins.hasAttr \"${_flake_key}\" config" 2>"${_errfile}"
-		) || {
-			_err=$(cat "${_errfile}" 2>/dev/null || true)
-			rm -f "${_errfile}" 2>/dev/null || true
-			_msg="nix eval failed while checking ${C_PATH}${_flake_path}${C_RST}"
-			_msg="${_msg}${C_CFG}#${_attr}.${_flake_key}${C_RST}:\n"
-			err 1 "${_msg}${_err}"
-		}
+			command nix eval --impure --json \
+				"${_flake_path}#${_attr}" \
+				--apply "config: builtins.hasAttr \"${_flake_key}\" config"
+		)"; then
+			err 1 "nix eval failed while checking ${C_CFG}${_attr}.${_flake_key}${C_RST}"
+		fi
 
-		printf "%s\n" "${_out}"
+		printf '%s\n' "${_out}"
 	}
 
 	_eval_drv() {
-		_expr="${1}"
-		_msg="\n%bEval command:%b %bNIX_CONFIG='extra-experimental-features = nix-command flakes'"
-		_msg="${_msg} nix eval --no-warn-dirty --impure --raw%b %b%s%b\n"
-		logf "${_msg}" "${C_INFO}" "${C_RST}" "${C_CMD}" "${C_RST}" "${C_CFG}" "${_expr}" "${C_RST}"
-		_drv_path="$(NIX_CONFIG='extra-experimental-features = nix-command flakes' \
-			nix eval --no-warn-dirty --impure --raw "${_expr}")"
-		logf "Output derivation: \n%b%s%b\n" "${C_PATH}" "${_drv_path}" "${C_RST}"
+			_expr="${1}"
+			_eval_cmd="nix eval --no-warn-dirty --verbose --impure --raw ${_expr}"
+			_rcfile="${MAKE_NIX_TMPDIR:-/tmp}/nix-eval.$$.rc"
+			_outfile="${MAKE_NIX_TMPDIR:-/tmp}/nix-eval.$$.out"
+
+			# Print command to stderr so it shows up immediately
+			# shellcheck disable=SC2086
+			print_cmd $_eval_cmd >&2
+
+			if is_truthy "${USE_SCRIPT:-}"; then
+					# Force script to run without buffering issues
+					script -a -q -c "${_eval_cmd}; printf '%s\n' \$? > \"$_rcfile\"" "${_outfile}" >/dev/null
+			else
+					(
+							eval "${_eval_cmd}"
+							printf "%s\n" "$?" >"$_rcfile"
+					) 2>&1 | tee "${_outfile}"
+			fi
+
+			# Remove the script header and footer
+			_clean_out="$(sed -e '1d' -e '$d' "${_outfile}" | tr -d '\r')"
+			# Append eval output to the running log
+			#[ -n "${MAKE_NIX_LOG:-}" ] && printf "%b\n" "${_clean_out}" >> "${MAKE_NIX_LOG}"
+			
+			if [ "$(cat "${_rcfile}")" != "0" ]; then
+					_warn="$(warn_if_dirty "${_outfile}")"
+					err 1 "eval failed for ${C_CFG}${_expr}${C_RST}:\n${_clean_out}\n${_warn}"
+			fi
+
+			# Use tail -n 1 to ensure we only get the result, not the script headers.
+			_drv="$(grep -o '/nix/store/[^[:space:]]*\.drv' "${_outfile}" | tail -n 1 | tr -d '\r')"
+
+			[ -n "${_drv}" ] || err 1 "nix eval returned no derivation for ${C_CFG}${_expr}${C_RST}"
+			
+			# Print only the raw path to stdout for the variable assignment.
+			# Any "pretty" logging about the path must go to stderr.
+			logf "%b%s%b\n" "${C_PATH}" "${_drv}" "${C_RST}" >&2
+			
+			# This is the 'return value' captured by _out_drv="..."
+			printf "%s" "${_drv}"
 	}
 
-  if { [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-home" ]; } && \
-		[ "$(_has_attr "homeConfigurations" "${_flake_key}")" != "true" ]; then
-    err 1 "${C_CFG}homeConfigurations.${_flake_key}${C_RST} not found in flake outputs" 
-  fi
+	_has_home="$(_has_attr "homeConfigurations" "${_flake_key}")"
+	_has_nixos="$(_has_attr "nixosConfigurations" "${_flake_key}")"
+	_has_darwin="$(_has_attr "darwinConfigurations" "${_flake_key}")"
 
-  if [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-home" ]; then
-		logf "\n%bChecking%b %bhomeConfigurations.%s%b ...\n" \
-		"${C_INFO}" "${C_RST}" "${C_CFG}" "${_flake_key}" "${C_RST}"
-		if ! _eval_ok="$(_eval_drv ".#homeConfigurations.\"${_flake_key}\".activationPackage.drvPath")"; then
-			err 1 "Failed evaluating home activation drvPath for: ${C_CFG} ${_flake_key} ${C_RST}"
+	if [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-home" ]; then
+		if [ "${_has_home}" != "true" ]; then
+			err 1 "${C_CFG}homeConfigurations.${_flake_key}${C_RST} not found in flake outputs" 
+		else
+			logf "\n%b<<< Checking%b %bhomeConfigurations.%s%b with command...\n" \
+			"${C_INFO}" "${C_RST}" "${C_CFG}" "${_flake_key}" "${C_RST}"
+			_out_drv="$(_eval_drv ".#homeConfigurations.\"${_flake_key}\".activationPackage.drvPath")"
+			logf "\n%b✅ eval passed.%b\n" "${C_OK}" "${C_RST}"
+			logf "%bOutput derivation:%b\n%b%s%b\n" "${C_INFO}" "${C_RST}" "${C_PATH}" \
+				"${_out_drv}" "${C_RST}"
 		fi
-		logf "%b✅ success:%b eval passed %s\n" "$C_OK" "$C_RST" "${_eval_ok}"
 	fi
 
   if [ "${is_home_alone:-false}" = "true" ] || [ "${_checks}" = "check-home" ]; then
@@ -496,34 +533,31 @@ check_attrs() {
   fi
 
   if { [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ]; } && \
-	[ "${is_linux}" = "true" ] && [ "$(_has_attr "nixosConfigurations" "${_flake_key}")" != "true" ]; then
-    err 1 "${C_CFG}nixosConfigurations.${_flake_key}${C_RST} not found in flake outputs" 
+		[ "${is_linux}" = "true" ]; then
+		if [ "${_has_nixos}" != "true" ];  then
+			err 1 "${C_CFG}nixosConfigurations.${_flake_key}${C_RST} not found in flake outputs" 
+		else
+			logf "\n%b<<< Checking%b %bnixosConfigurations.%s%b with command...\n" \
+				"${C_INFO}" "${C_RST}" "${C_CFG}" "${_flake_key}" "${C_RST}"
+			_out_drv="$(_eval_drv ".#nixosConfigurations.\"${_flake_key}\".config.system.build.toplevel.drvPath")"
+			logf "\n%b✅ eval passed.%b\n" "${C_OK}" "${C_RST}"
+			logf "Output derivation: \n%b%s%b\n" "${C_PATH}" "${_out_drv}" "${C_RST}"
+			return 0
+		fi
   fi
 
   if { [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ]; } && \
- 	[ "${is_linux}" = "true" ] &&	[ "$(_has_attr "nixosConfigurations" "${_flake_key}")" = "true" ]; then
-    logf "\n%bChecking%b %bnixosConfigurations.%s%b ...\n" \
-			"${C_INFO}" "${C_RST}" "${C_CFG}" "${_flake_key}" "${C_RST}"
-    if ! _eval_ok="$(_eval_drv ".#nixosConfigurations.\"${_flake_key}\".config.system.build.toplevel.drvPath")"; then
-			err 1 "Failed evaluating NixOS toplevel drvPath for ${C_CFG} ${_flake_key} ${C_RST}"
-    fi
-		logf "%b✅ success:%b eval passed %s\n" "$C_OK" "$C_RST" "${_eval_ok}"
-		return 0
-  fi
-
-  if { [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ]; } && \
-	[ "${is_linux}" = "false" ] && [ "$(_has_attr "darwinConfigurations" "${_flake_key}")" != "true" ]; then
-    err 1 "${C_CFG}darwinConfigurations.${_flake_key}${C_RST} not found in flake outputs" 
-  fi
-  
-	if { [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-system" ]; } && \
-  [ "${is_linux}" = "false" ] && [ "$(_has_attr "darwinConfigurations" "${_flake_key}")" = "true" ]; then
-    logf "\n%bChecking%b %b darwinConfigurations.%s%b ...\n" "${C_INFO}" "${C_RST}" "${C_CFG}" "${_flake_key}" "${C_RST}"
-		if ! _eval_ok="$(_eval_drv ".#darwinConfigurations.\"${_flake_key}\".system.drvPath")"; then
-			err 1 "Failed evaluating Darwin system drvPath for ${C_CFG} ${_flake_key} ${C_RST}"
-    fi
-		logf "%b✅ success:%b eval passed %s\n" "$C_OK" "$C_RST" "${_eval_ok}"
-    return 0
+		[ "${is_linux}" = "false" ]; then
+		if [ "${_has_darwin }" != "true" ]; then
+			err 1 "${C_CFG}darwinConfigurations.${_flake_key}${C_RST} not found in flake outputs" 
+		else
+			logf "\n%b<<< Checking%b %b darwinConfigurations.%s%b ...\n" \
+				"${C_INFO}" "${C_RST}" "${C_CFG}" "${_flake_key}" "${C_RST}"
+			_out_drv="$(_eval_drv ".#darwinConfigurations.\"${_flake_key}\".system.drvPath")"
+			logf "\n%b✅ eval passed.%b\n" "${C_OK}" "${C_RST}"
+			logf "Output derivation: \n%b%s%b\n" "${C_PATH}" "${_out_drv}" "${C_RST}"
+			return 0
+		fi
   fi
 
   err 1 "No system configuration found for ${C_CFG}${_flake_key}${C_RST}"
@@ -587,6 +621,8 @@ while [ $# -gt 0 ]; do
 			mode="check-home"; shift ;;
     --write)   [ -z "${mode}" ] || err 2 "${prog}: duplicate mode (${mode})"; 
 			mode="write"; shift ;;
+    --read)   [ -z "${mode}" ] || err 2 "${prog}: duplicate mode (${mode})"; 
+			mode="read"; shift ;;
     --) shift; break ;;
     -?*) err 2 "${prog}: invalid option: $1" ;;
     *) break ;;
@@ -597,12 +633,14 @@ done
 [ $# -eq 0 ] || err 2 "${prog}: unexpected argument: $1"
 
 case "${mode}" in
-	check-all)
+	check-all )
 		check_attrs ${mode} exit $? ;;
-	check-system)
+	check-system )
 		check_attrs ${mode} exit $? ;;
-	check-home)
+	check-home )
 		check_attrs ${mode} exit $? ;;
-	write)
+	read )
+		read_attrs ${mode} exit $? ;;
+	write )
 		write_attrs exit $? ;;
 esac
