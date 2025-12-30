@@ -424,9 +424,9 @@ _try_installer_uninstall() {
 	fi
 }
 
-TARGETS="${1:-uninstall}"
-for target in $TARGETS; do
-	case "$target" in
+_targets=${*:-}
+for _target in $_targets; do
+	case "${_target}" in
 	install | home | system | all | test | help)
 		err 1 "uninstall can not be used with any other target."
 		;;
