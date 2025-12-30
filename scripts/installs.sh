@@ -14,11 +14,6 @@ script_dir="$(cd "$(dirname "$0")" && pwd)"
 
 trap 'cleanup 130 "SIGNAL"' INT TERM QUIT
 
-install_nix=""
-install_darwin=""
-install_homebrew=""
-install_nixgl=""
-
 _check_integrity() {
 	_url="${1}"
 	_expected_hash="${2}"
@@ -40,13 +35,37 @@ _check_integrity() {
 	fi
 }
 
+_launch_nixgl_install() {
+	_nixgl_repo="github:guibou/nixGL"
+	if ! has_cmd "nix"; then
+		source_nix
+		if ! has_cmd "nix"; then
+			err 1 "nix not found. Run ${C_CMD}make install${C_RST} to install it."
+		fi
+	fi
+
+	logf "\n%b>>> Installing nixGl...%b\n" "${C_INFO}" "${C_RST}"
+	set -- nix profile install --impure ${_nixgl_repo}
+
+	print_cmd -- NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
+
+	if NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
+		logf "\n%b✓ NixGL install complete.%b\n" "${C_OK}" "${C_RST}"
+		return 0
+	else
+		err 1 "NixGL install failed."
+	fi
+}
+
 _launch_homebrew_install() {
 	if [ "${UNAME_S:-}" != "Darwin" ]; then
-		err 1 "Homebrew can only be installed on MacOS.\n"
+		logf "\n%binfo:%b Homebrew can only be installed on MacOS. Skipping install...\n" \
+			"${C_INFO}" "${C_RST}"
+		return 0
 	fi
 
 	if [ -x "/usr/local/bin/brew" ] || has_cmd "brew"; then
-		logf "Homebrew already installed. Skipping install.\n"
+		logf "Homebrew already installed. Skipping install...\n"
 		return 0
 	fi
 
@@ -130,34 +149,14 @@ _launch_nix_install() {
 	fi
 }
 
-install_nix="false"
 if ! has_cmd "nix"; then
 	source_nix
 	if ! has_cmd "nix"; then
-		install_nix="true"
+		logf "\n%binfo:%b Nix already installed. Skipping install...\n" "${C_INFO}" "${C_RST}"
+		logf "If you want to re-install, please run 'make uninstall' first.\n"
+	else
+		_launch_nix_install 
 	fi
-fi
-
-install_homebrew="false"
-if is_truthy "${USE_HOMEBREW:-}"; then
-	install_homebrew="true"
-fi
-
-install_darwin="false"
-if is_truthy "${INSTALL_DARWIN:-}"; then
-	install_darwin="true"
-fi
-
-install_nixgl="false"
-if has_tag hyprland && is_truthy "${HOME_ALONE:-}" && is_truthy "${IS_LINUX}"; then
-	install_nixgl="true"
-fi
-
-if [ "${install_nix}" = "false" ]; then
-	logf "\n%binfo:%b Nix found in PATH; skipping Nix installation...\n" "${C_INFO}" "${C_RST}"
-	logf "If you want to re-install, please run 'make uninstall' first.\n"
-else
-	_launch_nix_install 
 fi
 
 # Set user-defined binary cache URLs and Nix trusted public keys from make.env.
@@ -166,18 +165,22 @@ if is_truthy "${USE_KEYS:-}" || is_truthy "${USE_CACHE:-}"; then
 	sh "${script_dir}/set_subs_keys.sh"
 fi
 
-# Install homebrew before Darwin because it can be reference in the Darwin system config
-if [ "${install_homebrew}" = "true" ]; then
-	_launch_homebrew_install 
-fi
-
-if [ "${install_darwin}" = "true" ]; then
-	_launch_darwin_install
-fi
-
-# TODO: Implement nixgl installer to support Hyprland on home-alone nix configs
-if [ "${install_nixgl}" = "true" ]; then
+# NixGL is a dependency for running Hyprland on non-NixOS system.
+if has_tag hyprland && is_truthy "${HOME_ALONE:-}" && is_truthy "${IS_LINUX}"; then
 	_launch_nixgl_install
 fi
 
-#	printf "HYPRLAND_SETUP=true\n" >> "${MAKE_NIX_ENV}"
+# Install homebrew before Darwin because it can be reference in the Darwin system config
+if is_truthy "${USE_HOMEBREW:-}"; then
+	_launch_homebrew_install 
+fi
+
+# Interactive prompt to avoid manually setting DARWIN_INSTALL
+if [ "${UNAME_S:-}" = "Darwin" ]; then
+	logf "\nInstall Nix-Darwin? Y/n\n"
+	read -r _answer
+	case "${_answer}" in
+		Y|y|yes|YES) export INSTALL_DARWIN="true"; _launch_darwin_install ;;
+		*) logf "\nSkipping Nix-Darwin install.\n" ;;
+	esac
+fi
