@@ -424,14 +424,12 @@ _try_installer_uninstall() {
 	fi
 }
 
-_targets=${*:-}
-for _target in $_targets; do
-	case "${_target}" in
-	install | home | system | all | test | help)
-		err 1 "uninstall can not be used with any other target."
-		;;
-	esac
-done
+_targets=" $* " # Add spaces to ensure we match whole words only
+case "${_targets}" in
+    *" install "* | *" home "* | *" system "* | *" all "* | *" test "* | *" help "*)
+			err 1 "uninstall cannot be combined with other targets: ${_targets}"
+			;;
+esac
 
 if [ "${UNAME_S:-}" != "Linux" ] && [ "${UNAME_S:-}" != "Darwin" ]; then
 	err 1 "unsupported OS: ${C_INFO}${UNAME_S:-}${C_RST}"
