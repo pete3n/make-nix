@@ -18,7 +18,7 @@ if ! [ -f "${_env_file}" ]; then
 	exit 1
 fi
 # shellcheck disable=SC1090
-. "$_env_file"
+. "${_env_file}"
 
 if _is_truthy "${KEEP_LOGS:-}"; then
 	printf "Logs will be preserved:\n%s\n%s\n%s\n" \
@@ -32,8 +32,8 @@ fi
 
 # shellcheck disable=SC1091
 make_env_file="make.env"
-if [ ! -f "$make_env_file" ]; then
-	printf "error: make.env not found at %s\n" "$make_env_file" >&2
+if [ ! -f "${make_env_file}" ]; then
+	printf "error: make.env not found at %s\n" "${make_env_file}" >&2
 	exit 1
 fi
 
@@ -41,13 +41,13 @@ if [ -t 1 ] && [ "${TERM:-}" != "dumb" ]; then
 	: # ANSI support is assumed
 else
 	NO_ANSI="true"
-	printf "NO_ANSI=true\n" >> "$_env_file"
+	printf "NO_ANSI=true\n" >> "${_env_file}"
 fi
 
 if _is_truthy "${NO_ANSI:-}" || _is_truthy "${NO_COLOR:-}"; then
-	ansi_env="$(dirname "$0")/no_ansi.env"
+	ansi_env="$(dirname "${0}")/no_ansi.env"
 else
-	ansi_env="$(dirname "$0")/ansi.env"
+	ansi_env="$(dirname "${0}")/ansi.env"
 fi
 
 if [ ! -f "${ansi_env}" ]; then
