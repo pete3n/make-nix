@@ -425,11 +425,11 @@ _try_installer_uninstall() {
 }
 
 for _t in "$@"; do
-    case "${_t}" in
-        install|home|system|all|test|help)
-            err 1 "uninstall cannot be used with target: ${_t}"
-            ;;
-    esac
+	case "${_t}" in
+		install|home|system|all|test|help)
+			err 1 "uninstall cannot be used with target: ${_t}"
+			;;
+	esac
 done
 
 if [ "${UNAME_S:-}" != "Linux" ] && [ "${UNAME_S:-}" != "Darwin" ]; then
@@ -482,6 +482,7 @@ if [ "${UNAME_S:-}" = "Linux" ]; then
     _nix_single_user_uninstall && _cleanup_nix_files
     exit $?
   else
+		_cleanup_nix_files
     logf "\n%binfo:%b Nix not detected; nothing to uninstall.\n" "${C_INFO}" "${C_RST}"
     exit 0
   fi
