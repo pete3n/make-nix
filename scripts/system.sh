@@ -21,6 +21,7 @@ user=""
 host=""
 is_linux=""
 dry_switch=""
+darwin_install=""
 
 # Build system (nixos)
 _build_nixos() {
@@ -29,7 +30,7 @@ _build_nixos() {
 		"${C_INFO}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"
 
 	if [ "${dry_switch}" = "--dry-run" ]; then
-		logf "\n%binfo: DRY_RUN%b: no result output will be created.\n" "${C_INFO}" "${C_RST}"
+		logf "\n%binfo: --dry-run%b - no result output will be created.\n" "${C_INFO}" "${C_RST}"
 	fi
  
 	set -- nix build --max-jobs auto --cores 0 
@@ -41,8 +42,8 @@ _build_nixos() {
 
 	if NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
 		logf "\n%b✓ Nixos build success.%b\n" "${C_OK}" "${C_RST}"
-		logf "\n%binfo:%b Output in %b./result-%s-nixos%b\n" \
-			"${C_INFO}" "${C_RST}" "${C_PATH}" "${host}" "${C_RST}"
+		logf "\n%bResult in:\n%b %b%s/result-%s-nixos%b\n" \
+    "${C_INFO}" "${C_RST}" "${C_PATH}" "${flake_root}" "${_flake_key}" "${C_RST}"
 		return 0
 	else
 		err 1 "Nixos build failed."
@@ -56,7 +57,7 @@ _build_darwin() {
 		"${C_INFO}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"
 
 	if [ "${dry_switch}" = "--dry-run" ]; then
-		logf "\n%binfo: DRY_RUN%b: no result output will be created.\n" "${C_INFO}" "${C_RST}"
+		logf "\n%binfo: --dry-run%b - no result output will be created.\n" "${C_INFO}" "${C_RST}"
 	fi
 	
 	set -- nix build --max-jobs auto --cores 0
@@ -68,8 +69,8 @@ _build_darwin() {
 
 	if NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
 		logf "\n%b✓ Nix-Darwin build success.%b\n" "${C_OK}" "${C_RST}"
-		logf "\n%binfo:%b Output in %b./result-%s-darwin%b\n" \
-			"${C_INFO}" "${C_RST}" "${C_PATH}" "${host}" "${C_RST}"
+		logf "\n%bResult in:\n%b %b%s/result-%s-darwin%b\n" \
+    "${C_INFO}" "${C_RST}" "${C_PATH}" "${flake_root}" "${_flake_key}" "${C_RST}"
 		return 0
 	else
 		err 1 "Nix-Darwin build failed."
@@ -103,7 +104,7 @@ _switch_nixos() {
 	fi
 
 	if [ "${dry_switch}" = "--dry-run" ]; then
-		logf "\n%binfo: DRY_RUN%b: configuration will not be switched...\n" "${C_INFO}" "${C_RST}"
+		logf "\n%binfo: --dry-run%b - configuration will not be switched...\n" "${C_INFO}" "${C_RST}"
 		return 0
 	fi
 
@@ -111,8 +112,8 @@ _switch_nixos() {
 		"${C_INFO}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"
 
 	set -- "${_rebuild_bin}" switch \
-  --option experimental-features "nix-command flakes" \
-	--flake "path:${flake_root}#${_flake_key}"
+	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
+	set -- "$@" --flake "path:${flake_root}#${_flake_key}"
 	
 	print_cmd -- as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
 
@@ -120,7 +121,7 @@ _switch_nixos() {
 		logf "\n%b✓ NixOS configuration switch success.%b\n" "${C_OK}" "${C_RST}"
 		return 0
 	else
-		err 1 "Switch failed."
+		err 1 "NixOS configuraiton switch failed."
 	fi
 }
 
@@ -151,7 +152,7 @@ _switch_darwin() {
 	fi
 
 	if [ "${dry_switch}" = "--dry-run" ]; then
-		logf "\n%binfo: DRY_RUN%b: configuration will not be switched...\n" "${C_INFO}" "${C_RST}"
+		logf "\n%binfo: --dry-run%b - configuration will not be switched...\n" "${C_INFO}" "${C_RST}"
 		return 0
 	fi
 
@@ -159,8 +160,8 @@ _switch_darwin() {
 		"${C_INFO}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"
 
 	set -- "${_rebuild_bin}" switch \
-  --option experimental-features "nix-command flakes" \
-	--flake "path:${flake_root}#${_flake_key}"
+	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
+	set -- "$@" --flake "path:${flake_root}#${_flake_key}"
 
 	print_cmd -- as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
 
@@ -168,7 +169,7 @@ _switch_darwin() {
 		logf "\n%b✓ Nix-Darwin switched system configuration.%b\n" "${C_OK}" "${C_RST}"
 		return 0
 	else
-		err 1 "Switch failed."
+		err 1 "Nix-Darwin configuration switch failed."
 	fi
 }
 
@@ -201,6 +202,12 @@ if is_truthy "${DRY_RUN:-}"; then
 	dry_switch="--dry-run"
 fi
 
+if is_truthy "${DARWIN_INSTALL:-}"; then
+	darwin_install="true"
+else
+	darwin_install="false"
+fi
+
 mode=""
 prog="${0##*/}"
 
@@ -228,9 +235,11 @@ case "${mode}" in
     ;;
   switch)
     if [ "${is_linux}" = "true" ]; then
-      _switch_nixos
-    else
-      _switch_darwin
+			# Don't attempt to switch to a NixOS configuration outside of NixOS.
+			[ "$(uname -a | grep -q "NixOS")" -eq 0 ] && _switch_nixos || :
+    else 
+			# Darwin install configured the system already, don't switch again.
+      [ "${darwin_install}" = "false" ] && _switch_darwin || :
     fi
     exit $?
     ;;
