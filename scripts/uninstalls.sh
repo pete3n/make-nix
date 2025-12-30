@@ -424,8 +424,7 @@ _try_installer_uninstall() {
 	fi
 }
 
-_targets="$*"
-for _t in $_targets; do
+for _t in "$@"; do
     case "${_t}" in
         install|home|system|all|test|help)
             err 1 "uninstall cannot be used with target: ${_t}"
