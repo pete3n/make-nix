@@ -2,6 +2,8 @@
 
 # Common helper functions for all scripts
 
+set -eu
+
 # Prevent sourcing multiple times
 if [ -z "${_common_sourced:-}" ]; then
 	_common_sourced=1
@@ -40,9 +42,8 @@ if [ -z "${_common_sourced:-}" ]; then
 		if ! is_truthy "${KEEP_LOGS:-}"; then
 			_dir="${MAKE_NIX_TMPDIR:-}"
 			if [ -n "${_dir}" ] && [ -d "${_dir}" ]; then
-				# Prevent deleting root paths if $dir gets truncated somehow
 				case "${_dir}" in 
-					""|/|/tmp|/var/tmp) : ;; 
+					""|/|/tmp|/var/tmp) : ;;  # Protect against deleting root dirs
 					*/make-nix.*) _cleanup_dir "${_dir}" ;; 
 					*) { printf "common.sh [cleanup] failed to delete unexpected path: %s\n" \
 							"${_dir}" >&2; 
@@ -71,7 +72,7 @@ if [ -z "${_common_sourced:-}" ]; then
 		else
 			{ printf "%b\n" "${_c_err}error:${_c_rst} ${_msg}" >&2; } || :
 		fi
-
+		
 		cleanup "${_rc}" "ERR" || :
 		exit "${_rc}"
 	}
@@ -269,4 +270,29 @@ if [ -z "${_common_sourced:-}" ]; then
 			return 1
 		fi
 	}
+
+	# Provide custom warning for Nix build failures if the Git tree is dirty.
+	# Because the default Nix error is a confusing and unhelpful "file not found"
+	warn_if_dirty() {
+		_log="${1:-}"
+
+		_out() {
+			printf "%b  ⚠️ warning: git tree is dirty!%b\n" "${C_WARN}" "${C_RST}"
+			printf "  If you see this error message above ^:\n  '%berror:%b path %b/nix/store/...%b does not exist'\n\n" \
+				"${C_ERR}" "${C_RST}" "${C_PATH}" "${C_RST}"
+			printf "  Make sure all relevant files are tracked with Git using:\n"
+			printf "  %bgit add%b <file>\n\n" "${C_CMD}" "${C_RST}"
+			printf "  Check for changes with:\n"
+			printf "  %bgit status%b\n\n" "${C_CMD}" "${C_RST}"
+		}
+
+		if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+			if [ -n "${_log}" ]; then
+				grep -qE "path .+ does not exist" "${_log}" && _out 
+			else
+				_out >&2
+			fi
+		fi
+	}
+	
 fi # _common_sourced
