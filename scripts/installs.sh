@@ -151,7 +151,7 @@ _launch_nix_install() {
 
 if ! has_cmd "nix"; then
 	source_nix
-	if ! has_cmd "nix"; then
+	if has_cmd "nix"; then
 		logf "\n%binfo:%b Nix already installed. Skipping install...\n" "${C_INFO}" "${C_RST}"
 		logf "If you want to re-install, please run 'make uninstall' first.\n"
 	else
