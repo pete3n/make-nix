@@ -424,11 +424,11 @@ _try_installer_uninstall() {
 	fi
 }
 
-_targets=" $* " # Add spaces to ensure we match whole words only
-case "${_targets}" in
-    *" install "* | *" home "* | *" system "* | *" all "* | *" test "* | *" help "*)
-			err 1 "uninstall cannot be combined with other targets: ${_targets}"
-			;;
+_targets=" $* "
+case " ${_targets} " in
+	*" install "*|*" home "*|*" system "*|*" all "*|*" test "*|*" help "*)
+		err 1 "Combined targets detected: ${_targets}"
+		;;
 esac
 
 if [ "${UNAME_S:-}" != "Linux" ] && [ "${UNAME_S:-}" != "Darwin" ]; then
