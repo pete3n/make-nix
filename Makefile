@@ -44,152 +44,142 @@ endif
 
 .PHONY: validate-args
 validate-args:
-	@sh scripts/validate_args.sh "$(MAKECMDGOALS)"
+	@sh "scripts/validate_args.sh" $(MAKECMDGOALS)
 
 .PHONY: set-env
 set-env:
-	@sh scripts/set_env.sh
+	@sh "scripts/set_env.sh"
 
 .PHONY: check-deps
 check-deps:
-	@sh scripts/check_deps.sh "$(MAKECMDGOALS)"
+	@sh "scripts/check_deps.sh" $(MAKECMDGOALS)
 
-.PHONY: pre-checks
-pre-checks: validate-args set-env check-deps
+.PHONY: prep-goal
+prep-goal: validate-args set-env check-deps
 
 .PHONY: clean
-clean:
-	@sh scripts/clean.sh
+clean: prep-goal clean-sh
+
+.PHONY: clean-sh
+clean-sh: 
+	@sh "scripts/clean.sh"
 
 .PHONY: help
 help: set-env show-help
 
 .PHONY: show-help
 show-help:
-	@sh scripts/print_help.sh
+	@sh "scripts/print_help.sh"
 
 #
 # Install/uninstall targets.
 #
 
 .PHONY: install
-install: pre-checks install-sh clean
-
-.PHONY: install-all
-install-all: install-sh
+install: prep-goal install-sh clean-sh
 
 .PHONY: install-sh
 install-sh:
-	@sh scripts/installs.sh
+	@sh "scripts/installs.sh"
 
 .PHONY: uninstall
-uninstall: pre-checks uninstall-sh
+uninstall: prep-goal uninstall-sh
 
 .PHONY: uninstall-sh
 uninstall-sh:
-	@sh scripts/uninstalls.sh
+	@sh "scripts/uninstalls.sh" $(MAKECMDGOALS)
 
 #
 # Check targets.
 #
 
 .PHONY: check
-check: check-all
+check: prep-goal check-sh clean-sh
 
-.PHONY: check-all
-check-all: pre-checks check-nix-attrs clean
+.PHONY: check-read
+check-read: prep-goal read-attrs-sh clean-sh
 
 .PHONY: check-home
-check-home: pre-checks check-nix-attrs-home clean
+check-home: prep-goal check-home-sh clean-sh
 
 .PHONY: check-system
-check-system: pre-checks check-nix-attrs-system clean
+check-system: prep-goal check-system-sh clean-sh
 
 # Check previous configuration based on username and hostname
-.PHONY: check-nix-attrs
-check-nix-attrs:
+.PHONY: check-sh
+check-sh:
 	@sh "scripts/attrs.sh" --check-all
 
 # Check previous home configuration based on username and hostname
-.PHONY: check-nix-attrs-home
-check-nix-attrs-home:
+.PHONY: check-home-sh
+check-home-sh:
 	@sh "scripts/attrs.sh" --check-home
 
 # Check previous system configuration based on username and hostname
-.PHONY: check-nix-attrs-system
-check-nix-attrs-system:
+.PHONY: check-system-sh
+check-system-sh:
 	@sh "scripts/attrs.sh" --check-system
+
+# Pass imperative configuration attributes from make to flake.nix
+.PHONY: write-attrs-sh
+write-attrs-sh:
+	@sh "scripts/attrs.sh" --write
+
+# Read imperative configuration attributes
+.PHONY: read-attrs-sh
+read-attrs-sh:
+	@sh "scripts/attrs.sh" --read
 
 #
 # Build targets.
 #
 
-# Pass imperative configuration attributes from make to flake.nix
-.PHONY: write-nix-attrs
-write-nix-attrs:
-	@sh "scripts/attrs.sh" --write
-
 .PHONY: build
-build: build-all
-
-.PHONY: build-all
-build-all: pre-checks write-nix-attrs build-system-all build-home-all clean
+build: prep-goal write-attrs-sh check-sh build-system-sh build-home-sh clean-sh
 
 .PHONY: build-system
-build-system: pre-checks write-nix-attrs build-system-sh check-dirty-warn clean
-
-.PHONY: build-system-all
-build-system-all: build-system-sh check-dirty-warn
+build-system: prep-goal write-attrs-sh check-system-sh build-system-sh clean-sh
 
 .PHONY: build-home
-build-home: pre-checks write-nix-attrs build-home-sh check-dirty-warn clean
-
-.PHONY: build-home-all
-build-home-all: build-home-sh check-dirty-warn
+build-home: prep-goal write-attrs-sh check-home-sh build-home-sh clean-sh
 
 # Build flake-based system configurations for Linux or Darwin systems.
 .PHONY: build-system-sh
 build-system-sh:
-	@sh scripts/system.sh --build
+	@sh "scripts/system.sh" --build
 
 # Build flake-based Home-manager configurations for Linux or Darwin systems.
 .PHONY: build-home-sh
 build-home-sh:
-	@sh scripts/home.sh --build
+	@sh "scripts/home.sh" --build
 
 # Check for a dirty git tree and warn on a failed build about the confusing
 # missing path error. I should not have to write this...
-.PHONY: check-dirty-warn
-check-dirty-warn-sh:
-	@sh scripts/check_dirty_warn.sh
+.PHONY: warn-if-dirty-sh
+warn-if-dirty-sh-sh:
+	@sh "scripts/common.sh [warn_if_dirty]"
 
-.PHONY: set-spec-boot
-set-spec-boot:
-	@sh scripts/set_spec_boot.sh
+.PHONY: warn-test
+warn-test: prep-goal warn-if-dirty-sh clean-sh
+
+.PHONY: set-boot-sh
+set-boot-sh:
+	@sh "scripts/set_boot.sh"
 
 #
 # Switch targets.
 #
 
 .PHONY: switch
-switch: switch-all
-
-.PHONY: switch-all
-switch-all: pre-checks write-nix-attrs build-system-all build-home-all switch-system-sh switch-home-sh clean
+switch: prep-goal write-attrs-sh check-sh switch-system-sh switch-home-sh \
+	set-boot-sh clean-sh
 
 .PHONY: switch-system
-switch-system: pre-checks write-nix-attrs switch-system-sh check-dirty-warn set-spec-boot clean
+switch-system: prep-goal write-attrs-sh check-system-sh switch-system-sh \
+	set-boot-sh clean-sh
 
 .PHONY: switch-home
-switch-home: pre-checks write-nix-attrs switch-home-sh check-dirty-warn clean
-
-# No pre-checks, write-nix-attrs, or clean for all target
-.PHONY: switch-system-all
-switch-all: build-system-all switch-system-sh
-
-# No pre-checks, write-nix-attrs, or clean for all target
-.PHONY: switch-home-all
-switch-all: build-home-all switch-home-sh
+switch-home: prep-goal write-attrs-sh check-home-sh switch-home-sh clean-sh
 
 # Build and activate flake-based system configurations for Linux or Darwin systems.
 .PHONY: switch-system-sh
@@ -206,13 +196,20 @@ activate-home-sh:
 switch-home-sh:
 	@sh scripts/home.sh --switch
 
+.PHONY: update
+update: prep-goal update-sh clean-sh
+
+.PHONY: update-sh
+update-sh:
+	@sh scripts/update.sh
+
 .PHONY: test
-test: pre-checks check-nix-attrs check-dirty-warn
+test: prep-goal check-nix-attrs warn-if-dirty-sh
 # Set the default boot menu option to the first specified specialisation for a system.
 
 .PHONY: all
-all: pre-checks install-all write-nix-attrs build-system-all build-home-all \
-	switch-system-all switch-home-all set-spec-boot
+all: prep-goal install-sh write-attrs-sh check-sh warn-if-dirty-sh \
+	switch-system-sh switch-home-sh set-boot-sh clean-sh
 
 %:
 	@printf "Unknown target: '$@'\n"
