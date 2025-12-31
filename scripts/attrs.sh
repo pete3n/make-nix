@@ -398,12 +398,6 @@ check_attrs() {
 		_drv="$(grep -o '/nix/store/[^[:space:]]*\.drv' "${_outfile}" | tail -n 1 | tr -d '\r')"
 
 		[ -n "${_drv}" ] || err 1 "nix eval returned no derivation for ${C_CFG}${_expr}${C_RST}"
-		
-		# Print only the raw path to stdout for the variable assignment.
-		# Any "pretty" logging about the path must go to stderr.
-		logf "%b%s%b\n" "${C_PATH}" "${_drv}" "${C_RST}" >&2
-		
-		# This is the 'return value' captured by _out_drv="..."
 		printf "%s" "${_drv}"
 	}
 
