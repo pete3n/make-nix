@@ -369,12 +369,12 @@ check_attrs() {
 		_eval_cmd="nix eval --no-warn-dirty --impure --raw ${_expr}"
 		_rcfile="${MAKE_NIX_TMPDIR:-/tmp}/nix-eval.$$.rc"
 		_outfile="${MAKE_NIX_TMPDIR:-/tmp}/nix-eval.$$.out"
-		#_use_script="$(normalize_bool "${USE_SCRIPT:-}")"
-		_use_script="false"
+		_use_script="$(normalize_bool "${USE_SCRIPT:-}")"
+		#_use_script="false"
 
 		# Print command to stderr so it shows up immediately
 		# shellcheck disable=SC2086
-		print_cmd $_eval_cmd >&2
+		print_cmd nix eval --no-warn-dirty --impure --raw "$_expr" >&2
 
 		if [ "${_use_script}" = "true" ]; then
 				# Force script to run without buffering issues
@@ -386,7 +386,7 @@ check_attrs() {
 			(
 				nix eval --no-warn-dirty --impure --raw "$_expr"
 				printf "%s\n" "$?" >"$_rcfile"
-			) 2>&1 | tee "${_outfile}"
+			) 2>&1 | tee "${_outfile}" >&2
 			_fmt_out="$(cat "${_outfile}")"
 		fi
 
@@ -400,7 +400,7 @@ check_attrs() {
 
 		_drv="$(grep -o '/nix/store/[^[:space:]]*\.drv' "$_outfile" | tail -n 1 | tr -d '\r')"
 		[ -n "${_drv}" ] || err 1 "nix eval returned no derivation for ${C_CFG}${_expr}${C_RST}"
-		printf '%s' "$_drv"
+		printf "%s" "${_drv}"
 	}
 
 	if [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-home" ]; then
