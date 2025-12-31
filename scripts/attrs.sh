@@ -389,11 +389,18 @@ check_attrs() {
 			_clean_out="${_outfile}"
 		fi
 
-		printf "\nDEBUG RC file: %s\n" "${_rcfile}"
-		if [ "$(cat "${_rcfile}")" != "0" ]; then
-				printf "\nDEBUG RC not 0\n"
-				_warn="$(warn_if_dirty "${_outfile}")"
-				err 1 "eval failed for ${C_CFG}${_expr}${C_RST}:\n${_clean_out}\n${_warn}"
+		_rc=1
+		if [ -f "$_rcfile" ]; then
+			_rc="$(tr -d '\r\n' <"$_rcfile")"
+		fi
+
+		case $_rc in
+			''|*[!0-9]*) _rc=1 ;;  # missing or non-numeric → treat as failure
+		esac
+
+		if [ "$_rc" -ne 0 ]; then
+			_warn="$(warn_if_dirty "$_outfile")"
+			err 1 "eval failed for ${C_CFG}${_expr}${C_RST}:\n$(cat "$_cleanfile")\n${_warn}"
 		fi
 
 		# Use tail -n 1 to ensure we only get the result, not the script headers.
