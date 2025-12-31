@@ -25,7 +25,7 @@ darwin_install=""
 
 # Build system (nixos)
 _build_nixos() {
-	_flake_key="${user}@${host}"
+	_attrset="${user}@${host}"
 	logf "\n%b>>> Building system configuration for:%b %b%s%b\n" \
 		"${C_INFO}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"
 
@@ -33,17 +33,17 @@ _build_nixos() {
 		logf "\n%binfo: --dry-run%b - no result output will be created.\n" "${C_INFO}" "${C_RST}"
 	fi
  
-	set -- nix build --max-jobs auto --cores 0 
+	set -- nix build -L --max-jobs auto --cores 0 
 	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
 	set -- "$@" --out-link "result-${host}-nixos" \
-		"path:${flake_root}#nixosConfigurations.\"${_flake_key}\".config.system.build.toplevel"
+		"path:${flake_root}#nixosConfigurations.\"${_attrset}\".config.system.build.toplevel"
 
 	print_cmd -- NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
 
 	if NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
 		logf "\n%b✓ Nixos build success.%b\n" "${C_OK}" "${C_RST}"
 		logf "\n%bResult in:\n%b %b%s/result-%s-nixos%b\n" \
-    "${C_INFO}" "${C_RST}" "${C_PATH}" "${flake_root}" "${_flake_key}" "${C_RST}"
+    "${C_INFO}" "${C_RST}" "${C_PATH}" "${flake_root}" "${_attrset}" "${C_RST}"
 		return 0
 	else
 		err 1 "Nixos build failed."
@@ -52,7 +52,7 @@ _build_nixos() {
 
 # Build system (nix-darwin)
 _build_darwin() {
-	_flake_key="${user}@${host}"
+	_attrset="${user}@${host}"
 	logf "\n%b>>> Building system configuration for:%b %b%s%b\n" \
 		"${C_INFO}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"
 
@@ -63,14 +63,14 @@ _build_darwin() {
 	set -- nix build --max-jobs auto --cores 0
 	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
 	set -- "$@" --out-link "result-${host}-darwin" \
-		"${flake_root}#darwinConfigurations.\"${_flake_key}\".system"
+		"${flake_root}#darwinConfigurations.\"${_attrset}\".system"
 
 	print_cmd -- NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
 
 	if NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
 		logf "\n%b✓ Nix-Darwin build success.%b\n" "${C_OK}" "${C_RST}"
 		logf "\n%bResult in:\n%b %b%s/result-%s-darwin%b\n" \
-    "${C_INFO}" "${C_RST}" "${C_PATH}" "${flake_root}" "${_flake_key}" "${C_RST}"
+    "${C_INFO}" "${C_RST}" "${C_PATH}" "${flake_root}" "${_attrset}" "${C_RST}"
 		return 0
 	else
 		err 1 "Nix-Darwin build failed."
@@ -79,7 +79,7 @@ _build_darwin() {
 
 # Switch system configuration (nixos)
 _switch_nixos() {
-	_flake_key="${user}@${host}"
+	_attrset="${user}@${host}"
 	_result_bin="./result-${host}-nixos/sw/bin/nixos-rebuild"
 	_rebuild_bin=""
 
@@ -113,7 +113,7 @@ _switch_nixos() {
 
 	set -- "${_rebuild_bin}" switch \
 	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
-	set -- "$@" --flake "path:${flake_root}#${_flake_key}"
+	set -- "$@" --flake "path:${flake_root}#${_attrset}"
 	
 	print_cmd -- as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
 
@@ -127,7 +127,7 @@ _switch_nixos() {
 
 # Switch system configuration (darwin)
 _switch_darwin() {
-	_flake_key="${user}@${host}"
+	_attrset="${user}@${host}"
 	_result_bin="./result-${host}-darwin/sw/bin/darwin-rebuild"
 	_rebuild_bin=""
 
@@ -161,7 +161,7 @@ _switch_darwin() {
 
 	set -- "${_rebuild_bin}" switch \
 	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
-	set -- "$@" --flake "path:${flake_root}#${_flake_key}"
+	set -- "$@" --flake "path:${flake_root}#${_attrset}"
 
 	print_cmd -- as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
 

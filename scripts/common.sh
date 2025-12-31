@@ -4,18 +4,21 @@
 
 set -eu
 
-# Prevent sourcing multiple times
+# Prevent source looping
 if [ -z "${_common_sourced:-}" ]; then
 	_common_sourced=1
 
 	# Ensure MAKE_NIX_ENV was defined by make
 	env_file="${MAKE_NIX_ENV:?environment file was not set! Ensure mktemp is working and in your PATH.}"
-
-	# shellcheck disable=SC1090
-	. "${env_file}" || {
-		printf "ERROR: common.sh failed to source MAKE_NIX_ENV file: %s" "${env_file}" >&2
-		exit 1
-	}
+	if [ -r "${env_file}" ]; then
+			set -a 
+			# shellcheck disable=SC1090
+			. "${env_file}"
+			set +a
+	else
+			printf "ERROR: common.sh failed to read MAKE_NIX_ENV file: %s" "${env_file}" >&2
+			exit 1
+	fi
 
 	cleaned="false"
 	# Cleanup temporary files
@@ -67,7 +70,7 @@ if [ -z "${_common_sourced:-}" ]; then
 		_c_rst=${C_RST-}
 
 		# Log if possible (defensively with nop to avoid set -e exit)
-		if [ -n "${MAKE_NIX_LOG:-}" ]; then
+		if [ -r "${MAKE_NIX_LOG:-}" ]; then
 			{ printf "%b\n" "${_c_err}error:${_c_rst} ${_msg}" | tee -a "$MAKE_NIX_LOG" >&2; } || :
 		else
 			{ printf "%b\n" "${_c_err}error:${_c_rst} ${_msg}" >&2; } || :
@@ -80,7 +83,7 @@ if [ -z "${_common_sourced:-}" ]; then
 	# Safely log to MAKE_NIX_LOG or print to stdout
 	logf() {
 		# shellcheck disable=SC2059
-		if [ -n "${MAKE_NIX_LOG:-}" ]; then
+		if [ -r "${MAKE_NIX_LOG:-}" ]; then
 			printf "$@" | tee -a "$MAKE_NIX_LOG"
 		else
 			printf "$@"
@@ -103,6 +106,43 @@ if [ -z "${_common_sourced:-}" ]; then
 		case "${1:-}" in
 		'0'|'false'|'False'|'FALSE'|'no'|'No'|'NO'|'off'|'Off'|'OFF'|'n'|'N') return 0 ;;
 		*) return 1 ;;
+		esac
+	}
+
+	normalize_bool() {
+		is_truthy "${1}" && printf "true\n" || printf "false\n"
+	}
+
+	# Check if a file differs from provided content
+	# Returns 0 if modified and 1 if not
+	is_modified() {
+		_file="${1}"
+		_new_content="${2}" # This is already stripped by $(...)
+
+		if [ ! -r "${_file}" ]; then return 0; fi
+
+		_current_file_content=$(cat "${_file}")
+
+		# Compare with 'x' suffix to avoid whitespace issues
+		if [ "${_current_file_content}x" = "${_new_content}x" ]; then
+				return 1
+		fi
+
+		return 0
+	}
+
+	# Flag special chars in names
+	validate_name() {
+		_label="${1}"
+		_val="${2}"
+
+		case "${_val}" in
+			"" )
+				err 2 "${_label} is empty"
+				;;
+			*[!A-Za-z0-9._-]* )
+				err 2 "invalid characters in ${_label}: ${_val}"
+				;;
 		esac
 	}
 
@@ -244,6 +284,7 @@ if [ -z "${_common_sourced:-}" ]; then
 
 		return 0
 	}
+
 	# Check for configuration tag match
 	has_tag() {
 		_tag="${1}"

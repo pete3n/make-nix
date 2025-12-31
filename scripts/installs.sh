@@ -14,6 +14,10 @@ script_dir="$(cd "$(dirname "$0")" && pwd)"
 
 trap 'cleanup 130 "SIGNAL"' INT TERM QUIT
 
+flake_root="$(cd "${script_dir}/.." && pwd)"
+host=""
+user=""
+
 _check_integrity() {
 	_url="${1}"
 	_expected_hash="${2}"
@@ -157,6 +161,32 @@ if ! has_cmd "nix"; then
 	else
 		_launch_nix_install 
 	fi
+fi
+
+# Either use a hostname provided from commandline args or default to current hostname
+if [ -z "${TGT_HOST:-}" ]; then
+	host="$(uname -n)"
+	if [ -z "${host}" ]; then
+		err 1 "Could not determine local hostname"
+	fi
+else
+	host=$TGT_HOST
+fi
+validate_name "host" "${host}"
+
+# Either user a username provided from commandline args or default to the current user
+if [ -z "${TGT_USER:-}" ]; then
+	user="$(whoami)"
+	if [ -z "$user" ]; then
+		err 1 "Could not determine local user"
+	fi
+else
+	user=$TGT_USER
+fi
+validate_name "user" "${user}"
+
+if [ -e "${flake_root}/make-attrs/${user}@${host}.nix" ]; then
+	sh "${script_dir}/attrs.sh --write"
 fi
 
 # Set user-defined binary cache URLs and Nix trusted public keys from make.env.
