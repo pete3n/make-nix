@@ -366,8 +366,7 @@ check_attrs() {
 
 	_eval_drv() {
 		_expr="${1}"
-		_eval_cmd="unset NO_COLOR && TERM=xterm"
-		_eval_cmd="${_eval_cmd} nix eval --no-warn-dirty --verbose --impure --raw ${_expr}"
+		_eval_cmd="nix eval --no-warn-dirty --impure --raw ${_expr}"
 		_rcfile="${MAKE_NIX_TMPDIR:-/tmp}/nix-eval.$$.rc"
 		_outfile="${MAKE_NIX_TMPDIR:-/tmp}/nix-eval.$$.out"
 
@@ -375,29 +374,24 @@ check_attrs() {
 		# shellcheck disable=SC2086
 		print_cmd $_eval_cmd >&2
 
-		#if is_truthy "${USE_SCRIPT:-}"; then
-		#		# Force script to run without buffering issues
-		#		script -a -q -c "${_eval_cmd}; printf '%s\n' \$? > \"$_rcfile\"" "${_outfile}" >/dev/null
-		#else
-		#	(
-		#		eval "${_eval_cmd}"
-		#		printf "%s\n" "$?" >"$_rcfile"
-		#	) 2>&1 | tee "${_outfile}"
-		#fi
-		(
-			eval "${_eval_cmd}"
-			printf "%s\n" "$?" >"$_rcfile"
-		) 2>&1 | tee "${_outfile}"
+		if is_truthy "${USE_SCRIPT:-}"; then
+				# Force script to run without buffering issues
+				script -a -q -c "${_eval_cmd}; printf '%s\n' \$? > \"$_rcfile\"" "${_outfile}" >/dev/null
+		else
+			(
+				eval "${_eval_cmd}"
+				printf "%s\n" "$?" >"$_rcfile"
+			) 2>&1 | tee "${_outfile}"
+		fi
 
 		# Remove the script header and footer
-		# _clean_out="$(sed -e '1d' -e '$d' "${_outfile}" | tr -d '\r')"
+		_clean_out="$(sed -e '1d' -e '$d' "${_outfile}" | tr -d '\r')"
 		# Append eval output to the running log
 		#[ -n "${MAKE_NIX_LOG:-}" ] && printf "%b\n" "${_clean_out}" >> "${MAKE_NIX_LOG}"
 		
 		if [ "$(cat "${_rcfile}")" != "0" ]; then
 				_warn="$(warn_if_dirty "${_outfile}")"
-				#err 1 "eval failed for ${C_CFG}${_expr}${C_RST}:\n${_clean_out}\n${_warn}"
-				err 1 "eval failed for ${C_CFG}${_expr}${C_RST}:\n${_outfile}\n${_warn}"
+				err 1 "eval failed for ${C_CFG}${_expr}${C_RST}:\n${_clean_out}\n${_warn}"
 		fi
 
 		# Use tail -n 1 to ensure we only get the result, not the script headers.
