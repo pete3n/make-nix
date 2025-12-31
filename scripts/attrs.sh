@@ -257,23 +257,25 @@ _eval_vars() {
 
 	_nix_eval() {
 		_expr="${1}"
+
 		if ! _out=$(
 			NIX_CONFIG='extra-experimental-features = nix-command flakes' \
 			command nix eval --raw --impure --expr "${_expr}" 2>&1
 		); then
-			err 1 "nix eval failed while reading attrs file\ 
-				${C_PATH}${_attrs_path}${C_RST}:\n${_out}\nexpr:\n${_expr}"
+			_msg="nix eval failed while reading attrs file"
+			_msg="${_msg} ${C_PATH}${_attrs_path}${C_RST}:\n${_out}\nexpr:\n${_expr}"
+			err 1 "${_msg}"
 		fi
-		printf '%s\n' "${_out}"
+		printf "%s" "${_out}"
 	}
 
   _user="$(_nix_eval "${_base_expr}.user or \"\"")"
-	if ! [ "${_user}" = "${user}" ]; then
+	if [ "${_user}" !=  "${user}" ]; then
 		err 1 "The user specified in the attribute file: ${C_CFG}${_user}${C_RST} " \
 					"does not match the target user: ${C_CFG}${user}${C_RST}"
 	fi
   _host="$(_nix_eval "${_base_expr}.host or \"\"")"
-	if ! [ "${_host}" = "${host}" ]; then
+	if [ "${_host}" != "${host}" ]; then
 		err 1 "The host specified in the attribute file: ${C_CFG}${_host}${C_RST} " \
 					"does not match the target host: ${C_CFG}${host}${C_RST}"
 	fi
