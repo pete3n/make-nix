@@ -389,7 +389,9 @@ check_attrs() {
 			_clean_out="${_outfile}"
 		fi
 
+		printf "\nDEBUG RC file: %s\n" "${_rcfile}"
 		if [ "$(cat "${_rcfile}")" != "0" ]; then
+				printf "\nDEBUG RC not 0\n"
 				_warn="$(warn_if_dirty "${_outfile}")"
 				err 1 "eval failed for ${C_CFG}${_expr}${C_RST}:\n${_clean_out}\n${_warn}"
 		fi
