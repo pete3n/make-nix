@@ -257,25 +257,23 @@ _eval_vars() {
 
 	_nix_eval() {
 		_expr="${1}"
-
 		if ! _out=$(
 			NIX_CONFIG='extra-experimental-features = nix-command flakes' \
 			command nix eval --raw --impure --expr "${_expr}" 2>&1
 		); then
-			_msg="nix eval failed while reading attrs file"
-			_msg="${_msg} ${C_PATH}${_attrs_path}${C_RST}:\n${_out}\nexpr:\n${_expr}"
-			err 1 "${_msg}"
+			err 1 "nix eval failed while reading attrs file\ 
+				${C_PATH}${_attrs_path}${C_RST}:\n${_out}\nexpr:\n${_expr}"
 		fi
-		printf "%s" "${_out}"
+		printf '%s\n' "${_out}"
 	}
 
   _user="$(_nix_eval "${_base_expr}.user or \"\"")"
-	if [ "${_user}" !=  "${user}" ]; then
+	if ! [ "${_user}" = "${user}" ]; then
 		err 1 "The user specified in the attribute file: ${C_CFG}${_user}${C_RST} " \
 					"does not match the target user: ${C_CFG}${user}${C_RST}"
 	fi
   _host="$(_nix_eval "${_base_expr}.host or \"\"")"
-	if [ "${_host}" != "${host}" ]; then
+	if ! [ "${_host}" = "${host}" ]; then
 		err 1 "The host specified in the attribute file: ${C_CFG}${_host}${C_RST} " \
 					"does not match the target host: ${C_CFG}${host}${C_RST}"
 	fi
@@ -366,98 +364,44 @@ check_attrs() {
 	_has_nixos="$(_has_attr "nixosConfigurations" "${_attrset}")"
 	_has_darwin="$(_has_attr "darwinConfigurations" "${_attrset}")"
 
-	_eval_drv_bak() {
+	_eval_drv() {
 		_expr="${1}"
 		_eval_cmd="nix eval --no-warn-dirty --impure --raw ${_expr}"
 		_rcfile="${MAKE_NIX_TMPDIR:-/tmp}/nix-eval.$$.rc"
 		_outfile="${MAKE_NIX_TMPDIR:-/tmp}/nix-eval.$$.out"
+		#_use_script="$(normalize_bool "${USE_SCRIPT:-}")"
+		_use_script="false"
 
 		# Print command to stderr so it shows up immediately
 		# shellcheck disable=SC2086
 		print_cmd $_eval_cmd >&2
 
-		if is_truthy "${USE_SCRIPT:-}"; then
-			# Force script to run without buffering issues
-			script -a -q -c "${_eval_cmd}; printf '%s\n' \$? > \"$_rcfile\"" "${_outfile}" >/dev/null
-			# Remove the script header and footer
-			_clean_out="$(sed -e '1d' -e '$d' "${_outfile}" | tr -d '\r')"
+		if [ "${_use_script}" = "true" ]; then
+				# Force script to run without buffering issues
+				script -a -q -c "${_eval_cmd}; printf '%s\n' \$? > \"$_rcfile\"" \
+					"${_outfile}" >/dev/null
+				# Remove the script header and footer
+				_fmt_out="$(sed -e '1d' -e '$d' "${_outfile}" | tr -d '\r')"
 		else
 			(
-				eval "${_eval_cmd}"
+				nix eval --no-warn-dirty --impure --raw "$_expr"
 				printf "%s\n" "$?" >"$_rcfile"
 			) 2>&1 | tee "${_outfile}"
-			_clean_out="${_outfile}"
+			_fmt_out="$(cat "${_outfile}")"
 		fi
 
-		_rc=1
-		if [ -f "$_rcfile" ]; then
-			_rc="$(tr -d '\r\n' <"$_rcfile")"
-		fi
-
-		case $_rc in
-			''|*[!0-9]*) _rc=1 ;;  # missing or non-numeric → treat as failure
-		esac
-
-		if [ "$_rc" -ne 0 ]; then
+		# Append eval output to the running log
+		[ -r "${MAKE_NIX_LOG:-}" ] && printf "%b\n" "${_fmt_out}" >> "${MAKE_NIX_LOG}"
+		
+		if [ "$(tr -d '\r\n' <"$_rcfile")" != "0" ]; then
 			_warn="$(warn_if_dirty "$_outfile")"
-			err 1 "eval failed for ${C_CFG}${_expr}${C_RST}:\n$(cat "$_cleanfile")\n${_warn}"
+			err 1 "eval failed for ${C_CFG}${_expr}${C_RST}:\n${_fmt_out}\n${_warn}"
 		fi
 
-		# Use tail -n 1 to ensure we only get the result, not the script headers.
-		_drv="$(grep -o '/nix/store/[^[:space:]]*\.drv' "${_clean_out}" | tail -n 1 | tr -d '\r')"
-
+		_drv="$(grep -o '/nix/store/[^[:space:]]*\.drv' "$_outfile" | tail -n 1 | tr -d '\r')"
 		[ -n "${_drv}" ] || err 1 "nix eval returned no derivation for ${C_CFG}${_expr}${C_RST}"
-		printf "%s" "${_drv}"
+		printf '%s' "$_drv"
 	}
-
-
-_eval_drv() {
-  _expr=$1
-
-  _tmpdir="${MAKE_NIX_TMPDIR:-/tmp}"
-  _rcfile="$_tmpdir/nix-eval.$$.rc"
-  _outfile="$_tmpdir/nix-eval.$$.out"
-  _cleanfile="$_tmpdir/nix-eval.$$.clean"
-
-  _outfifo="$_tmpdir/nix-eval.$$.out.fifo"
-  _errfifo="$_tmpdir/nix-eval.$$.err.fifo"
-
-  print_cmd nix eval --no-warn-dirty --impure --raw "$_expr" >&2
-
-  rm -f "$_rcfile" "$_outfile" "$_cleanfile" "$_outfifo" "$_errfifo"
-  mkfifo "$_outfifo" "$_errfifo" || err 1 "failed to create FIFOs"
-
-  # Tee stdout → terminal + logfile
-  tee "$_outfile" <"$_outfifo" &
-  _out_pid=$!
-
-  # Tee stderr → terminal(stderr) + logfile
-  tee -a "$_outfile" <"$_errfifo" >&2 &
-  _err_pid=$!
-
-  # Run nix eval with stdout/stderr redirected to FIFOs
-  nix eval --no-warn-dirty --impure --raw "$_expr" \
-    >"$_outfifo" 2>"$_errfifo"
-  _rc=$?
-
-  printf "%s\n" "$_rc" >"$_rcfile"
-
-  # Close FIFOs so tee exits cleanly
-  rm -f "$_outfifo" "$_errfifo"
-  wait "$_out_pid" 2>/dev/null
-  wait "$_err_pid" 2>/dev/null
-
-  # Normalized clean output (strip CR just in case)
-  tr -d '\r' <"$_outfile" >"$_cleanfile"
-
-  if [ "$_rc" != 0 ]; then
-    _warn="$(warn_if_dirty "$_outfile")"
-    err 1 "eval failed for ${C_CFG}${_expr}${C_RST}:\n$(cat "$_cleanfile")\n${_warn}"
-  fi
-
-  _drv="$(grep -o '/nix/store/[^[:space:]]*\.drv' "$_cleanfile" | tail -n 1)"
-  [ -n "$_drv" ] || err 1 "nix eval returned no derivation for ${C_CFG}${_expr}${C_RST}"
-}
 
 	if [ "${_checks}" = "check-all" ] || [ "${_checks}" = "check-home" ]; then
 		if [ "${_has_home}" != "true" ]; then
@@ -506,7 +450,7 @@ _eval_drv() {
 				"${C_INFO}" "${C_RST}" "${C_CFG}" "${_attrset}" "${C_RST}"
 			if _out_drv="$(_eval_drv "${flake_root}#darwinConfigurations.\"${_attrset}\".${_drv_attrset}")"; then
 				logf "\n%b✅ eval passed.%b\n" "${C_OK}" "${C_RST}"
-				logf "%b>>> Output derivation:%b\n%b%s%b\n" "${C_INFO}" "${C_RST}" "${_out_drv}" "${C_PATH}"
+				logf "%b>>> Output derivation:%b\n%b%s%b\n" "${C_INFO}" "${C_RST}" "${C_PATH}" \
 				return 0
 			fi
 		fi
