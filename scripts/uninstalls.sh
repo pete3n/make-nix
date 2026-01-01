@@ -264,11 +264,11 @@ _del_nix_files() {
 	fi
 
 	if [ "${_mode}" = "darwin" ]; then
-		logf "\n%b>>> Removing darwin configuration and profile files%b\n" \
+		logf "\n%b>>> Removing darwin configuration and profile files:%b\n" \
 			"${C_INFO}" "${C_RST}"
 		for _file in ${_nix_darwin_files}; do
-			logf "\nDEBUG: Checking file %s\n" "${_file}"
-			if as_root sh -c "[ -e \"\${_file}\" ]" sh "${_file}"; then
+			logf "Checking for %s\n" "${_file}"
+			if sudo sh -c "[ -e \"\${_file}\" ]" sh "${_file}"; then
 				logf "\n%binfo:%b removing: %b%s%b ..." "${C_INFO}" "${C_RST}" \
 					"${C_PATH}" "${_file}" "${C_RST}"
 				if ! as_root rm -rf -- "${_file}"; then
