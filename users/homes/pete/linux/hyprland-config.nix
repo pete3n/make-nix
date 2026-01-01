@@ -1,7 +1,6 @@
 {
   pkgs,
   config,
-  makeNixAttrs,
   ...
 }:
 {
@@ -64,7 +63,6 @@
 
   wayland.windowManager.hyprland = {
     enable = true;
-    package = if makeNixAttrs.isHomeAlone then pkgs.mod.hyprland-nixgl-wrapped else pkgs.hyprland;
     xwayland.enable = true;
     settings = {
       debug = {
