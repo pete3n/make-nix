@@ -191,9 +191,7 @@ fi
 
 # Set user-defined binary cache URLs and Nix trusted public keys from make.env.
 # This is set before Nix-Darwin install so it can take advantage of caching.
-logf "\nDEBUG: use_keys %s use_cache %s\n" "${USE_KEYS:-}" "${USE_CACHE:-}"
 if is_truthy "${USE_KEYS:-}" || is_truthy "${USE_CACHE:-}"; then
-	logf "\nDEBUG: set subs keys called\n"
 	sh "${script_dir}/set_subs_keys.sh"
 fi
 
