@@ -265,37 +265,6 @@ if [ -z "${_common_sourced:-}" ]; then
 		fi
 	}
 
-	# Check system for active nix-daemon
-	# $1: Darwin|Linux
-	has_nix_daemon() {
-		_mode="${1:-}"
-
-		case "${_mode}" in
-			Darwin)
-				command -v launchctl >/dev/null 2>&1 || return 1
-				launchctl list org.nixos.nix-daemon >/dev/null 2>&1 || return 1
-				;;
-			Linux)
-				if command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ]; then
-					systemctl is-active --quiet nix-daemon && return 0
-				fi
-
-				# Fallback for non-systemd Linux
-				command -v pgrep >/dev/null 2>&1 || return 1
-				pgrep -x nix-daemon >/dev/null 2>&1
-				return $?
-				;;
-			*)
-				return 1
-				;;
-		esac
-	}
-
-	# Check system for active nix-daemon socket
-	nix_daemon_socket_up() {
-		[ -S /nix/var/nix/daemon-socket/socket ]
-	}
-
 	# Attempt to source the nix binary
 	source_nix() {
 		# Common locations across multi-user daemon installs and per-user installs
