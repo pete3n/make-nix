@@ -4,12 +4,23 @@
 
 set -eu
 
-script_dir="$(cd "$(dirname "$0")" && pwd)"
-# shellcheck disable=SC1091
-. "$script_dir/common.sh"
+_is_truthy() {
+	case "${1:-}" in
+	'1'|'true'|'True'|'TRUE'|'yes'|'Yes'|'YES'|'on'|'On'|'ON'|'y'|'Y') return 0 ;;
+	*) return 1 ;;
+	esac
+}
 
-if is_truthy "${KEEP_LOGS:-}"; then
-	exit 0
-else
-	cleanup 0 "CLEAN"
+if _is_truthy "${KEEP_LOGS:-}"; then
+  exit 0
+fi
+
+# Only delete paths that match your safety pattern
+dir="${MAKE_NIX_TMPDIR:-}"
+if [ -n "$dir" ] && [ -d "$dir" ]; then
+  case "$dir" in
+    ""|/|/tmp|/var/tmp) : ;;
+    */make-nix.*) rm -rf -- "$dir" ;;
+    *) printf "clean-sh: refusing to delete unexpected path: %s\n" "$dir" >&2 ;;
+  esac
 fi
