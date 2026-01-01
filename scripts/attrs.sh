@@ -450,7 +450,7 @@ check_attrs() {
 				"${C_INFO}" "${C_RST}" "${C_CFG}" "${_attrset}" "${C_RST}"
 			if _out_drv="$(_eval_drv "${flake_root}#darwinConfigurations.\"${_attrset}\".${_drv_attrset}")"; then
 				logf "\n%b✅ eval passed.%b\n" "${C_OK}" "${C_RST}"
-				logf "%b>>> Output derivation:%b\n%b%s%b\n" "${C_INFO}" "${C_RST}" "${C_PATH}" \
+				logf "%b>>> Output derivation:%b\n%b%s%b\n" "${C_INFO}" "${C_RST}" "${C_PATH}"
 				return 0
 			fi
 		fi
