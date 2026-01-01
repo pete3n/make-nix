@@ -242,7 +242,7 @@ _del_nix_files() {
 
 	if [ "${_mode}" = "nix" ]; then
 		for _file in ${_nix_files}; do
-			if [ -e "${_file}" ]; then
+			if as_root sh -c "[ -e \"\${_file}\" ]" sh "${_file}"; then
 				logf "\n%binfo:%b removing: %b%s%b ..." \
 					"${C_INFO}" "${C_RST}" "${C_PATH}" "$_file" "${C_RST}"
 
@@ -264,10 +264,10 @@ _del_nix_files() {
 	fi
 
 	if [ "${_mode}" = "darwin" ]; then
-		logf "\n%b>>> Removing darwin configuration and profile files%b.\n" \
+		logf "\n%b>>> Removing darwin configuration and profile files%b\n" \
 			"${C_INFO}" "${C_RST}"
 		for _file in ${_nix_darwin_files}; do
-			if [ -e "${_file}" ]; then
+			if as_root sh -c "[ -e \"\${_file}\" ]" sh "${_file}"; then
 				logf "\n%binfo:%b removing: %b%s%b ..." "${C_INFO}" "${C_RST}" \
 					"${C_PATH}" "${_file}" "${C_RST}"
 				if ! as_root rm -rf -- "${_file}"; then
