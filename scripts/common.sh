@@ -209,23 +209,85 @@ if [ -z "${_common_sourced:-}" ]; then
 		fi
 	}
 
-	# Check system for active nix-daemon 
-	has_nix_daemon() {
-		case "${UNAME_S}" in
-		Darwin)
-			as_root launchctl print system/org.nixos.nix-daemon >/dev/null 2>&1
-			;;
-		Linux)
-			if [ -x "$(command -v systemctl)" ] && [ -d /run/systemd/system ]; then
-				systemctl is-active --quiet nix-daemon
+	# Retrieve the root user home directory
+	get_root_home() {
+		if command -v getent >/dev/null 2>&1; then
+			getent passwd root | cut -d: -f6
+			return
+		fi
+
+		# POSIX fallback (always available)
+		awk -F: '$1=="root"{print $6}' /etc/passwd
+	}
+
+	# Retrieve the user home (even in sudo command)
+	get_user_home() {
+		# Prefer the original user when running under sudo
+		if [ -n "${SUDO_USER:-}" ]; then
+			# POSIX: getent isn't guaranteed everywhere, so use tilde expansion safely via eval
+			# shellcheck disable=SC2086
+			eval "printf '%s\n' ~${SUDO_USER}"
+			return 0
+		fi
+
+		# Normal run: $HOME should be correct
+		if [ -n "${HOME:-}" ]; then
+			printf '%s\n' "${HOME}"
+			return 0
+		fi
+
+		# Last-resort fallback
+		# shellcheck disable=SC2046
+		eval "printf '%s\n' ~$(id -un 2>/dev/null || whoami)"
+	}
+
+	# Non-destructive restoration function
+	safe_restore() {
+		_bak="$1"   # backup file path (source)
+		_orig="$2"  # original file path (destination)
+
+		[ -e "${_bak}" ] || return 0
+
+		logf "%b ↩️%b restoring %s\n" "${C_INFO}" "${C_RST}" "${_orig}"
+
+		if as_root cp -p "${_bak}" "${_orig}"; then
+			if as_root rm -f "${_bak}"; then
+				: # ok
 			else
-				# Fallback for non-systemd Linux
-				pgrep -x nix-daemon >/dev/null 2>&1
+				logf "%b⚠️ warning:%b restored %s but failed to remove backup %s\n" \
+					"${C_WARN}" "${C_RST}" "${_orig}" "${_bak}" >&2
 			fi
-			;;
-		*)
+			return 0
+		else
+			logf "%b⚠️ warning:%b failed to restore %s (leaving backup at %s)\n" \
+				"${C_WARN}" "${C_RST}" "${_orig}" "${_bak}" >&2
 			return 1
-			;;
+		fi
+	}
+
+	# Check system for active nix-daemon
+	# $1: Darwin|Linux
+	has_nix_daemon() {
+		_mode="${1:-}"
+
+		case "${_mode}" in
+			Darwin)
+				command -v launchctl >/dev/null 2>&1 || return 1
+				launchctl list org.nixos.nix-daemon >/dev/null 2>&1 || return 1
+				;;
+			Linux)
+				if command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ]; then
+					systemctl is-active --quiet nix-daemon && return 0
+				fi
+
+				# Fallback for non-systemd Linux
+				command -v pgrep >/dev/null 2>&1 || return 1
+				pgrep -x nix-daemon >/dev/null 2>&1
+				return $?
+				;;
+			*)
+				return 1
+				;;
 		esac
 	}
 
@@ -315,25 +377,24 @@ if [ -z "${_common_sourced:-}" ]; then
 	# Provide custom warning for Nix build failures if the Git tree is dirty.
 	# Because the default Nix error is a confusing and unhelpful "file not found"
 	warn_if_dirty() {
-		_log="${1:-}"
+		_log=${1:-}
 
-		_out() {
-			printf "%b  ⚠️ warning: git tree is dirty!%b\n" "${C_WARN}" "${C_RST}"
-			printf "  If you see this error message above ^:\n  '%berror:%b path %b/nix/store/...%b does not exist'\n\n" \
-				"${C_ERR}" "${C_RST}" "${C_PATH}" "${C_RST}"
-			printf "  Make sure all relevant files are tracked with Git using:\n"
-			printf "  %bgit add%b <file>\n\n" "${C_CMD}" "${C_RST}"
-			printf "  Check for changes with:\n"
-			printf "  %bgit status%b\n\n" "${C_CMD}" "${C_RST}"
-		}
+		# Not dirty → no warning
+		git diff-index --quiet HEAD -- 2>/dev/null && return 0
 
-		if ! git diff-index --quiet HEAD -- 2>/dev/null; then
-			if [ -n "${_log}" ]; then
-				grep -qE "path .+ does not exist" "${_log}" && _out 
-			else
-				_out >&2
-			fi
+		# If a log was provided, only warn when we see the signature error
+		if [ -n "$_log" ] && ! grep -qE "path .+ does not exist" "$_log"; then
+			return 0
 		fi
+
+		# Emit the warning text to stdout (caller decides where to print it)
+		printf "%b  ⚠️  warning: git tree is dirty!%b\n" "${C_WARN}" "${C_RST}"
+		printf "  If you see this error message above ^:\n  '%berror:%b path %b/nix/store/...%b does not exist'\n\n" \
+			"${C_ERR}" "${C_RST}" "${C_PATH}" "${C_RST}"
+		printf "  Make sure all relevant files are tracked with Git using:\n"
+		printf "  %bgit add%b <file>\n\n" "${C_CMD}" "${C_RST}"
+		printf "  Check for changes with:\n"
+		printf "  %bgit status%b\n\n" "${C_CMD}" "${C_RST}"
 	}
 	
 fi # _common_sourced
