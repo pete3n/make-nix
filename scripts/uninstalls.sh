@@ -357,7 +357,7 @@ _del_darwin_store() {
 
 		logf "\n%b<<< Checking for /nix APFS mount point:%b\n" "${C_INFO}" "${C_RST}"
 		_vdisk="$(_get_apfs_vol "${_mnt}")"
-		if [ -n "${_vdisk}" ]; then
+		if [ -z "${_vdisk}" ]; then
 			logf "%bNot found%b\n" "${C_OK}" "${C_RST}"
 			return 0
 		else
