@@ -267,15 +267,17 @@ _del_nix_files() {
 		logf "\n%b>>> Removing darwin configuration and profile files:%b\n" \
 			"${C_INFO}" "${C_RST}"
 		for _file in ${_nix_darwin_files}; do
-			logf "Checking for %s\n" "${_file}"
-			if sudo sh -c "[ -e \"\${_file}\" ]" sh "${_file}"; then
-				logf "\n%binfo:%b removing: %b%s%b ..." "${C_INFO}" "${C_RST}" \
-					"${C_PATH}" "${_file}" "${C_RST}"
+			logf "Checking for %s" "${_file}"
+			if as_root sh -c "[ -e \"${_file}\" ]" sh "${_file}"; then
+				logf "\nRemoving: %b%s%b ..." "${C_PATH}" "${_file}" "${C_RST}"
 				if ! as_root rm -rf -- "${_file}"; then
 					_rc=1
-					logf "\n%berror:%b failed to remove %b%s%b\n" "${C_ERR}" "${C_RST}" \
-						"${C_PATH}" "${_file}" "${C_RST}"
+					logf "%berror:%b failed to remove\n" "${C_ERR}" "${C_RST}"
+				else
+					logf " ...removed\n"
 				fi
+			else
+				logf " ...removed\n"
 			fi
 		done
 	fi
