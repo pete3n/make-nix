@@ -196,7 +196,10 @@ if is_truthy "${USE_KEYS:-}" || is_truthy "${USE_CACHE:-}"; then
 fi
 
 # NixGL is a dependency for running Hyprland on non-NixOS system.
-if has_tag hyprland && is_truthy "${HOME_ALONE:-}" && is_truthy "${IS_LINUX}"; then
+logf "DEBUG: hyprland tag %s home_alone %s is_linux %s \n" \
+	"$(has_tag "hyprland")" "$(is_truthy "${HOME_ALONE:-}")" "$(is_truthy "${IS_LINUX:-}")"
+
+if has_tag "hyprland" && is_truthy "${HOME_ALONE:-}" && is_truthy "${IS_LINUXL-}"; then
 	_launch_nixgl_install
 fi
 
