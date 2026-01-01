@@ -264,6 +264,8 @@ _del_nix_files() {
 	fi
 
 	if [ "${_mode}" = "darwin" ]; then
+		logf "\n%b>>> Removing darwin configuration and profile files%b.\n" \
+			"${C_INFO}" "${C_RST}"
 		for _file in ${_nix_darwin_files}; do
 			if [ -e "${_file}" ]; then
 				logf "\n%binfo:%b removing: %b%s%b ..." "${C_INFO}" "${C_RST}" \
@@ -332,6 +334,7 @@ _del_nix_users() {
 	fi
 
 	if [ "${_mode}" = "darwin" ]; then
+		logf "\n%binfo:%b removing nixbld users and group...\n" "${C_INFO}" "${C_RST}"
 		for _user in $(as_root dscl . -list /Users | grep '^_nixbld'); do
 			if ! as_root dscl . -delete /Users/"${_user}" 2>/dev/null; then
 				logf "\n%berror:%b failed to remove user: %b%s%b\n" "${C_ERR}" "${C_RST}" \
@@ -339,9 +342,11 @@ _del_nix_users() {
 			fi
 		done
 
-		logf "\n%binfo:%b removing nixbld users and group...\n" "${C_INFO}" "${C_RST}"
-		if ! as_root dscl . -delete /Groups/nixbld 2>/dev/null; then
-			logf "%binfo:%b nixbld group not found or already removed.\n" "${C_INFO}" "${C_RST}"
+		if as_root dscl . -list /Groups | grep 'nixbld'; then
+			if ! as_root dscl . -delete /Groups/nixbld 2>/dev/null; then
+				logf "%binfo:%b nixbld group not found or already removed.\n" \
+					"${C_INFO}" "${C_RST}"
+			fi
 		fi
 	fi
 
@@ -411,6 +416,7 @@ _del_darwin_store() {
 	return 0
 }
 
+# Requires: mktemp, grep, cmp 
 _cleanup_darwin_mnt() {
 	_rc=0
 	_fstab="/etc/fstab"
@@ -479,8 +485,7 @@ case "${uname_s}" in
 		esac
 
 		_rc=0
-		{ _has_nix_daemon || nix_daemon_socket_up; } && \
-			_multi_user="true" || _multi_user="false"
+		_has_nix_daemon && _multi_user="true" || _multi_user="false"
 
 		# Prefer nix uninstaller if available
 		if [ -x /nix/nix-installer ]; then
