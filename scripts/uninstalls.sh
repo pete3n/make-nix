@@ -15,6 +15,39 @@ script_dir="$(cd "$(dirname "$0")" && pwd)"
 trap 'rm -f "${_err_log:-}"' EXIT 2>/dev/null || :
 trap 'cleanup 130 "SIGNAL"' INT TERM QUIT
 
+# Check system for active nix-daemon
+# $1: Darwin|Linux
+_has_nix_daemon() {
+	_mode="${1:-}"
+
+	case "${_mode}" in
+		Darwin)
+			command -v launchctl >/dev/null 2>&1 || return 1
+
+			# loaded?
+			launchctl list org.nixos.nix-daemon >/dev/null 2>&1 || return 1
+
+			# running? (PID column != "-")
+			launchctl list org.nixos.nix-daemon 2>/dev/null \
+				| awk 'NR==2 && $1 != "-" { exit 0 } { exit 1 }'
+			return $?
+			;;
+		Linux)
+			if command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ]; then
+				systemctl is-active --quiet nix-daemon && return 0
+			fi
+
+			# Fallback for non-systemd Linux
+			command -v pgrep >/dev/null 2>&1 || return 1
+			pgrep -x nix-daemon >/dev/null 2>&1
+			return $?
+			;;
+		*)
+			return 1
+			;;
+	esac
+}
+
 # Stop Nix and Nix-Darwin services
 # Requires: id, mktemp, awk, grep, launchctl|systemctl
 # $1: Operating mode - nix|darwin
@@ -446,7 +479,7 @@ case "${uname_s}" in
 		esac
 
 		_rc=0
-		{ has_nix_daemon || nix_daemon_socket_up; } && \
+		{ _has_nix_daemon || nix_daemon_socket_up; } && \
 			_multi_user="true" || _multi_user="false"
 
 		# Prefer nix uninstaller if available
@@ -477,8 +510,7 @@ case "${uname_s}" in
 		_uninstall_darwin="false"
 
 		# Detect Nix-Darwin by confirming the Nix daemon is present
-		{ has_nix_daemon || nix_daemon_socket_up; } && \
-			_nix_darwin="true" || _nix_darwin="false"
+		_has_nix_daemon "darwin" && _nix_darwin="true" || _nix_darwin="false"
 
 		if [ "${_nix_darwin}" = "true" ]; then
 			logf "\nDo you wish to continue uninstalling Nix-Darwin? Y/n\n"
