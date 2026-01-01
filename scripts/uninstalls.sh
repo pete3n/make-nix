@@ -377,25 +377,30 @@ _del_darwin_store() {
 		fi
 	}
 
-	_is_mountpoint() { mount | awk -v m="$1" '$3==m{found=1} END{exit !found}'; }
+	_is_mountpoint() { 
+		mount | awk -v m="${1}" '$3==m{found=1} END{exit !found}'
+	}
 
 	if has_cmd lsof; then
 		# Best-effort visibility: don't fail the uninstall because of lsof output
-		logf "\n%b<<< Checking for open files in /nix...%b\n" "${C_INFO}" "${C_RST}"
+		logf "\n%b<<< Checking for open files in /nix:%b\n" "${C_INFO}" "${C_RST}"
 		_open="$(
 			lsof -nP 2>/dev/null \
 			| awk 'NF>=9 && $9 ~ "^/nix/" { print $1, $2 }' \
 			| sort -u | head -n 10 || true
 		)"
 		if [ -n "${_open}" ]; then
-			logf "%bwarning:%b processes still appear to have files open under /nix:\n%s\n" \
+			logf "%bProcesses still have files open under /nix:%b\n%s\n" \
 				"${C_WARN}" "${C_RST}" "${_open}" >&2
+			logf "\n%bUnable to remove /nix%b\n" "${C_ERR}" "${C_RST}"
 			return 1
+		else
+			logf "%bNo files open%b\n" "${C_OK}" "${C_RST}"
 		fi
 	fi
 
-	if _is_mountpoint /nix; then
-		if ! _del_apfs_vol /nix; then
+	if _is_mountpoint "/nix"; then
+		if ! _del_apfs_vol "/nix"; then
 			return 1
 		fi
 	else
