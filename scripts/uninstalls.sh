@@ -322,18 +322,21 @@ _del_nix_users() {
 	fi
 
 	if [ "${_mode}" = "darwin" ]; then
-		logf "\n%binfo:%b removing nixbld users and group...\n" "${C_INFO}" "${C_RST}"
+		logf "\n%b>>> Deleting nixbld users:%b\n" "${C_INFO}" "${C_RST}"
 		for _user in $(as_root dscl . -list /Users | grep '^_nixbld'); do
-			if ! as_root dscl . -delete /Users/"${_user}" 2>/dev/null; then
-				logf "\n%berror:%b failed to remove user: %b%s%b\n" "${C_ERR}" "${C_RST}" \
-					"${C_INFO}" "${_user}" "${C_RST}"
+			logf "Deleting %s ...\n" "${_user}"
+			if as_root dscl . -delete /Users/"${_user}" 2>/dev/null; then
+				logf " %bOK%b\n" "${C_OK}" "${C_RST}"
+			else
+				logf "\n%bfailed to delete\n" "${C_ERR}" "${C_RST}"
 			fi
 		done
 
 		if as_root dscl . -list /Groups | grep 'nixbld'; then
-			if ! as_root dscl . -delete /Groups/nixbld 2>/dev/null; then
-				logf "%binfo:%b nixbld group not found or already removed.\n" \
-					"${C_INFO}" "${C_RST}"
+			if as_root dscl . -delete /Groups/nixbld 2>/dev/null; then
+				logf " %bOK%b\n" "${C_OK}" "${C_RST}"
+			else
+				logf "\n%bfailed to delete\n" "${C_ERR}" "${C_RST}"
 			fi
 		fi
 	fi
