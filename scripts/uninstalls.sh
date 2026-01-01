@@ -146,18 +146,18 @@ _cleanup_nix_backups() {
 
 		logf "Checking for %s ..." "${_backup_file}"
 		if [ -f "${_backup_file}" ]; then
-			logf " %bfound%b\n" "${C_OK}" "${C_RST}"
+			logf "%bfound%b\n" "${C_OK}" "${C_RST}"
 			logf "%b>>> Restoring%b %b%s%b to %b%s%b ...\n" \
 				"${C_INFO}" "${C_RST}" "${C_PATH}" "${_backup_file}" "${C_RST}" "${C_PATH}" \
 				"${_original_file}" "${C_RST}"
 			if safe_restore "${_backup_file}" "${_original_file}"; then
-				logf " %bOK%b\n" "${C_OK}" "${C_RST}"
+				logf "%bOK%b\n" "${C_OK}" "${C_RST}"
 			else
-				logf "%b failed to restore%b\n" "${C_ERR}" "${C_RST}"
+				logf "%bfailed to restore%b\n" "${C_ERR}" "${C_RST}"
 				_rc=1
 			fi
 		else
-			logf " %b not found%b\n" "${C_OK}" "${C_RST}"
+			logf "%bnot found%b\n" "${C_OK}" "${C_RST}"
 		fi
 
 		if [ -f "${_original_file}" ] && grep -iq 'Nix' "${_original_file}"; then
@@ -255,12 +255,12 @@ _del_nix_files() {
 			logf "\nRemoving: %b%s%b ..." "${C_PATH}" "${_file}" "${C_RST}"
 			if ! as_root rm -rf -- "${_file}"; then
 				_rc=1
-				logf "%berror:%b failed to remove\n" "${C_ERR}" "${C_RST}"
+				logf "%bfailed to remove\n" "${C_ERR}" "${C_RST}"
 			else
-			logf "%b removed%b\n" "${C_OK}" "${C_RST}"
+			logf "%bremoved%b\n" "${C_OK}" "${C_RST}"
 			fi
 		else
-			logf "%b removed%b\n" "${C_OK}" "${C_RST}"
+			logf "%bremoved%b\n" "${C_OK}" "${C_RST}"
 		fi
 	done
 
@@ -407,13 +407,20 @@ _del_darwin_store() {
 			return 1
 		fi
 	else
-		logf "\n%b>>> Removing /nix directory...%b" "${C_INFO}" "${C_RST}"
-		if as_root rm -rf -- "/nix" 2>/dev/null; then 
-			logf "%b removed%b\n" "${C_OK}" "${C_RST}"
-			return 0
+		logf "\n%b<<< Checking for /nix directory ...%b" "${C_INFO}" "${C_RST}"
+		if [ -d "/nix" ]; then
+			logf "%bfound%b\n" "${C_OK}" "${C_RST}"
+			logf "\n%b>>> Removing /nix directory ...%b" "${C_INFO}" "${C_RST}"
+			if as_root rm -rf -- "/nix" 2>/dev/null; then 
+				logf "%bremoved%b\n" "${C_OK}" "${C_RST}"
+				return 0
+			else
+				logf "%bfailed to remove%b\n" "${C_ERR}" "${C_RST}"
+				return 1
+			fi
 		else
-			logf "%b failed to remove%b\n" "${C_ERR}" "${C_RST}"
-			return 1
+			logf "%bnot found%b\n" "${C_OK}" "${C_RST}"
+			return 0
 		fi
 	fi
 
