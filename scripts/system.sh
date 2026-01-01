@@ -111,7 +111,7 @@ _switch_nixos() {
 	logf "\n%b>>> Switching%b NixOS system configuration for %b%s%b\n" \
 		"${C_INFO}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"
 
-	set -- "${_rebuild_bin}" switch \
+	set -- "${_rebuild_bin}" switch
 	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
 	set -- "$@" --flake "path:${flake_root}#${_attrset}"
 	
@@ -159,7 +159,7 @@ _switch_darwin() {
 	logf "\n%b>>> Switching%b Nix-Darwin system configuration for %b%s%b\n" \
 		"${C_INFO}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"
 
-	set -- "${_rebuild_bin}" switch \
+	set -- "${_rebuild_bin}" switch
 	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
 	set -- "$@" --flake "path:${flake_root}#${_attrset}"
 
@@ -236,7 +236,7 @@ case "${mode}" in
   switch)
     if [ "${is_linux}" = "true" ]; then
 			# Don't attempt to switch to a NixOS configuration outside of NixOS.
-			[ "$(uname -a | grep -q "NixOS")" -eq 0 ] && _switch_nixos || :
+			uname -a | grep -q "NixOS" && _switch_nixos || :
     else 
 			# Darwin install configured the system already, don't switch again.
       [ "${darwin_install}" = "false" ] && _switch_darwin || :
