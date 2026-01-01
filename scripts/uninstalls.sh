@@ -355,20 +355,20 @@ _del_darwin_store() {
 	_del_apfs_vol() {
 		_mnt="${1}"
 
-		logf "\n%b<<< Checking for /nix APFS mount point ...%b" "${C_INFO}" "${C_RST}"
+		logf "\n%b<<< Checking for /nix APFS mount point:%b\n" "${C_INFO}" "${C_RST}"
 		_vdisk="$(_get_apfs_vol "${_mnt}")"
 		if [ -n "${_vdisk}" ]; then
-			logf " not found\n"
+			logf "%bNot found%b\n" "${C_OK}" "${C_RST}"
 			return 0
 		else
-			logf " found\n"
-			logf "\n%b>>> Deleting /nix APFS mount point ...%b" "${C_INFO}" "${C_RST}"
+			logf "%bFound%b %b%s%b\n" "${C_OK}" "${C_RST}" "${C_PATH}" "${_vdisk}" "${C_RST}"
+			logf "\n%b>>> Deleting /nix APFS mount point:\n%b" "${C_INFO}" "${C_RST}"
 			# Delete by volume disk ID, not by path
-			if as_root diskutil apfs deleteVolume "${_vdisk}" >/dev/null 2>&1; then
-				logf " deleted\n"
+			if as_root diskutil apfs deleteVolume "${_vdisk}"; then
+				logf "%bDeleted%b\n" "${C_OK}" "${C_RST}"
 				return 0
 			else
-				logf "%berror:%b failed to delete\n" "${C_ERR}" "${C_RST}"
+				logf "%bFailed to delete%b\n" "${C_ERR}" "${C_RST}"
 				return 1
 			fi
 		fi
