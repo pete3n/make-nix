@@ -334,23 +334,22 @@ _del_nix_users() {
 
 # Requires: lsof, awk, sort, mount head, diskutil, apfs, grep, cat, rm
 _del_darwin_store() {
-	# Return the APFS "Volume Disk" device for a mountpoint, e.g. "disk3s7"
+	
+	# Return the APFS device for a mountpoint, e.g. "disk3s7"
 	# Echoes nothing if not an APFS volume (or not present).
 	_get_apfs_vol() {
 		_mnt="${1}"
 
-		# Prefer a direct mount lookup (fast, no recursion)
-		# mount output: /dev/disk3s7 on /nix (apfs, local, ...)
 		_dev="$(mount | awk -v m="${_mnt}" '$3 == m { sub("^/dev/","",$1); print $1; exit }')"
 		[ -n "${_dev}" ] || return 0
 
-		# Confirm it’s APFS and extract "Volume Disk" from diskutil info
-		diskutil info "${_dev}" 2>/dev/null \
-		| awk -F': *' '
-				$1=="Type (Bundle)" && $2!="apfs" { exit }
-				$1=="File System Personality" && $2!="APFS" { exit }
-				$1=="Volume Disk" { print $2; exit }
-			'
+		# Confirm it's APFS
+		if diskutil info "${_dev}" 2>/dev/null | awk -F': *' '
+			$1=="Type (Bundle)" { if ($2=="apfs") exit 0; else exit 1 }
+			END { exit 1 }
+		'; then
+			printf '%s\n' "${_dev}"
+		fi
 	}
 
 	_del_apfs_vol() {
@@ -358,9 +357,7 @@ _del_darwin_store() {
 
 		logf "\n%b<<< Checking for /nix APFS mount point ...%b" "${C_INFO}" "${C_RST}"
 		_vdisk="$(_get_apfs_vol "${_mnt}")"
-
-		if [ -z "${_vdisk}" ]; then
-			# Not mounted as APFS at that mountpoint (already deleted or not APFS)
+		if [ -n "${_vdisk}" ]; then
 			logf " not found\n"
 			return 0
 		else
