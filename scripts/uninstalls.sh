@@ -338,21 +338,13 @@ _del_darwin_store() {
 	# Return the APFS device for a mountpoint, e.g. "disk3s7"
 	# Prints nothing if not an APFS volume (or not present).
 	_get_apfs_vol() {
-		_mnt=$1
-
-		_devnode="$(mount | awk -v m="$_mnt" '$3==m { print $1; exit }')"
-		[ -n "$_devnode" ] || return 0
-
-		_dev="${_devnode#/dev/}"
-
-		diskutil info "$_dev" 2>/dev/null | awk -F':[[:space:]]*' '
-			$1=="Type (Bundle)" { t=$2 }
-			$1=="File System Personality" { f=$2 }
-			$1=="Device Identifier" { d=$2 }
-			END {
-				# accept either APFS signals
-				if ((t=="apfs" || f=="APFS") && d!="") { print d; exit 0 }
-				exit 1
+		_mnt="${1}"
+		mount | awk -v m="${_mnt}" '
+			$3==m {
+				gsub("^/dev/","",$1)
+				# confirm apfs appears in parentheses
+				if ($0 ~ /\(apfs,/) print $1
+				exit
 			}
 		'
 	}
