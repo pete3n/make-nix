@@ -232,55 +232,31 @@ _del_nix_files() {
 			;;
 	esac
 
-	_nix_darwin_files="/etc/nix /var/root/.nix-profile /var/root/.nix-defexpr"
-	_nix_darwin_files="${_nix_darwin_files} /var/root/.nix-channels ${_user_home}/.nix-profile"
-	_nix_darwin_files="${_nix_darwin_files} ${_user_home}/.nix-defexpr ${_user_home}/.nix-channels"
+	_darwin_files="/etc/nix /var/root/.nix-profile /var/root/.nix-defexpr"
+	_darwin_files="${_darwin_files} /var/root/.nix-channels ${_user_home}/.nix-profile"
+	_darwin_files="${_darwin_files} ${_user_home}/.nix-defexpr ${_user_home}/.nix-channels"
 
 	_nix_files="/etc/nix /etc/profile.d/nix.sh /etc/tmpfiles.d/nix-daemon.conf"
 	_nix_files="${_nix_files} /nix ${_root_home}/.nix-channels ${_root_home}/.nix-defexpr"
 	_nix_files="${_nix_files} ${_root_home}/.nix-profile ${_root_home}/.cache/nix"
 
-	if [ "${_mode}" = "nix" ]; then
-		for _file in ${_nix_files}; do
-			if as_root sh -c "[ -e \"\${_file}\" ]" sh "${_file}"; then
-				logf "\n%binfo:%b removing: %b%s%b ..." \
-					"${C_INFO}" "${C_RST}" "${C_PATH}" "$_file" "${C_RST}"
-
-				if ! as_root rm -rf -- "${_file}" 2>"${_err_log}"; then
-					if tail -n 50 "${_err_log}" | grep -q 'Permission denied'; then
-						logf "\n%berror:%b permission denied removing %b%s%b\n" \
-							"${C_ERR}" "${C_RST}" "${C_PATH}" "$_file" "${C_RST}"
-						_rc=1
-					elif tail -n 50 "${_err_log}" | grep -q 'No such file'; then
-						: # File already deleted. Not an error.
-					else
-						logf "\n%berror:%b unknown error removing %b%s%b\n" \
-							"${C_ERR}" "${C_RST}" "${C_PATH}" "$_file" "${C_RST}"
-						_rc=1
-					fi
-				fi
-			fi
-		done
-	fi
-
-	if [ "${_mode}" = "darwin" ]; then
-		logf "\n%b>>> Removing darwin configuration and profile files:%b\n" \
-			"${C_INFO}" "${C_RST}"
-		for _file in ${_nix_darwin_files}; do
-			logf "Checking for %s" "${_file}"
-			if as_root sh -c "[ -e \"${_file}\" ]" sh "${_file}"; then
-				logf "\nRemoving: %b%s%b ..." "${C_PATH}" "${_file}" "${C_RST}"
-				if ! as_root rm -rf -- "${_file}"; then
-					_rc=1
-					logf "%berror:%b failed to remove\n" "${C_ERR}" "${C_RST}"
-				else
-					logf " ...removed\n"
-				fi
+	[ "${_mode}" = "nix" ] && _file_list=_nix_files || _file_list=_darwin_files
+	logf "\n%b>>> Removing %s configuration and profile files:%b\n" \
+		"${_mode}" "${C_INFO}" "${C_RST}"
+	for _file in ${_file_list}; do
+		logf "Checking for %s ..." "${_file}"
+		if as_root sh -c "[ -e \"${_file}\" ]" sh "${_file}"; then
+			logf "\nRemoving: %b%s%b ..." "${C_PATH}" "${_file}" "${C_RST}"
+			if ! as_root rm -rf -- "${_file}"; then
+				_rc=1
+				logf "%berror:%b failed to remove\n" "${C_ERR}" "${C_RST}"
 			else
-				logf " ...removed\n"
+				logf " removed\n"
 			fi
-		done
-	fi
+		else
+			logf " removed\n"
+		fi
+	done
 
 	rm -f -- "${_err_log}"
 	return "${_rc}"
