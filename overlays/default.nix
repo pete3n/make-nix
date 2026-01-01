@@ -49,20 +49,6 @@ let
     mod =
       if prev ? unstable && prev ? local then
         {
-          # Wrapper to transparently launch Hyprland with nixGLIntel on non-NixOS
-          # systems which require it to function correctly.
-          hyprland-nixgl-wrapped = prev.hyprland.overrideAttrs (oldAttrs: {
-            postInstall =
-              (oldAttrs.postInstall or "")
-              +
-              # sh
-              ''
-                mv $out/bin/Hyprland $out/bin/Hyprland.unwrapped
-                makeWrapper ${final.nixgl.auto.nixGLDefault}/bin/nixGL $out/bin/Hyprland \
-                --add-flags "$out/bin/Hyprland.unwrapped"
-              '';
-          });
-
           # Workaround for: https://github.com/signalapp/Signal-Desktop/issues/6855
           # Cannot find target for triple amdgcn--
           no-gpu-signal-desktop = prev.unstable.signal-desktop.overrideAttrs (oldAttrs: {
@@ -94,25 +80,6 @@ let
     };
   };
 
-  linux-compatibility-packages =
-    final: prev:
-    if isLinuxFor final then
-      let
-				# Patch system to reference stdenv.hostPlatform.system
-        nixglOverlay = inputs.nixgl.overlay;
-        patched = (
-          final': prev':
-          let
-            finalPatched = final' // {
-              system = final'.stdenv.hostPlatform.system;
-            };
-          in
-          nixglOverlay finalPatched prev'
-        );
-      in
-      patched final prev
-    else
-      { };
 in
 {
   # Name overlays (for flake outputs.overlays.<name>)
@@ -120,6 +87,5 @@ in
     local-packages
     mod-packages
     unstable-packages
-    linux-compatibility-packages
     ;
 }
