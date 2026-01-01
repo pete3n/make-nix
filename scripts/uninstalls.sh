@@ -134,57 +134,63 @@ _stop_nix_services() {
 }
 
 _cleanup_nix_backups() {
-	logf "\n%b>>> Cleaning up Nix configuration files...%b\n" "${C_INFO}" "${C_RST}"
 	_backup_files="/etc/profile.d/nix.sh.backup-before-nix /etc/zshrc.backup-before-nix"
 	_backup_files="${_backup_files} /etc/bashrc.backup-before-nix /etc/bash.bashrc.backup-before-nix"
 	_backup_files="${_backup_files} /etc/zsh/zshrc.backup-before-nix"
 	_ca_certs="/etc/ssl/certs/ca-certificates.crt"
 	_rc=0
 
+	logf "\n%b>>> Cleaning up Nix backup and configuration files:%b\n" "${C_INFO}" "${C_RST}"
 	for _backup_file in ${_backup_files}; do
 		_original_file="${_backup_file%.backup-before-nix}"
 
+		logf "Checking for %s ..." "${_backup_file}"
 		if [ -f "${_backup_file}" ]; then
-			logf "\n%binfo:%b restoring %b%s%b to %b%s%b ...\n" \
+			logf " %bfound%b\n" "${C_OK}" "${C_RST}"
+			logf "%b>>> Restoring%b %b%s%b to %b%s%b ...\n" \
 				"${C_INFO}" "${C_RST}" "${C_PATH}" "${_backup_file}" "${C_RST}" "${C_PATH}" \
 				"${_original_file}" "${C_RST}"
-			if ! safe_restore "${_backup_file}" "${_original_file}"; then
-				logf "\n%berror:%b failed to restore: %b%s%b \n" "${C_ERR}" "${C_RST}" \
-					"${C_PATH}" "${_backup_file}" "${C_RST}"
+			if safe_restore "${_backup_file}" "${_original_file}"; then
+				logf " %bOK%b\n" "${C_OK}" "${C_RST}"
+			else
+				logf "%b failed to restore%b\n" "${C_ERR}" "${C_RST}"
 				_rc=1
 			fi
+		else
+			logf " %b not found%b\n" "${C_OK}" "${C_RST}"
+		fi
 
-		# No backup
-		elif [ -f "${_original_file}" ] && grep -iq 'Nix' "${_original_file}"; then
-			_tmp_fstab="$(mktemp)"
-			as_root sh -c "sed '/^# Nix\$/,/^# End Nix\$/d' '${_original_file}' > '${_tmp_fstab}'"
+		if [ -f "${_original_file}" ] && grep -iq 'Nix' "${_original_file}"; then
+			_working_copy="$(mktemp)"
+			as_root sh -c "sed '/^# Nix\$/,/^# End Nix\$/d' '${_original_file}' > '${_working_copy}'"
 
-			if ! cmp -s "${_original_file}" "${_tmp_fstab}"; then
-				logf "%binfo:%b removing Nix entries from %b%s%b\n" "${C_INFO}" "${C_RST}" \
+			if ! cmp -s "${_original_file}" "${_working_copy}"; then
+				logf "Removing Nix entries from... %b%s%b\n" "${C_INFO}" "${C_RST}" \
 					"${C_PATH}" "${_original_file}" "${C_RST}"
 				as_root cp "${_original_file}" "${_original_file}.bak"
 
-				if ! as_root cp "${_tmp_fstab}" "${_original_file}"; then
-					logf "\n%binfo:%b could not modify: %b%s%b\n" \
-						"${C_INFO}" "${C_RST}" "${C_PATH}" "${_original_file}" "${C_RST}"
+				if ! as_root cp "${_working_copy}" "${_original_file}"; then
+					logf "%bcould not modify:%b %b%s%b\n" \
+						"${C_ERR}" "${C_RST}" "${C_PATH}" "${_original_file}" "${C_RST}"
 					_rc=1
+					else
+					logf "%bEntries removed. Backup made in:%b %b%s%b\n" \
+						"${C_OK}" "${C_RST}" "${C_PATH}" "${_original_file}.bak" "${C_RST}"
 				fi
-
-				logf "\n%binfo:%b changes made:\n" "${C_INFO}" "${C_RST}"
-				diff -u "${_original_file}.bak" "${_original_file}" || true
 			fi
-			rm -f -- "${_tmp_fstab}"
+			rm -f -- "${_working_copy}"
 		fi
 	done
 
 	if is_deadlink "${_ca_certs}"; then
-		as_root rm -f -- "${_ca_certs}"
-	fi
-
-	if [ ${_rc} -eq 0 ]; then
-		logf "%b✅ success:%b all operations completed.\n" "${C_OK}" "${C_RST}"
-	else
-		logf "%b error:%b some cleanup operations failed to complete.\n" "${C_ERR}" "${C_RST}"
+		logf "\n%b>>> Removing dead symlink to:%b %b%s%b ...\n" "${C_INFO}" "${C_RST}" \
+			"${C_PATH}" "${_ca_certs}" "${C_RST}"
+		if as_root rm -f -- "${_ca_certs}"; then
+			logf " %bOK%b\n" "${C_OK}" "${C_RST}"
+		else
+			logf "%b failed to remove%b\n" "${C_ERR}" "${C_RST}"
+			_rc=1
+		fi
 	fi
 
 	return ${_rc}
@@ -277,36 +283,39 @@ _del_nix_users() {
 	esac
 
 	if [ "${_mode}" = "nix" ]; then
-		logf "\n%binfo:%b removing nixbld users...%b\n" "${C_INFO}" "${C_RST}"
+		logf "\n%b>>> Deleting nixbld users:%b\n" "${C_INFO}" "${C_RST}"
 
 		_user=1
 		while [ "${_user}" -le 32 ]; do
-			_rc=0
-			as_root userdel "nixbld${_user}" 2>/dev/null || _rc=$?
-
-			if [ "${_rc}" -eq 6 ]; then
+			logf "Deleting nixbld%s... \n" "${_user}"
+			if as_root userdel "nixbld${_user}" 2>/dev/null; then
+				logf " %bOK%b\n" "${C_OK}" "${C_RST}"
 				_user=$(( _user + 1 ))
-				continue
-			elif [ "${_rc}" -ne 0 ]; then
-				logf "\n%berror:%b failed to remove user %b%s%b (code %d)\n" \
-					"${C_ERR}" "${C_RST}" "${C_INFO}" "nixbld${_user}" "${C_RST}" "${_rc}"
+			else
+				_rc=$?
+				# Return code of 6 means user already deleted
+				if [ ${_rc} -eq 6 ]; then
+					logf " %balready deleted%b\n" "${C_OK}" "${C_RST}"
+					_user=$(( _user + 1 ))
+					continue
+				fi
+				logf " %bfailed to delete%b\n" "${C_ERR}" "${C_RST}"
 				rm -f -- "${_err_log}"
 				return 1
 			fi
-
-			_user=$(( _user + 1 ))
 		done
 
-		logf "%binfo:%b removing nixbld group...%b\n" "${C_INFO}" "${C_RST}"
-		as_root groupdel nixbld 2>/dev/null
-		_rc=$?
-
-		if [ "${_rc}" -eq 6 ]; then
-			# Group does not exist — not an error condition
-			:
-		elif [ "${_rc}" -ne 0 ]; then
-			logf "%berror:%b failed to remove group (code %d)\n" \
-				"${C_ERR}" "${C_RST}" "${_rc}"
+		logf "%bDeleting nixbld group...%b\n" "${C_INFO}" "${C_RST}"
+		if as_root groupdel nixbld 2>/dev/null; then
+			logf " %bOK%b\n" "${C_OK}" "${C_RST}"
+		else
+			_rc=$?
+			# Return code of 6 means group already deleted
+			if [ ${_rc} -eq 6 ]; then
+				logf " %balready deleted%b\n" "${C_OK}" "${C_RST}"
+				return 0
+			fi
+			logf " %bfailed to delete%b\n" "${C_ERR}" "${C_RST}"
 			rm -f -- "${_err_log}"
 			return 1
 		fi
@@ -415,20 +424,20 @@ _del_darwin_store() {
 _cleanup_darwin_mnt() {
 	_rc=0
 	_fstab="/etc/fstab"
-	_tmp_fstab="$(mktemp)"
+	_working_copy="$(mktemp)"
 	_synth_file="/etc/synthetic.conf"
 	_tmp_synth="$(mktemp)"
 
 	if [ -f "$_fstab" ]; then
 		# Remove lines mounting Nix Store (both UUID and LABEL variants)
 		grep -vE '^UUID=.*[[:space:]]/nix[[:space:]]' "${_fstab}" |
-			grep -vE '^LABEL=Nix\\040Store[[:space:]]/nix[[:space:]]' >"${_tmp_fstab}"
+			grep -vE '^LABEL=Nix\\040Store[[:space:]]/nix[[:space:]]' >"${_working_copy}"
 
-		if ! cmp -s "${_tmp_fstab}" "${_fstab}"; then
+		if ! cmp -s "${_working_copy}" "${_fstab}"; then
 			logf "\n%binfo:%b removing nix entries from fstab...%b\n" "${C_INFO}" "${C_RST}"
-			as_root cp "${_tmp_fstab}" "${_fstab}"
+			as_root cp "${_working_copy}" "${_fstab}"
 		fi
-		rm -f -- "${_tmp_fstab}"
+		rm -f -- "${_working_copy}"
 	else
 		logf "%bwarning: %b%b/etc/fstab%b does not exist.\n" \
 			"${C_WARN}" "${C_RST}" "${C_PATH}" "${C_RST}"
@@ -456,7 +465,7 @@ _cleanup_darwin_mnt() {
 		fi
 	fi
 	
-	rm -f -- "${_tmp_synth}" "${_tmp_fstab}"
+	rm -f -- "${_tmp_synth}" "${_working_copy}"
 	return "${_rc}"
 }
 
