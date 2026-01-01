@@ -240,9 +240,9 @@ _del_nix_files() {
 	_nix_files="${_nix_files} /nix ${_root_home}/.nix-channels ${_root_home}/.nix-defexpr"
 	_nix_files="${_nix_files} ${_root_home}/.nix-profile ${_root_home}/.cache/nix"
 
-	[ "${_mode}" = "nix" ] && _file_list=_nix_files || _file_list=_darwin_files
+	[ "${_mode}" = "nix" ] && _file_list=${_nix_files} || _file_list=${_darwin_files}
 	logf "\n%b>>> Removing %s configuration and profile files:%b\n" \
-		"${_mode}" "${C_INFO}" "${C_RST}"
+		"${C_INFO}" "${_mode}" "${C_RST}"
 	for _file in ${_file_list}; do
 		logf "Checking for %s ..." "${_file}"
 		if as_root sh -c "[ -e \"${_file}\" ]" sh "${_file}"; then
