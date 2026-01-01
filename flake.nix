@@ -122,7 +122,6 @@
             overlays = [
               userOverlays.unstable-packages
               userOverlays.local-packages
-              userOverlays.linux-compatibility-packages
               userOverlays.mod-packages
             ];
           };
