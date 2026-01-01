@@ -332,7 +332,7 @@ _del_nix_users() {
 	return 0
 }
 
-# Requires: lsof, awk, sort, head, diskutil, apfs, grep, cat, rm
+# Requires: lsof, awk, sort, mount head, diskutil, apfs, grep, cat, rm
 _del_darwin_store() {
 	# Return the APFS "Volume Disk" device for a mountpoint, e.g. "disk3s7"
 	# Echoes nothing if not an APFS volume (or not present).
@@ -354,23 +354,34 @@ _del_darwin_store() {
 	}
 
 	_del_apfs_vol() {
-		_mnt=$1
+		_mnt="${1}"
 
-		_vdisk="$(_get_apfs_vol "$_mnt")"
+		logf "\n%b<<< Checking for /nix APFS mount point ...%b" "${C_INFO}" "${C_RST}"
+		_vdisk="$(_get_apfs_vol "${_mnt}")"
+
 		if [ -z "${_vdisk}" ]; then
 			# Not mounted as APFS at that mountpoint (already deleted or not APFS)
+			logf " not found\n"
 			return 0
+		else
+			logf " found\n"
+			logf "\n%b>>> Deleting /nix APFS mount point ...%b" "${C_INFO}" "${C_RST}"
+			# Delete by volume disk ID, not by path
+			if as_root diskutil apfs deleteVolume "${_vdisk}" >/dev/null 2>&1; then
+				logf " deleted\n"
+				return 0
+			else
+				logf "%berror:%b failed to delete\n" "${C_ERR}" "${C_RST}"
+				return 1
+			fi
 		fi
-
-		# Delete by volume disk ID, not by path
-		as_root diskutil apfs deleteVolume "${_vdisk}" >/dev/null 2>&1
 	}
 
 	_is_mountpoint() { mount | awk -v m="$1" '$3==m{found=1} END{exit !found}'; }
 
 	if has_cmd lsof; then
 		# Best-effort visibility: don't fail the uninstall because of lsof output
-		logf "\n%binfo:%b Checking for open files in /nix...\n" "${C_INFO}" "${C_RST}"
+		logf "\n%b<<< Checking for open files in /nix...%b\n" "${C_INFO}" "${C_RST}"
 		_open="$(
 			lsof -nP 2>/dev/null \
 			| awk 'NF>=9 && $9 ~ "^/nix/" { print $1, $2 }' \
@@ -385,11 +396,17 @@ _del_darwin_store() {
 
 	if _is_mountpoint /nix; then
 		if ! _del_apfs_vol /nix; then
-			logf "\n%berror:%b failed to remove /nix APFS volume.\n" "${C_ERR}" "${C_RST}"
 			return 1
 		fi
 	else
-		as_root rm -rf -- "/nix" 2>/dev/null || true
+		logf "\n%b>>> Removing /nix directory...%b" "${C_INFO}" "${C_RST}"
+		if as_root rm -rf -- "/nix" 2>/dev/null; then 
+			logf " removed\n"
+			return 0
+		else
+			logf "%berror:%b failed to remove\n" "${C_ERR}" "${C_RST}"
+			return 1
+		fi
 	fi
 
 	return 0
