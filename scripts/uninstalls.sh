@@ -380,6 +380,8 @@ _del_darwin_store() {
 		fi
 	}
 
+	_del_apfs_vol "/nix"
+
 	_is_mountpoint() { 
 		mount | awk -v m="${1}" '$3==m{found=1} END{exit !found}'
 	}
@@ -402,29 +404,40 @@ _del_darwin_store() {
 		fi
 	fi
 
-	if _is_mountpoint "/nix"; then
-		if ! _del_apfs_vol "/nix"; then
-			return 1
-		fi
-	else
-		logf "\n%b<<< Checking for /nix directory ...%b" "${C_INFO}" "${C_RST}"
-		if [ -d "/nix" ]; then
-			logf "%bfound%b\n" "${C_OK}" "${C_RST}"
-			logf "\n%b>>> Removing /nix directory ...%b" "${C_INFO}" "${C_RST}"
-			if as_root rm -rf -- "/nix" 2>/dev/null; then 
-				logf "%bremoved%b\n" "${C_OK}" "${C_RST}"
-				return 0
-			else
-				logf "%bfailed to remove%b\n" "${C_ERR}" "${C_RST}"
-				return 1
-			fi
-		else
-			logf "%bnot found%b\n" "${C_OK}" "${C_RST}"
+	logf "\n%b<<< Checking for /nix directory ...%b" "${C_INFO}" "${C_RST}"
+	if [ -d "/nix" ]; then
+		logf "%bfound%b\n" "${C_OK}" "${C_RST}"
+
+		# If it's still a mountpoint, don't rm it—something's still mounted.
+		if _is_mountpoint "/nix"; then
+			logf "%binfo:%b /nix is still a mountpoint; skipping rm.\n" "${C_INFO}" "${C_RST}"
 			return 0
 		fi
-	fi
 
-	return 0
+		logf "\n%b>>> Removing /nix directory ...%b" "${C_INFO}" "${C_RST}"
+		_err_log="$(mktemp)"
+		if as_root rm -rf -- "/nix" 2>"${_err_log}"; then
+			rm -f -- "${_err_log}"
+			logf "%bremoved%b\n" "${C_OK}" "${C_RST}"
+			return 0
+		fi
+
+		# If it's synthetic / protected, removal can fail with read-only / op not permitted.
+		if tail -n 50 "${_err_log}" | grep -qE 'Read-only file system|Operation not permitted'; then
+			rm -f -- "${_err_log}"
+			logf "%binfo:%b /nix is not removable (synthetic/protected); leaving it in place.\n" \
+				"${C_INFO}" "${C_RST}"
+			return 0
+		fi
+
+		logf "%bfailed to remove%b\n%s\n" "${C_ERR}" "${C_RST}" "$(tail -n 50 "${_err_log}")"
+		rm -f -- "${_err_log}"
+		return 1
+
+		else
+		logf "%bnot found%b\n" "${C_OK}" "${C_RST}"
+		return 0
+	fi
 }
 
 # Requires: mktemp, grep, cmp 
@@ -441,7 +454,7 @@ _cleanup_darwin_mnt() {
 			grep -vE '^LABEL=Nix\\040Store[[:space:]]/nix[[:space:]]' >"${_working_copy}"
 
 		if ! cmp -s "${_working_copy}" "${_fstab}"; then
-			logf "\n%binfo:%b removing nix entries from fstab...%b\n" "${C_INFO}" "${C_RST}"
+			logf "\n%b>>> Removing nix entries from fstab...%b\n" "${C_INFO}" "${C_RST}"
 			as_root cp "${_working_copy}" "${_fstab}"
 		fi
 		rm -f -- "${_working_copy}"
