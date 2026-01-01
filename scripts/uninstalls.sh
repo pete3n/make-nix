@@ -251,10 +251,10 @@ _del_nix_files() {
 				_rc=1
 				logf "%berror:%b failed to remove\n" "${C_ERR}" "${C_RST}"
 			else
-				logf " removed\n"
+			logf "%b removed%b\n" "${C_OK}" "${C_RST}"
 			fi
 		else
-			logf " removed\n"
+			logf "%b removed%b\n" "${C_OK}" "${C_RST}"
 		fi
 	done
 
@@ -336,20 +336,18 @@ _del_nix_users() {
 _del_darwin_store() {
 	
 	# Return the APFS device for a mountpoint, e.g. "disk3s7"
-	# Echoes nothing if not an APFS volume (or not present).
+	# Prints nothing if not an APFS volume (or not present).
 	_get_apfs_vol() {
 		_mnt="${1}"
 
-		_dev="$(mount | awk -v m="${_mnt}" '$3 == m { sub("^/dev/","",$1); print $1; exit }')"
-		[ -n "${_dev}" ] || return 0
+		_devnode="$(mount | awk -v m="${_mnt}" '$3 == m { print $1; exit }')"
+		[ -n "${_devnode}" ] || return 0
 
-		# Confirm it's APFS
-		if diskutil info "${_dev}" 2>/dev/null | awk -F': *' '
-			$1=="Type (Bundle)" { if ($2=="apfs") exit 0; else exit 1 }
+		diskutil info "${_devnode}" 2>/dev/null | awk -F': *' '
+			$1=="Type (Bundle)" && $2!="apfs" { exit 1 }
+			$1=="Device Identifier" { print $2; exit 0 }
 			END { exit 1 }
-		'; then
-			printf '%s\n' "${_dev}"
-		fi
+		'
 	}
 
 	_del_apfs_vol() {
@@ -403,10 +401,10 @@ _del_darwin_store() {
 	else
 		logf "\n%b>>> Removing /nix directory...%b" "${C_INFO}" "${C_RST}"
 		if as_root rm -rf -- "/nix" 2>/dev/null; then 
-			logf " removed\n"
+			logf "%b removed%b\n" "${C_OK}" "${C_RST}"
 			return 0
 		else
-			logf "%berror:%b failed to remove\n" "${C_ERR}" "${C_RST}"
+			logf "%b failed to remove%b\n" "${C_ERR}" "${C_RST}"
 			return 1
 		fi
 	fi
