@@ -36,7 +36,6 @@
       inputs.hyprland.follows = "hyprland";
     };
 
-    nixgl.url = "github:nix-community/nixGL";
     hyprcursor.url = "github:hyprwm/hyprcursor";
     nixvim.url = "github:pete3n/nixvim-flake?ref=nixos-25.11";
     deploy-rs.url = "github:serokell/deploy-rs";
@@ -87,7 +86,6 @@
             overlays = [
               userOverlays.unstable-packages
               userOverlays.local-packages
-              userOverlays.linux-compatibility-packages
               userOverlays.mod-packages
             ];
           };

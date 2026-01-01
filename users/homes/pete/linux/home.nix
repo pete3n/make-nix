@@ -29,10 +29,10 @@ let
 
   tagImports = lib.flatten (builtins.map (tag: tagImportMap.${tag}) availableTags);
 
-	blenderCuda = pkgs.blender.override {
-		# Build Blender with CUDA support
-		cudaSupport = true;
-	};
+  blenderCuda = pkgs.blender.override {
+    # Build Blender with CUDA support
+    cudaSupport = true;
+  };
 
 in
 {
@@ -96,20 +96,16 @@ in
     packages =
       # Build the default Nixvim package for the system architecture
       [ inputs.nixvim.packages.${makeNixAttrs.system}.default ]
-      # non-NixOS systems get
-      ++ lib.optionals makeNixAttrs.isHomeAlone [
-        pkgs.nixgl.auto.nixGLDefault
-      ]
       ++ (with pkgs; [
 
         # Misc
         bottles # Wine container manager
         borgbackup
         browsh # Terminal browser
-        unstable.cryptomator
+        unstable.cryptomator # Encrypted container GUI
         fdupes # Duplicate file finder
         heroic # Heroic game launcher
-				kdePackages.okular # Okular PDF viewer
+        kdePackages.okular # Okular PDF viewer
         libreoffice
         litemdview # Simple markdown viewer
         mod._86Box
@@ -156,6 +152,8 @@ in
         mutt # Terminal email
         navi # Cheat-sheets
         nb # CLI note-taking
+				nix-search-tv # Awesome Nix package fuzzy finder
+				nix-inspect # Awesome Nix flake explorer
         nix-tree # Interactively browse Nix store dependencies
         procs # Better process viewer
         python311Packages.base58
@@ -166,6 +164,7 @@ in
         speedtest-cli # Internet speed test CLI
         sshs # SSH config manager TUI
         tldr # Better man pages
+        unstable.cryptomator-cli # Encrypted container CLI
         vim
         xxgdb # gdb TUI
 
@@ -204,9 +203,10 @@ in
         socat
         termshark
         wireshark
-      ]) ++ lib.optionals pkgs.stdenv.isLinux [
-				blenderCuda
-			];
+      ])
+      ++ lib.optionals pkgs.stdenv.isLinux [
+        blenderCuda
+      ];
   };
 
   # systemd --user services
@@ -226,22 +226,26 @@ in
       enable = true;
     };
 
-		power-profile-switcher = {
-			enable = true;
-		};
+    power-profile-switcher = {
+      enable = true;
+    };
   };
 
   # Modules with additional program configuration
   programs = {
     home-manager.enable = true;
+    nix-search-tv = {
+      enable = true;
+      enableTelevisionIntegration = true;
+    };
 
     firefox = {
       enable = true;
     };
 
-		librewolf = {
-			enable = true;
-		};
+    librewolf = {
+      enable = true;
+    };
 
     clip58.enable = true;
     quickNotes.enable = true;
