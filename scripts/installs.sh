@@ -49,7 +49,7 @@ _launch_nixgl_install() {
 	fi
 
 	logf "\n%b>>> Installing nixGl...%b\n" "${C_INFO}" "${C_RST}"
-	set -- nix profile install --impure ${_nixgl_repo}
+	set -- nix profile add --impure ${_nixgl_repo}
 
 	print_cmd -- NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
 
@@ -196,10 +196,7 @@ if is_truthy "${USE_KEYS:-}" || is_truthy "${USE_CACHE:-}"; then
 fi
 
 # NixGL is a dependency for running Hyprland on non-NixOS system.
-logf "DEBUG: hyprland tag %s home_alone %s is_linux %s \n" \
-	"$(has_tag "hyprland")" "$(is_truthy "${HOME_ALONE:-}")" "$(is_truthy "${IS_LINUX:-}")"
-
-if has_tag "hyprland" && is_truthy "${HOME_ALONE:-}" && is_truthy "${IS_LINUXL-}"; then
+if has_tag "hyprland" && is_truthy "${HOME_ALONE:-}" && is_truthy "${IS_LINUX-}"; then
 	_launch_nixgl_install
 fi
 
