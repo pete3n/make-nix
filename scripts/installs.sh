@@ -51,9 +51,9 @@ _launch_nixgl_install() {
 	logf "\n%b>>> Installing nixGl...%b\n" "${C_INFO}" "${C_RST}"
 	set -- nix profile add --impure ${_nixgl_repo}
 
-	print_cmd -- NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
+	print_cmd -- NIXPKGS_ALLOW_UNFREE=1 NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
 
-	if NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
+	if NIXPKGS_ALLOW_UNFREE=1 NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
 		logf "\n%b✓ NixGL install complete.%b\n" "${C_OK}" "${C_RST}"
 		return 0
 	else
