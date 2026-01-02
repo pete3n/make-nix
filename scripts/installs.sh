@@ -40,7 +40,11 @@ _check_integrity() {
 }
 
 _launch_nixgl_install() {
-	_nixgl_repo="github:guibou/nixGL"
+	_nixgl_repo="github:nix-community/nixGL"
+	_nixgl_pkgs="nixGLDefault nixGLNvidia nixGLNvidiaBumblebee nixGLIntel nixVulkanNvidia nixVulkanIntel"
+	_installed=0
+	_failed=0
+
 	if ! has_cmd "nix"; then
 		source_nix
 		if ! has_cmd "nix"; then
@@ -48,17 +52,28 @@ _launch_nixgl_install() {
 		fi
 	fi
 
-	logf "\n%b>>> Installing nixGl...%b\n" "${C_INFO}" "${C_RST}"
-	set -- nix profile add --impure ${_nixgl_repo}
+	logf "\n%b>>> Installing nixGL wrappers:%b\n" "${C_INFO}" "${C_RST}"
+	for _pkg in ${_nixgl_pkgs}; do
+		set -- nix profile add --impure "${_nixgl_repo}#${_pkg}"
+		print_cmd -- NIXPKGS_ALLOW_UNFREE=1 NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
 
-	print_cmd -- NIXPKGS_ALLOW_UNFREE=1 NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
+		if NIXPKGS_ALLOW_UNFREE=1 NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
+			_installed=$(( _installed + 1 ))
+			logf "%b✓%b installed %s\n" "${C_OK}" "${C_RST}" "${_pkg}"
+		else
+			_failed=$(( _failed + 1 ))
+			logf "%bwarning:%b failed to install %s (continuing)\n" "${C_WARN}" "${C_RST}" "${_pkg}" >&2
+		fi
+	done
 
-	if NIXPKGS_ALLOW_UNFREE=1 NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
-		logf "\n%b✓ NixGL install complete.%b\n" "${C_OK}" "${C_RST}"
-		return 0
-	else
-		err 1 "NixGL install failed."
+	if [ "${_installed}" -eq 0 ]; then
+		err 1 "NixGL install failed (no wrappers installed)."
 	fi
+
+	logf "\n%binfo:%b nixGL wrappers installed: %d, failed: %d\n" \
+		"${C_INFO}" "${C_RST}" "${C_OK}" "${_installed}" "${C_RST}" "${C_ERR}" \
+		"${_failed}" "${C_RST}"
+	return 0
 }
 
 _launch_homebrew_install() {
