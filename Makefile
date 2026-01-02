@@ -76,7 +76,7 @@ show-help:
 #
 
 .PHONY: install
-install: prep-goal install-sh clean-sh
+install: prep-goal write-attrs-sh install-sh clean-sh
 
 .PHONY: install-sh
 install-sh:
@@ -208,7 +208,7 @@ test: prep-goal check-nix-attrs warn-if-dirty-sh
 # Set the default boot menu option to the first specified specialisation for a system.
 
 .PHONY: all
-all: prep-goal install-sh write-attrs-sh check-sh warn-if-dirty-sh \
+all: prep-goal write-attrs-sh install-sh check-sh warn-if-dirty-sh \
 	switch-system-sh switch-home-sh set-boot-sh clean-sh
 
 %:
