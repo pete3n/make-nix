@@ -197,7 +197,7 @@ fi
 
 # NixGL is a dependency for running Hyprland on non-NixOS system.
 logf "DEBUG: hyprland tag %s home_alone %s is_linux %s \n" \
-	"${CFG_TAGS:-}" "${HOME_ALONE:-}" "${IS_LINUX:-}"
+	"$(has_tag "hyprland")" "$(is_truthy "${HOME_ALONE:-}")" "$(is_truthy "${IS_LINUX:-}")"
 
 if has_tag "hyprland" && is_truthy "${HOME_ALONE:-}" && is_truthy "${IS_LINUXL-}"; then
 	_launch_nixgl_install
