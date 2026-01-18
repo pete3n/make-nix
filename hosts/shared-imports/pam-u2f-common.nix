@@ -21,20 +21,11 @@
   security.pam.u2f = {
     enable = true;
 
-    # Don't rely on this "control" for sudo since we'll write explicit sudo.text
-    control = "required";
-
     settings = {
       origin = "pam://p22";
-      appid = "pam://p22";
-      cue = true;
-      debug = false;
-
-      # Use the same path everywhere
-      authFile = "%h/.config/Yubico/u2f_keys";
-
-      openasuser = true;
-      expand = true;
+      appid  = "pam://p22";
+      cue    = true;
+      debug  = false;
     };
   };
 }
