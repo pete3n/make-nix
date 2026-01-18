@@ -1,6 +1,8 @@
 #!/usr/bin/env sh
 
 # Install launcher for Nix, Nix-Darwin, Homebrew, and Nixgl
+# TODO: Look at Nix installer implementation
+# TODO: NixGL/hyprland tags for session-manager setup (gdm3, nixGLIntel etc.)
 
 set -eu
 
@@ -70,7 +72,7 @@ _launch_nixgl_install() {
 		err 1 "NixGL install failed (no wrappers installed)."
 	fi
 
-	logf "\n%binfo:%b nixGL wrappers installed: %d, failed: %d\n" \
+	logf "\n%binfo:%b nixGL wrappers installed: %b%d%b, failed: %b%d%b\n" \
 		"${C_INFO}" "${C_RST}" "${C_OK}" "${_installed}" "${C_RST}" "${C_ERR}" \
 		"${_failed}" "${C_RST}"
 	return 0
