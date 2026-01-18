@@ -26,8 +26,8 @@
     ../shared-imports/p22-printers.nix
 
     # Ensure u2f keys are present in ~/.config/Yubico/u2f_keys before enabling
-    ../shared-imports/yubikey-sc.nix
-		../shared-imports/fingerprint.nix
+		../shared-imports/pam-u2f-common.nix
+		../shared-imports/pam-fprint-yubikey.nix
     ../shared-imports/ollama-services.nix
     ../shared-imports/crypto-services.nix
     ../shared-imports/linux/linux-packages.nix
@@ -37,10 +37,11 @@
     kernelParams = [
       "nvme_core.default_ps_max_latency_us=0"
     ];
-    kernelPackages = pkgs.linuxPackages_6_12;
+    kernelPackages = pkgs.linuxPackages_latest;
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
     supportedFilesystems = [ "ntfs" ];
+		binfmt.emulatedSystems = [ "aarch64-linux" "armv7l-linux" ];
   };
 
   fileSystems."/data" = {
@@ -170,6 +171,9 @@
     amdgpu_top
     rocmPackages.rocm-smi
     rocmPackages.rocminfo
+
+		# Emulation
+		qemu
   ];
 
   # This value determines the NixOS release from which the default
