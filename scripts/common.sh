@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 
 # Common helper functions for all scripts
+# TODO: style review https://google.github.io/styleguide/shellguide.html
 
 set -eu
 
@@ -66,12 +67,12 @@ if [ -z "${_common_sourced:-}" ]; then
 		shift || true
 
 		_msg="$*"
-		_c_err=${C_ERR-}
-		_c_rst=${C_RST-}
+		_c_err="${C_ERR-}"
+		_c_rst="${C_RST-}"
 
 		# Log if possible (defensively with nop to avoid set -e exit)
 		if [ -r "${MAKE_NIX_LOG:-}" ]; then
-			{ printf "%b\n" "${_c_err}error:${_c_rst} ${_msg}" | tee -a "$MAKE_NIX_LOG" >&2; } || :
+			{ printf "%b\n" "${_c_err}error:${_c_rst} ${_msg}" | tee -a "${MAKE_NIX_LOG}" >&2; } || :
 		else
 			{ printf "%b\n" "${_c_err}error:${_c_rst} ${_msg}" >&2; } || :
 		fi
@@ -84,7 +85,7 @@ if [ -z "${_common_sourced:-}" ]; then
 	logf() {
 		# shellcheck disable=SC2059
 		if [ -r "${MAKE_NIX_LOG:-}" ]; then
-			printf "$@" | tee -a "$MAKE_NIX_LOG"
+			printf "$@" | tee -a "${MAKE_NIX_LOG}"
 		else
 			printf "$@"
 		fi
