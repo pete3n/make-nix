@@ -26,7 +26,8 @@
     ../shared-imports/p22-printers.nix
 
     # Ensure u2f keys are present in ~/.config/Yubico/u2f_keys before enabling
-    ../shared-imports/yubikey-sc.nix
+    ../shared-imports/pam-u2f-common.nix
+    ../shared-imports/pam-sshd.nix
     ../shared-imports/ollama-services.nix
     ../shared-imports/crypto-services.nix
     ../shared-imports/linux/linux-packages.nix
@@ -41,6 +42,10 @@
 
   nix = {
     settings = {
+      trusted-users = [
+        "root"
+        "builduser"
+      ];
       experimental-features = [
         "nix-command"
         "flakes"
@@ -108,18 +113,23 @@
     ];
   };
 
-	# SSH
-	services.openssh = {
-		enable = true;
-		ports = [ 22 ];
-		settings = {
-			PasswordAuthentication = true;
-			AllowUsers = [ "pete" ];
-			UseDns = true;
-			X11Forwarding = false;
-			PermitRootLogin = "prohibit-password";
-		};
-	};
+  # SSH
+  services.openssh = {
+    enable = true;
+    ports = [ 22 ];
+    settings = {
+      PubkeyAuthentication = true;
+
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+
+      PermitRootLogin = "no";
+      UseDns = true;
+      X11Forwarding = false;
+      AllowAgentForwarding = false;
+      PermitTunnel = "no";
+    };
+  };
 
   # Power, thermals
   services = {
