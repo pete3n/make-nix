@@ -65,8 +65,9 @@ in
     shellAliases = {
       cd = "z";
       home-manager-rollback = "home-manager generations | fzf | awk -F '-> ' '{print \$2 \"/activate\"}'";
-      screenshot = "grim";
       lsc = "lsd --classic";
+			ns = "nix-search-tv print | fzf --preview 'nix-search-tv preview {}' --scheme history";
+      screenshot = "grim";
     };
     initExtra = # sh
       ''
