@@ -1,19 +1,15 @@
+# Nix settings for build/cache infrastructure
 { lib, makeNixAttrs, ... }:
 {
   nix.settings = lib.mkMerge [
     (lib.mkIf makeNixAttrs.useCache {
+			# This is a local Nginx cache for cache.nixos and
+			# nix-community.cachix.org, see https://github.com/pete3n/nix-cache.git
+			# for more information.
       substituters = [
-        # This is a local Nginx cache for cache.nixos and
-        # nix-community.cachix.org, see https://github.com/pete3n/nix-cache.git
-        # for more information.
-        "http://backupsvr.p22:8000"
-        "https://nix-community.cachix.org"
-        "https://cache.nixos.org"
-      ];
-      trusted-substituters = [
-        "http://backupsvr.p22:8000"
-        "https://nix-community.cachix.org"
-        "https://cache.nixos.org"
+        "http://backupsvr.p22:8000/"
+        "https://nix-community.cachix.org/"
+        "https://cache.nixos.org/"
       ];
     })
     (lib.mkIf makeNixAttrs.useKeys {
