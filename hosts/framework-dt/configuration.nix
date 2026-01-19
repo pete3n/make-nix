@@ -40,12 +40,17 @@
     supportedFilesystems = [ "ntfs" ];
   };
 
+	users = {
+		users.nixbuilder.openssh.authorizedKeys.keys = [
+			# Primary Yubikey
+			"sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIEFU2BKDdywiMqeD7LY8lgKeBo0mjHEyP7ej+Y2JNuJDAAAABHNzaDo= pete@framework16"
+			# Backup Yubikey
+			"sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIHwNQ411TYRwGAGINX4i4FI7Ek7lfTQv0s8vbXmnqVh/AAAABHNzaDo= pete@framework16"
+		];
+	};
+
   nix = {
     settings = {
-      trusted-users = [
-        "root"
-        "builduser"
-      ];
       experimental-features = [
         "nix-command"
         "flakes"
