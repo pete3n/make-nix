@@ -92,12 +92,24 @@
   ### NETWORK CONFIG ###
   networking = {
     interfaces = {
-      enp191s0.ipv4.addresses = [
-        {
-          address = "192.168.1.8";
-          prefixLength = 24;
-        }
-      ];
+      enp191s0 = {
+        ipv4 = {
+          addresses = [
+            {
+              address = "192.168.1.8";
+              prefixLength = 24;
+            }
+          ];
+          routes = [
+            # Default route
+            {
+              address = "0.0.0.0";
+              prefixLength = 0;
+              via = "192.168.1.1";
+            }
+          ];
+        };
+      };
     };
     hostName = "framework-dt";
     useDHCP = false; # Disable automatic DHCP; manually call: dhcpcd -B interface
