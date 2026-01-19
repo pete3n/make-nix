@@ -16,7 +16,7 @@ let
       "wheel"
     ];
 
-    sshuser = [ ];
+    sshuser = [ "users" ];
 
     poweruser = [
       "networkmanager"
@@ -51,6 +51,6 @@ in
     isNormalUser = true;
     description = tagRoleDescription;
     extraGroups = tagRoleGroups;
-    openssh.authorizedKeys.keys = lib.mkIf hasTag "sshuser" userSshKeys;
+    openssh.authorizedKeys.keys = lib.optionals (hasTag "sshuser") userSshKeys;
   };
 }
