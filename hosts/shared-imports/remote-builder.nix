@@ -5,7 +5,7 @@
     users = {
       remotebuild = {
         isSystemUser = true;
-        group = "remotebuild";
+        group = "builders";
         useDefaultShell = true;
 
         openssh.authorizedKeys.keys = [
@@ -18,5 +18,12 @@
     };
   };
 
-  nix.settings.trusted-users = [ "remotebuild" ];
+  nix.settings.allowed-users = [ 
+		"@builders" 
+		"root" 
+	];
+  nix.settings.trusted-users = [ 
+		"@builders"
+		"root"
+	];
 }
