@@ -1,7 +1,7 @@
 { ... }:
 {
   users = {
-    groups.remotebuild = { };
+    groups.builders = { };
     users = {
       remotebuild = {
         isSystemUser = true;
