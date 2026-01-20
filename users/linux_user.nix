@@ -4,34 +4,34 @@
 { lib, makeNixAttrs, ... }:
 let
   userRoleTags = [
-    "sudoer"
     "poweruser"
+		"trusteduser"
     "sshuser"
+    "sudoer"
   ];
 
   availableTags = builtins.filter (tag: builtins.elem tag userRoleTags) makeNixAttrs.tags;
 
   tagGroupMap = {
-    sudoer = [
-      "wheel"
-    ];
-
-    sshuser = [ "users" ];
-
     poweruser = [
       "networkmanager"
       "wheel"
       "docker"
       "adbusers"
     ];
+    sshuser = [ "users" ];
+    sudoer = [ "wheel" ];
+    trusteduser = [ "users" ];
   };
 
   tagDescriptionMap = {
-    sudoer = "User with sudo (wheel) access.";
-    poweruser = "Sudoer also with netman, docker, and adbuser membership.";
+    poweruser = "Trusted user and sudoer with netman, docker, and adbuser membership.";
+    trusteduser = "Add user to nix trusted users.";
     sshuser = "User is authorized SSH access with the assigned ssh keys.";
+    sudoer = "User with sudo (wheel) access.";
   };
 
+	# TODO: refactor hard-coded keys
   userSshKeys = [
     # Primary Yubikey
     "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIEFU2BKDdywiMqeD7LY8lgKeBo0mjHEyP7ej+Y2JNuJDAAAABHNzaDo= pete@framework16"
@@ -52,5 +52,7 @@ in
     description = tagRoleDescription;
     extraGroups = tagRoleGroups;
     openssh.authorizedKeys.keys = lib.optionals (hasTag "sshuser") userSshKeys;
-  };
+  };  
+
+	nix.settings.trusted-users = lib.mkIf (hasTag "trusteduser" || hasTag "poweruser") (lib.mkAfter [ makeNixAttrs.user ]);
 }
