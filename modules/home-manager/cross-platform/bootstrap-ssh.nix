@@ -12,23 +12,38 @@ let
 			set -eu
 
 			ssh_dir="$HOME/.ssh"
+			link="$ssh_dir/id_ed25519_sk"
+			ssh_keygen="${pkgs.openssh}/bin/ssh-keygen"
 			mkdir -p "$ssh_dir"
 			chmod 700 "$ssh_dir"
 			cd "$ssh_dir"
 
-			# Import resident keys
-			if ! find "$ssh_dir" -maxdepth 1 -type f -name '*_sk*' ! -name '*.pub' | grep -q .; then
-				printf "\nImporting resident SSH keys from security key...\n"
-				${pkgs.openssh}/bin/ssh-keygen -K
+			# Remove broken symlinks
+			if [ -L "$link" ] && [ ! -e "$link" ]; then
+				printf "bootstrap-ssh: removing broken symlink %s\n" "$link" >&2
+				rm -f "$link"
 			fi
 
-			# Pick the first imported SK stub and symlink it to the standard name
-			first_sk="$(
-				find "$ssh_dir" -maxdepth 1 -type f -name '*_sk*' ! -name '*.pub' | head -n 1 || true
-			)"
+			# Import resident keys if no SK stubs exist (exclude .pub).
+			if ! find "$ssh_dir" -maxdepth 1 -type f -name '*_sk*' ! -name '*.pub' -print -quit | read -r _; then
+				printf "\nImporting resident SSH keys from security key...\n" >&2
+				printf "bootstrap-ssh: running: %s -K\n" "$ssh_keygen" >&2
+				"$ssh_keygen" -K
+				printf "bootstrap-ssh: ssh-keygen -K rc=%s\n" "$?" >&2
+			fi
 
-			if [ -n "$first_sk" ] && [ ! -e "$ssh_dir/id_ed25519_sk" ]; then
-				ln -s "$first_sk" "$ssh_dir/id_ed25519_sk"
+			# Link ID to first available stub
+			if [ ! -e "$link" ]; then
+				target="$(find "$ssh_dir" -maxdepth 1 -type f -name '*_sk*' ! -name '*.pub' -print | head -n 1 || true)"
+
+				if [ -n "$target" ]; then
+					tmp="$link.tmp.$$"
+					ln -s "$target" "$tmp"
+					mv -f "$tmp" "$link"
+					printf "bootstrap-ssh: linked %s -> %s\n" "$link" "$target" >&2
+				else
+					printf "bootstrap-ssh: no SK stub found after import (nothing to link)\n" >&2
+				fi
 			fi
 		'';
 in
