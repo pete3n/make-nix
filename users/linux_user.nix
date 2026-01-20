@@ -29,7 +29,7 @@ let
   tagDescriptionMap = {
     sudoer = "User with sudo (wheel) access.";
     poweruser = "Sudoer also with netman, docker, and adbuser membership.";
-    sshuser = "Assign ssh keys.";
+    sshuser = "User is authorized SSH access with the assigned ssh keys.";
   };
 
   userSshKeys = [
