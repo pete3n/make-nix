@@ -18,6 +18,9 @@
     # Infrastructure configuration for caching build systems.
     ../infrax.nix
 
+		# Remote build user configuration
+		../shared-imports/remote-builder.nix
+
     ./iptables-services.nix # Override NixOS firewall rules
     # and use custom iptables based ruleset
 
@@ -33,6 +36,7 @@
     ../shared-imports/linux/linux-packages.nix
     ../shared-imports/usrp-sdr.nix
   ];
+
   boot = {
     kernelPackages = pkgs.linuxPackages_latest;
     loader.systemd-boot.enable = true;
@@ -40,28 +44,8 @@
     supportedFilesystems = [ "ntfs" ];
   };
 
-  users = {
-    groups.nixbuilders = { };
-    # User for remote build processes
-    users.nixbuilder = {
-      group = "nixbuilders";
-      isNormalUser = true;
-      createHome = true;
-      home = "/home/nixbuilder";
-      shell = pkgs.bashInteractive;
-      openssh.authorizedKeys.keys = [
-        # Primary Yubikey
-        "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIEFU2BKDdywiMqeD7LY8lgKeBo0mjHEyP7ej+Y2JNuJDAAAABHNzaDo= pete@framework16"
-        # Backup Yubikey
-        "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIHwNQ411TYRwGAGINX4i4FI7Ek7lfTQv0s8vbXmnqVh/AAAABHNzaDo= pete@framework16"
-      ];
-    };
-  };
-
   nix = {
     settings = {
-      # Required to give access to Nix for remote builds
-      trusted-users = [ "nixbuilder" ];
       experimental-features = [
         "nix-command"
         "flakes"
@@ -89,7 +73,6 @@
   # Uncomment to include all build depedendencies
   # WARNING: This drastically increases the size of the closure
 
-  ### NETWORK CONFIG ###
   networking = {
     interfaces = {
       enp191s0 = {
@@ -159,12 +142,6 @@
     };
   };
 
-  # Power, thermals
-  services = {
-    thermald.enable = true;
-    power-profiles-daemon.enable = true;
-  };
-
   # Audio
   services.pipewire = {
     enable = true;
@@ -174,16 +151,19 @@
     wireplumber.enable = true;
   };
 
-  # Firmware update
-  services.fwupd.enable = true;
+  services = {
+		# TODO: Check out flatpaks for home-manager with nix-flatpak
+		flatpak.enable = true;
+		fwupd.enable = true;
+		hardware.bolt.enable = true; # boltctl
+    power-profiles-daemon.enable = true;
+    thermald.enable = true;
+  };
 
   ### Fonts and Locale ###
   i18n.defaultLocale = "en_US.UTF-8";
   time.timeZone = "America/New_York";
   #fonts.packages = with pkgs; [ (nerdfonts.override { fonts = [ "JetBrainsMono" ]; }) ];
-
-  # See: https://wiki.hyprland.org/Nix
-  services.hardware.bolt.enable = true; # boltctl
 
   # Portals must be enable system wide for Flatpak support
   xdg.portal = {
@@ -195,9 +175,6 @@
       };
     };
   };
-
-  # TODO: Check out flatpaks for home-manager with nix-flatpak
-  services.flatpak.enable = true;
 
   # Enable Docker - note: This requires iptables
   virtualisation.docker.enable = true;
