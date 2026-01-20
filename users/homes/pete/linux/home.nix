@@ -170,7 +170,7 @@ in
 
         ### Media tools
         drawio # Open Visio replacement
-        gimp # Image editing
+        gimp-with-plugins # Image editing
         handbrake # DVD wripping
         inkscape-with-extensions # Vector graphics
         rhythmbox # Music player
@@ -247,8 +247,9 @@ in
       enable = true;
     };
 
+		bootstrap-ssh.enable = true;
     clip58.enable = true;
-    quickNotes.enable = true;
+    quick-notes.enable = true;
 
     lazydocker = {
       enable = true;
