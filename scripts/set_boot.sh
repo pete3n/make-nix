@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 # Set a boot specialisation as the default boot option
-
+# TODO: If specialisations are defined, then default to setting boot
 set -eu
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
