@@ -8,6 +8,6 @@
   useHomebrew = false;
   useCache = true;
   useKeys = true;
-  tags = [ "hyprland" "poweruser" ];
+  tags = [ "hyprland" "poweruser" "yubi-age-user" ];
   specialisations = [ "wayland_dgpu" ];
 }

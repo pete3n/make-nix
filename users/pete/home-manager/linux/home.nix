@@ -131,6 +131,7 @@ in
         unstable.teams-for-linux
 
         ## CLI utilities
+				age # Age encryption utilties
         asciinema # Terminal recorder
         bandwhich # Network utilization monitor
         cdrkit # CD writing tools
@@ -145,6 +146,7 @@ in
         hyperfine # CLI benchmark tool
         jc # JSON converter
         jq # JSON processor
+				lsof # List open files
         lynx # Text-mode browser
         magic-wormhole # Easy remote file transfer - python
         magic-wormhole-rs # Easy remote file transfer - rust
@@ -161,6 +163,7 @@ in
         ripgrep-all # rg with PDF, office doc, compress file support
         rsync
         sd # Better sed
+				sops # Secrets management
         speedtest-cli # Internet speed test CLI
         sshs # SSH config manager TUI
         tldr # Better man pages
@@ -247,7 +250,48 @@ in
       enable = true;
     };
 
-		bootstrap-ssh.enable = true;
+		ssh = {
+			enable = true;
+			enableDefaultConfig = false;
+			matchBlocks = {
+				"framework-dt" = {
+					hostname = "framework-dt.p22";
+					user = "pete";
+					identityFile = "/home/${makeNixAttrs.user}/.ssh/id_ed25519_sk_rk_p22";
+					identitiesOnly = true;
+				};
+				"backupsvr" = {
+					hostname = "backupsvr.p22";
+					user = "root";
+					identityFile = "/home/${makeNixAttrs.user}/.ssh/id_ed25519_sk_rk_p22";
+					identitiesOnly = true;
+				};
+				"mediasvr" = {
+					hostname = "media.p22";
+					user = "root";
+					identityFile = "/home/${makeNixAttrs.user}/.ssh/id_ed25519_sk_rk_p22";
+					identitiesOnly = true;
+				};
+				"github" = {
+					hostname = "github.com";
+					user = "git";
+					identityFile = "/home/${makeNixAttrs.user}/.ssh/id_ed25519_sk_rk_github";
+					identitiesOnly = true;
+				};
+			};
+		};
+
+		# Import resident keys from Yubikey if any are missing from ~/.ssh
+		import-yubikey-ssh = {
+			enable = true;
+			userKeys = [
+				"id_ed25519_sk_rk_aws"
+				"id_ed25519_sk_rk_github"
+				"id_ed25519_sk_rk_linode"
+				"id_ed25519_sk_rk_p22"
+			];
+		};
+
     clip58.enable = true;
     quick-notes.enable = true;
 

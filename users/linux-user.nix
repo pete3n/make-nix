@@ -44,7 +44,7 @@ let
     builtins.map (tag: tagDescriptionMap.${tag}) availableTags
   );
 
-  hasTag = t: builtins.elem t availableTags;
+  hasTag = tag: builtins.elem tag availableTags;
 in
 {
   users.users.${makeNixAttrs.user} = {
