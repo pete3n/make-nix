@@ -36,9 +36,15 @@
 
 		outputs.nixosModules.disable-wake-triggers
   ];
+
+	# Workaround for suspend then sleep issues.
+	# Resolved amdgpu VPE queue reset failed / ib ring test failed (-110)
+	# Resolved nvme drive sleep issues.
   boot = {
     kernelParams = [
-      "nvme_core.default_ps_max_latency_us=0"
+			"rtc_cmos.use_acpi_alarm=1"
+			"amdgpu.ip_block_mask=0x7FF"
+      "nvme_core.default_ps_max_latency_us=1000"
     ];
 
     kernelPackages = pkgs.linuxPackages_latest;
