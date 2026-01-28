@@ -2,13 +2,15 @@
 { pkgs, ... }:
 {
   environment.systemPackages = with pkgs; [
+		age
+		age-plugin-yubikey
     opensc
-    pinentry-curses
     pam_u2f
     pamtester
-    yubioath-flutter
+    pinentry-curses
     yubikey-manager
     yubikey-personalization
+    yubioath-flutter
   ];
 
   programs.gnupg.agent.enable = true;

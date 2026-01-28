@@ -3,12 +3,12 @@ let
   pete_yk_bak = "age1yubikey1qdxcmeztxrax00vx5gnyteacgqn7jmdc3qnuvts82rkg2zwwmuccc85afcz";
 in
 {
-  "wifi/p22-lan-2g.conf.age".publicKeys = [
+  "wpa_supplicant/p22-lan-2g.conf.age".publicKeys = [
     pete_yk_pri
     pete_yk_bak
   ];
 
-  "wifi/p22-lan-5g.conf.age".publicKeys = [
+  "wpa_supplicant/p22-lan-5g.conf.age".publicKeys = [
     pete_yk_pri
     pete_yk_bak
   ];
