@@ -3,14 +3,15 @@
 # As multiple files explicitly referenced.
 { lib, makeNixAttrs, ... }:
 let
-  userRoleTags = [
+  userTags = [
     "poweruser"
-		"trusteduser"
     "sshuser"
     "sudoer"
+    "trusteduser"
+    "yubi-age-user"
   ];
 
-  availableTags = builtins.filter (tag: builtins.elem tag userRoleTags) makeNixAttrs.tags;
+  availableTags = builtins.filter (tag: builtins.elem tag userTags) makeNixAttrs.tags;
 
   tagGroupMap = {
     poweruser = [
@@ -22,6 +23,7 @@ let
     sshuser = [ "users" ];
     sudoer = [ "wheel" ];
     trusteduser = [ "users" ];
+    yubi-age-user = [ "users" ];
   };
 
   tagDescriptionMap = {
@@ -29,9 +31,10 @@ let
     trusteduser = "Add user to nix trusted users.";
     sshuser = "User is authorized SSH access with the assigned ssh keys.";
     sudoer = "User with sudo (wheel) access.";
+    yubi-age-user = "User that uses a hardware Yubikey to manage age secrets.";
   };
 
-	# TODO: refactor hard-coded keys
+  # TODO: refactor hard-coded keys
   userSshKeys = [
     # Primary Yubikey
     "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIEFU2BKDdywiMqeD7LY8lgKeBo0mjHEyP7ej+Y2JNuJDAAAABHNzaDo= pete@framework16"
@@ -47,12 +50,18 @@ let
   hasTag = tag: builtins.elem tag availableTags;
 in
 {
+  imports = lib.optionals (hasTag "yubi-age-user") [
+    ./${makeNixAttrs.user}/secrets/yubi-age.nix
+  ];
+
   users.users.${makeNixAttrs.user} = {
     isNormalUser = true;
     description = tagRoleDescription;
     extraGroups = tagRoleGroups;
     openssh.authorizedKeys.keys = lib.optionals (hasTag "sshuser") userSshKeys;
-  };  
+  };
 
-	nix.settings.trusted-users = lib.mkIf (hasTag "trusteduser" || hasTag "poweruser") (lib.mkAfter [ makeNixAttrs.user ]);
+  nix.settings.trusted-users = lib.mkIf (hasTag "trusteduser" || hasTag "poweruser") (
+    lib.mkAfter [ makeNixAttrs.user ]
+  );
 }
