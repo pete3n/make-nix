@@ -3,10 +3,22 @@
   config,
   ...
 }:
+let
+  # Hyprland session restoration script
+  hypr-session-restore =
+    pkgs.writeShellScriptBin "hypr-session-restore" # sh
+      ''
+        tmux has-session -t 0 2>/dev/null || tmux new-session -s 0 -d
+        hyprctl dispatch exec "[workspace 2] firefox"
+        sleep 2
+        hyprctl dispatch exec "[workspace 1] alacritty -e tmux attach -t 0"
+        hyprctl dispatch workspace 1
+      '';
+in
 {
   imports = [
-    ./waybar-config.nix
     ./rofi-theme.nix
+    ./waybar-config.nix
   ];
 
   nixpkgs = {
@@ -20,6 +32,52 @@
   programs = {
     swaylock = {
       enable = true;
+    };
+
+    hyprlock = {
+      enable = true;
+      settings = {
+        general = {
+          hide_cursor = true;
+          ignore_empty_input = true;
+        };
+
+        animations = {
+          enabled = true;
+          fade_in = {
+            duration = 300;
+            bezier = "easeOutQuint";
+          };
+          fade_out = {
+            duration = 300;
+            bezier = "easeOutQuint";
+          };
+        };
+
+        background = [
+          {
+            path = "screenshot";
+            blur_passes = 3;
+            blur_size = 8;
+          }
+        ];
+
+        input-field = [
+          {
+            size = "200, 50";
+            position = "0, -80";
+            monitor = "";
+            dots_center = true;
+            fade_on_empty = false;
+            font_color = "rgb(202, 211, 245)";
+            inner_color = "rgb(91, 96, 120)";
+            outer_color = "rgb(24, 25, 38)";
+            outline_thickness = 5;
+            place_holder_text = "Password...";
+            shadow_passes = 2;
+          }
+        ];
+      };
     };
 
     rofi = {
@@ -46,15 +104,57 @@
     };
   };
 
-	services = {
-		swww.enable = true; # Wallpaper service
-	};
+  services = {
+    swww.enable = true; # Wallpaper service
+
+    hypridle = {
+      enable = true;
+      settings = {
+        general = {
+          after_sleep_cmd = "hyprctl dispatch dpms on"; # to avoid having to press a key twice to turn on the display.
+          ignore_dbus_inhibit = false;
+          lock_cmd = "pidof hyprlock || hyprlock"; # avoid starting multiple hyprlock instances.
+          #before_sleep_cmd = "loginctl lock-session" # lock before suspend.
+        };
+
+        listener = [
+          {
+            timeout = 150; # 2.5min.
+            on-timeout = "brightnessctl -s set 10"; # set monitor backlight to minimum, avoid 0 on OLED monitor.
+            on-resume = "brightnessctl -r"; # monitor backlight restore.
+          }
+          {
+            timeout = 150; # 2.5min.
+            on-timeout = "brightnessctl -sd rgb:kbd_backlight set 0"; # turn off keyboard backlight.
+            on-resume = "brightnessctl -rd rgb:kbd_backlight"; # turn on keyboard backlight.
+          }
+          {
+            timeout = 300; # 5min
+            #on-timeout = "loginctl lock-session"; # lock screen when timeout has passed
+            on-timeout = "hyprlock"; # lock screen when timeout has passed
+          }
+          {
+            timeout = 330; # 5.5min
+            on-timeout = "hyprctl dispatch dpms off"; # screen off when timeout has passed
+            on-resume = "hyprctl dispatch dpms on && brightnessctl -r"; # screen on when activity is detected after timeout has fired.
+          }
+          {
+            # TODO: Customize settings based on system: laptop on battery suspend at 10 minutes. laptop charging at 30 minutes. Desktop never.
+            timeout = 600; # 10min
+            on-timeout = "systemctl suspend"; # suspend pc
+          }
+        ];
+      };
+
+    };
+  };
 
   # All Wayland/Hyprland dependent packages
   home.packages = with pkgs; [
     cliphist # Clipboard manager for wayland with text and image support
     grim # Screecap
-		hyprshot # Easy screenshot tool
+    hyprshot # Easy screenshot tool
+    hypr-session-restore # Custom Hyprland session restoration script
     slurp # Compositor screen selection tool
     wdisplays # Graphical display layout for wayland
     wev # Wayland environment diagnostics
@@ -81,7 +181,7 @@
       ];
 
       gesture = [
-				"3, horizontal, workspace"
+        "3, horizontal, workspace"
       ];
 
       # List available monitors with: hyprctl monitors
@@ -266,10 +366,13 @@
         # Toggle fullscreen
         "$mainMod, F, fullscreen, 1"
 
-				# Screenshots
-				"$mainMod, PRINT, exec, hyprshot -m window" # Window
-				", PRINT, exec, hyprshot -m output" # Monitor output
-				"$shiftMod, PRINT, exec, hyprshot -m region" # Select region
+        # Toggle lock
+        "$mainMod SHIFT, l, exec, hyprlock"
+
+        # Screenshots
+        "$mainMod, PRINT, exec, hyprshot -m window" # Window
+        ", PRINT, exec, hyprshot -m output" # Monitor output
+        "$shiftMod, PRINT, exec, hyprshot -m region" # Select region
 
         # Scroll through existing workspaces with mainMod + scroll
         "$mainMod, mouse_down, workspace, e+1"

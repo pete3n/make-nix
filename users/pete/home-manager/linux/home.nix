@@ -24,7 +24,6 @@ let
   tagImportMap = {
     hyprland = [
       ./hyprland-config.nix
-      ./hypr-session-restore.nix
     ];
   };
 
