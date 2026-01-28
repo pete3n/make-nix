@@ -33,16 +33,22 @@
     ../shared-imports/crypto-services.nix
     ../shared-imports/linux/linux-packages.nix
     ../shared-imports/usrp-sdr.nix
+
+		outputs.nixosModules.disable-wake-triggers
   ];
   boot = {
     kernelParams = [
       "nvme_core.default_ps_max_latency_us=0"
     ];
+
     kernelPackages = pkgs.linuxPackages_latest;
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
     supportedFilesystems = [ "ntfs" ];
-		binfmt.emulatedSystems = [ "aarch64-linux" "armv7l-linux" ];
+    binfmt.emulatedSystems = [
+      "aarch64-linux"
+      "armv7l-linux"
+    ];
   };
 
   fileSystems."/data" = {
@@ -82,7 +88,8 @@
   ### NETWORK CONFIG ###
   networking = {
     hostName = "framework16";
-    useDHCP = false; # Disable automatic DHCP; manually call: dhcpcd -B interface
+    useDHCP = true;
+		dhcpcd.enable = true;
     nameservers = [ ]; # Use resolved
 
     # Disable all wireless by default (use wpa_supplicant manually)
@@ -94,11 +101,10 @@
     # proxy.noProxy = "127.0.0.1,localhost,internal.domain";
   };
 
-	# Enable fingerprint sensor login
-	security.pam.services.login.fprintAuth = true;
+  # Enable fingerprint sensor login
+  security.pam.services.login.fprintAuth = true;
 
   services = {
-
     resolved = {
       enable = true;
       dnssec = "allow-downgrade";
@@ -119,6 +125,7 @@
     thermald.enable = true;
     upower.enable = true;
     power-profiles-daemon.enable = true;
+		disable-wake-triggers.enable = true;
 
     # Audio
     pipewire = {
@@ -174,8 +181,8 @@
     rocmPackages.rocm-smi
     rocmPackages.rocminfo
 
-		# Emulation
-		qemu
+    # Emulation
+    qemu
   ];
 
   # This value determines the NixOS release from which the default
