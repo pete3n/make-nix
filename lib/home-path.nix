@@ -18,7 +18,7 @@ let
       "linux"
     else
       throw "getHomePath: unsupported system '${system}'";
-  homePath = basePath + "/${user}/${platform}/home.nix";
+  homePath = basePath + "/${user}/home-manager/${platform}/home.nix";
 in
 assert
   builtins.pathExists homePath || throw "Home-manager module not found: ${toString homePath}";
