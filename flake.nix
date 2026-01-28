@@ -39,12 +39,13 @@
     hyprcursor.url = "github:hyprwm/hyprcursor";
     nixvim.url = "github:pete3n/nixvim-flake?ref=nixos-25.11";
     deploy-rs.url = "github:serokell/deploy-rs";
+    agenix.url = "github:ryantm/agenix";
   };
 
   outputs =
     {
+      agenix,
       home-manager,
-      home-manager-darwin,
       nixpkgs,
       nix-darwin,
       self,
@@ -60,7 +61,7 @@
         inherit inputs;
       };
 
-			homeModules' = import ./modules/home-manager;
+      homeModules' = import ./modules/home-manager;
 
       outputs = self.outputs; # Could be writting as 'inherit (self) outputs' but
       # this is more clear. We need to include outputs because we reference our
@@ -74,7 +75,7 @@
       hmConfigs = builtins.mapAttrs (
         _key: hmAttrs:
         let
-					ctx = makeNix.makeAttrsCtx hmAttrs;
+          ctx = makeNix.makeAttrsCtx hmAttrs;
 
           userOverlays = import ./overlays {
             inherit inputs makeNix;
@@ -82,7 +83,9 @@
           };
 
           pkgsForUser = import nixpkgs {
-						localSystem = { system = ctx.system; };
+            localSystem = {
+              system = ctx.system;
+            };
             overlays = [
               userOverlays.unstable-packages
               userOverlays.local-packages
@@ -95,13 +98,13 @@
           extraSpecialArgs = {
             inherit inputs makeNix;
             homeModules = homeModules';
-						makeNixAttrs = ctx;
+            makeNixAttrs = ctx;
           };
           modules = [
             (makeNix.getHomePath {
-              basePath = ./users/homes;
               system = ctx.system;
               user = ctx.user;
+              basePath = ./users;
             })
           ];
         }
@@ -111,14 +114,16 @@
       hmAloneConfigs = builtins.mapAttrs (
         _key: haAttrs:
         let
-					ctx = makeNix.makeAttrsCtx haAttrs;
+          ctx = makeNix.makeAttrsCtx haAttrs;
 
           userOverlays = import ./overlays {
             inherit inputs makeNix;
-						makeNixAttrs = ctx;
+            makeNixAttrs = ctx;
           };
           pkgsForUser = import nixpkgs {
-						localSystem = { system = ctx.system; };
+            localSystem = {
+              system = ctx.system;
+            };
             overlays = [
               userOverlays.unstable-packages
               userOverlays.local-packages
@@ -131,13 +136,13 @@
           extraSpecialArgs = {
             inherit inputs makeNix;
             homeModules = homeModules';
-						makeNixAttrs = ctx;
+            makeNixAttrs = ctx;
           };
           modules = [
             (makeNix.getHomePath {
-              basePath = ./users/homes;
               system = ctx.system;
               user = ctx.user;
+              basePath = ./users;
             })
           ];
         }
@@ -231,8 +236,17 @@
                 || throw "nixosConfigurations: missing ./hosts/${sa.host}/configuration.nix";
               ./hosts/${sa.host}/configuration.nix
             )
-            ./users/linux_user.nix
-            { }
+            ./users/linux-user.nix
+            agenix.nixosModules.default
+            (
+              { lib, pkgs, ... }:
+              {
+                # Ensure age can find age-plugin-yubikey during activation
+                system.activationScripts.agenixInstall.text = lib.mkBefore ''
+                  export PATH=${pkgs.age-plugin-yubikey}/bin:${pkgs.age}/bin:$PATH
+                '';
+              }
+            )
           ];
         }
       ) linuxUsers;
@@ -264,7 +278,8 @@
                 || throw "darwinConfigurations: missing ./hosts/${sa.host}/apps.nix";
               ./hosts/${sa.host}/apps.nix
             )
-            ./users/darwin_user.nix
+            agenix.nixosModules.default
+            ./users/darwin-user.nix
           ];
 
         }
