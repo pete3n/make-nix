@@ -1,3 +1,4 @@
 {
-  nvidia-scripts = import ./linux/nvidia-scripts.nix;
+  nvidia-scripts = import ./nvidia-scripts.nix;
+	disable-wake-triggers = import ./disable-wake-triggers.nix;
 }

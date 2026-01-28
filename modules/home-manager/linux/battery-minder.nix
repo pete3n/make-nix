@@ -18,72 +18,70 @@ let
   battery-minder =
     pkgs.writeShellScriptBin "battery-minder" # sh
       ''
-        #!/usr/bin/env bash
+                #!/usr/bin/env bash
 
-				WARN_BELOW_PERCENT=${toString cfg.warn_below_percent}
-				WARN_BELOW_MSG=${escapeShellArg cfg.warn_below_msg}
-				SUSPEND_PERCENT=${toString cfg.suspend_percent}
-				SUSPEND_MSG=${escapeShellArg cfg.suspend_msg}
-				HIBERNATE_PERCENT=${toString cfg.hibernate_percent}
-				HIBERNATE_MSG=${escapeShellArg cfg.hibernate_msg}
-				SHUTDOWN_PERCENT=${toString cfg.shutdown_percent}
-				SHUTDOWN_MSG=${escapeShellArg cfg.shutdown_msg}
+        				WARN_BELOW_PERCENT=${toString cfg.warn_below_percent}
+        				WARN_BELOW_MSG=${escapeShellArg cfg.warn_below_msg}
+        				SUSPEND_PERCENT=${toString cfg.suspend_percent}
+        				SUSPEND_MSG=${escapeShellArg cfg.suspend_msg}
+        				HIBERNATE_PERCENT=${toString cfg.hibernate_percent}
+        				HIBERNATE_MSG=${escapeShellArg cfg.hibernate_msg}
+        				SHUTDOWN_PERCENT=${toString cfg.shutdown_percent}
+        				SHUTDOWN_MSG=${escapeShellArg cfg.shutdown_msg}
 
-				STATE_DIR="''${XDG_STATE_HOME:-$HOME/.local/state}/battery-minder"
-				STATE_FILE="''${STATE_DIR}/last_capacity"
-				mkdir -p "''${STATE_DIR}"
+        				STATE_DIR="''${XDG_STATE_HOME:-$HOME/.local/state}/battery-minder"
+        				STATE_FILE="''${STATE_DIR}/last_capacity"
+        				mkdir -p "''${STATE_DIR}"
 
-				BATTERY_PATH=$(find /sys/class/power_supply -maxdepth 1 -name 'BAT*' | head -n1)
-				[ -z "''${BATTERY_PATH}" ] && exit 0
+        				BATTERY_PATH=$(find /sys/class/power_supply -maxdepth 1 -name 'BAT*' | head -n1)
+        				[ -z "''${BATTERY_PATH}" ] && exit 0
 
-				STATUS=$(cat "''${BATTERY_PATH}/status" || printf "Unknown\n")
-				CAPACITY=$(cat "''${BATTERY_PATH}/capacity" || printf "100\n")
+        				STATUS=$(cat "''${BATTERY_PATH}/status" || printf "Unknown\n")
+        				CAPACITY=$(cat "''${BATTERY_PATH}/capacity" || printf "100\n")
 
-				if [ "''${STATUS}" = "Charging" ] || [ "''${STATUS}" = "Full" ]; then
-					printf "101\n" > "''${STATE_FILE}"
-					exit 0
-				else
-					printf "%s\n" "''${CAPACITY}" > "''${STATE_FILE}"
-					exit 0
-				fi
+        				if [ "''${STATUS}" = "Charging" ] || [ "''${STATUS}" = "Full" ]; then
+        					printf "101\n" > "''${STATE_FILE}"
+        				else
+        					printf "%s\n" "''${CAPACITY}" > "''${STATE_FILE}"
+        				fi
 
-				# Load last seen percentage (101 = "not seen discharging")
-				LAST=101
-				if [ -f "''${STATE_FILE}" ]; then
-					read -r LAST < "''${STATE_FILE}" || LAST=101
-				fi
+        				# Load last seen percentage (101 = "not seen discharging")
+        				LAST=101
+        				if [ -f "''${STATE_FILE}" ]; then
+        					read -r LAST < "''${STATE_FILE}" || LAST=101
+        				fi
 
-				update_last() {
-					prtinf "%s\n" "''${CAPACITY}" > "''${STATE_FILE}"
-				}
+        				update_last() {
+        					prtinf "%s\n" "''${CAPACITY}" > "''${STATE_FILE}"
+        				}
 
-				# Check in reverse order from shutdown to hibernate to suspend to warn
-				if [ "''${SHUTDOWN_PERCENT}" -gt 0 ] && [ "''${CAPACITY}" -le "''${SHUTDOWN_PERCENT}" ] && [ "''${LAST}" -gt "''${SHUTDOWN_PERCENT}" ]; then
-					${pkgs.libnotify}/bin/notify-send -u critical "Battery ''${CAPACITY}%" "''${SHUTDOWN_MSG}" 
-					update_last
-					systemctl poweroff
-					exit 0
-				fi
+        				# Check in reverse order from shutdown to hibernate to suspend to warn
+        				if [ "''${SHUTDOWN_PERCENT}" -gt 0 ] && [ "''${CAPACITY}" -le "''${SHUTDOWN_PERCENT}" ] && [ "''${LAST}" -gt "''${SHUTDOWN_PERCENT}" ]; then
+        					${pkgs.libnotify}/bin/notify-send -u critical "Battery ''${CAPACITY}%" "''${SHUTDOWN_MSG}" 
+        					update_last
+        					systemctl poweroff
+        					exit 0
+        				fi
 
-				if [ "''${HIBERNATE_PERCENT}" -gt 0 ] && [ "''${CAPACITY}" -le "''${HIBERNATE_PERCENT}" ] && [ "''${LAST}" -gt "''${HIBERNATE_PERCENT}" ]; then
-					${pkgs.libnotify}/bin/notify-send -u critical "Battery ''${CAPACITY}%" "''${HIBERNATE_MSG}" 
-					update_last
-					systemctl hibernate
-					exit 0
-				fi
+        				if [ "''${HIBERNATE_PERCENT}" -gt 0 ] && [ "''${CAPACITY}" -le "''${HIBERNATE_PERCENT}" ] && [ "''${LAST}" -gt "''${HIBERNATE_PERCENT}" ]; then
+        					${pkgs.libnotify}/bin/notify-send -u critical "Battery ''${CAPACITY}%" "''${HIBERNATE_MSG}" 
+        					update_last
+        					systemctl hibernate
+        					exit 0
+        				fi
 
-				if [ "''${SUSPEND_PERCENT}" -gt 0 ] && [ "''${CAPACITY}" -le "''${SUSPEND_PERCENT}" ] && [ "''${LAST}" -gt "''${SUSPEND_PERCENT}" ]; then
-					${pkgs.libnotify}/bin/notify-send -u critical "Battery ''${CAPACITY}%" "''${SUSPEND_MSG}" 
-					update_last
-					systemctl suspend
-					exit 0
-				fi
+        				if [ "''${SUSPEND_PERCENT}" -gt 0 ] && [ "''${CAPACITY}" -le "''${SUSPEND_PERCENT}" ] && [ "''${LAST}" -gt "''${SUSPEND_PERCENT}" ]; then
+        					${pkgs.libnotify}/bin/notify-send -u critical "Battery ''${CAPACITY}%" "''${SUSPEND_MSG}" 
+        					update_last
+        					systemctl suspend
+        					exit 0
+        				fi
 
-				if [ "''${WARN_BELOW_PERCENT}" -gt 0 ] && [ "''${CAPACITY}" -lt "''${WARN_BELOW_PERCENT}" ] && [ "''${CAPACITY}" -lt "''${LAST}" ]; then
-					${pkgs.libnotify}/bin/notify-send -u critical "Battery ''${CAPACITY}%" "''${WARN_BELOW_MSG}" 
-					update_last
-					exit 0
-				fi
+        				if [ "''${WARN_BELOW_PERCENT}" -gt 0 ] && [ "''${CAPACITY}" -lt "''${WARN_BELOW_PERCENT}" ] && [ "''${CAPACITY}" -lt "''${LAST}" ]; then
+        					${pkgs.libnotify}/bin/notify-send -u critical "Battery ''${CAPACITY}%" "''${WARN_BELOW_MSG}" 
+        					update_last
+        					exit 0
+        				fi
       '';
 in
 {
@@ -170,6 +168,8 @@ in
     systemd.user.services."battery-minder" = {
       Unit = {
         Description = "Battery level warning notifications and actions";
+        # Stop the service when we are heading toward sleep
+        Conflicts = [ "sleep.target" ];
       };
 
       Service = {
