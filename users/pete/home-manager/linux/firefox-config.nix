@@ -1,3 +1,4 @@
+# Firefox HM configuration
 {
   inputs,
   pkgs,

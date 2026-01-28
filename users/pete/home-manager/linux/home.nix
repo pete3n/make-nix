@@ -1,3 +1,4 @@
+# Home-manager configuration
 {
   inputs,
   lib,

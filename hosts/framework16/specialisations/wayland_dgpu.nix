@@ -1,3 +1,5 @@
+# Specialisation for Framework 16 Ryzen AI 300 series with Nvidia RTX-5070 dGPU module
+# See https://github.com/NixOS/nixos-hardware/tree/master/framework/16-inch/amd-ai-300-series
 {
   pkgs,
   lib,
@@ -20,28 +22,30 @@
     imports = [
       outputs.nixosModules.nvidia-scripts
     ];
-
+		
     environment.systemPackages = with pkgs; [ cudaPackages.cudatoolkit ];
 
-    systemd.services.dgpuLink = {
-      description = "Create dGPU symbolic link";
-      wantedBy = [ "multi-user.target" ];
-      script =  #sh
-        ''
-          #!/bin/sh
-          GPU_PCI="0000:c2:00.0"
+    systemd.services = {
+      dgpuLink = {
+        description = "Create dGPU symbolic link";
+        wantedBy = [ "multi-user.target" ];
+        script = # sh
+          ''
+            #!/bin/sh
+            GPU_PCI="0000:c2:00.0"
 
-          set -- /sys/bus/pci/devices/"$GPU_PCI"/drm/card*
-          card_dir=$1
-          card_name="$(basename "$card_dir")"
+            set -- /sys/bus/pci/devices/"$GPU_PCI"/drm/card*
+            card_dir=$1
+            card_name="$(basename "$card_dir")"
 
-          ln -sf "/dev/dri/$card_name" /run/dgpu
-        '';
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
+            ln -sf "/dev/dri/$card_name" /run/dgpu
+          '';
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+        };
       };
-    };
+		};
 
     hardware.nvidia = {
       modesetting.enable = true;
@@ -50,8 +54,8 @@
       nvidiaSettings = true;
 
       prime = {
-				amdgpuBusId = "PCI:195@0:0:0";
-				nvidiaBusId = "PCI:44@0:0:0";
+        amdgpuBusId = "PCI:195@0:0:0";
+        nvidiaBusId = "PCI:44@0:0:0";
         offload = {
           enable = true;
           enableOffloadCmd = true;

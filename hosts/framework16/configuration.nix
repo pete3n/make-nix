@@ -1,3 +1,4 @@
+# See NixOS hardware project: https://github.com/NixOS/nixos-hardware/tree/master/framework/16-inch
 {
   pkgs,
   outputs,

@@ -1,4 +1,4 @@
-# This file contains unique username based configuration options
+# Bash HM configuraiton and extra config not provided by the HM module
 {
   config,
   lib,
@@ -9,7 +9,7 @@ let
   tmux_preserve_path =
     lib.optionalString makeNixAttrs.isHomeAlone # sh
       ''
-        # For non-NixOS or Nix-Darwin systems preserve PATH for tmux.
+        # For Home-alone Linux systems preserve PATH for tmux.
         # Determine path to store saved PATH
         if [ -n "$XDG_STATE_HOME" ]; then
         	PATH_STATE_DIR="$XDG_STATE_HOME"
