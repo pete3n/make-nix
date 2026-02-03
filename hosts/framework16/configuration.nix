@@ -1,11 +1,16 @@
 # See NixOS hardware project: https://github.com/NixOS/nixos-hardware/tree/master/framework/16-inch
 {
+  lib,
+	inputs,
   pkgs,
   outputs,
+  makeNixLib,
+  makeNixAttrs,
   ...
 }:
 {
-  imports = [
+  imports = 
+	[
     # This is the hardware configuration created by the installer
     # Most importantly it contains the UUIDs for your boot and root filesystems
     # Do not use anyone other host's hardware-configuration.nix or you will be
@@ -33,17 +38,18 @@
     ../shared-imports/crypto-services.nix
     ../shared-imports/linux/linux-packages.nix
     ../shared-imports/usrp-sdr.nix
+  ] 
+	++ [ inputs.pete3n-mods.nixosModules.default ]
+	++ [ inputs.pete3n-mods.nixosModules.hardware.framework16.fw16-kbd-alsd ]
+	++ [ inputs.pete3n-mods.nixosModules.hardware.framework16.fw16-disable-wake-triggers ];
 
-		outputs.nixosModules.disable-wake-triggers
-  ];
-
-	# Workaround for suspend then sleep issues.
-	# Resolved amdgpu VPE queue reset failed / ib ring test failed (-110)
-	# Resolved nvme drive sleep issues.
+  # Workaround for suspend then sleep issues.
+  # Resolved amdgpu VPE queue reset failed / ib ring test failed (-110)
+  # Resolved nvme drive sleep issues.
   boot = {
     kernelParams = [
-			"rtc_cmos.use_acpi_alarm=1"
-			"amdgpu.ip_block_mask=0x7FF"
+      "rtc_cmos.use_acpi_alarm=1"
+      "amdgpu.ip_block_mask=0x7FF"
       "nvme_core.default_ps_max_latency_us=1000"
     ];
 
@@ -95,7 +101,7 @@
   networking = {
     hostName = "framework16";
     useDHCP = true;
-		dhcpcd.enable = true;
+    dhcpcd.enable = true;
     nameservers = [ ]; # Use resolved
 
     # Disable all wireless by default (use wpa_supplicant manually)
@@ -107,10 +113,33 @@
     # proxy.noProxy = "127.0.0.1,localhost,internal.domain";
   };
 
-  # Enable fingerprint sensor login
-  security.pam.services.login.fprintAuth = true;
+  security.pam.services = {
+    login.fprintAuth = true; # Enable fingerprint sensor login
+  }
+  // lib.mkIf (makeNixLib.hasTag "hyprland" makeNixAttrs.tags) {
+    hyprlock = { }; # Only enable hyprlock pam module if using hyprland
+  };
 
   services = {
+    # Auto control keyboard backlight. Save power in sunlight.
+    fw16-kbd-alsd.enable = true;
+		# Disable all suspend wake triggers except the power button.
+    fw16-disable-wake-triggers.enable = true;
+
+    # Control lid open/close events with lidmond
+    logind = {
+      settings.Login = {
+        HandleLidSwitch = "ignore";
+        HandleLidSwitchDocked = "ignore";
+        HandleLidSwitchExternalPower = "ignore";
+      };
+    };
+
+    lidmond = {
+      enable = true;
+			accessGroup = "wheel";
+    };
+
     resolved = {
       enable = true;
       dnssec = "allow-downgrade";
@@ -131,7 +160,6 @@
     thermald.enable = true;
     upower.enable = true;
     power-profiles-daemon.enable = true;
-		disable-wake-triggers.enable = true;
 
     # Audio
     pipewire = {
@@ -175,20 +203,18 @@
     allowUnfree = true;
   };
 
-  # System wide packages
   environment.systemPackages = with pkgs; [
-    # System utils
+    amdgpu_top
+    framework-tool
+    framework-tool-tui
     clinfo
     hyprcursor
-    vulkan-tools
     mesa-demos
-    amdgpu_top
+    qemu
     ragenix
     rocmPackages.rocm-smi
     rocmPackages.rocminfo
-
-    # Emulation
-    qemu
+    vulkan-tools
   ];
 
   # This value determines the NixOS release from which the default

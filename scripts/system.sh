@@ -22,6 +22,50 @@ host=""
 is_linux=""
 dry_switch=""
 darwin_install=""
+spec=""
+
+_set_switch_spec() {
+	_switch_spec_in=${SWITCH_SPEC:-}
+
+	# Normalize SPECS into one-per-line, trimmed, drop empties
+	_specs_nl=$(
+		printf '%s' "${SPECS:-}" |
+		tr ',' '\n' |
+		sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e '/^$/d'
+	)
+
+	if [ -z "$_specs_nl" ]; then
+		logf "\n%binfo:%b No valid specialisation found. Skipping...\n" "${C_INFO}" "${C_RST}"
+		exit 0
+	fi
+
+	# Truthy => take first
+	if is_truthy "$_switch_spec_in"; then
+		_first_spec=$(printf '%s\n' "$_specs_nl" | sed -n '1p')
+		spec="${_first_spec}"
+		return 0
+	fi
+
+	if [ -z "$_switch_spec_in" ]; then
+		logf "\n%binfo:%b No valid specialisation found. Skipping...\n" "${C_INFO}" "${C_RST}"
+		exit 0
+	fi
+
+	# Trim BOOT_SPEC for comparison
+	_switch_spec_in=$(printf '%s' "$_switch_spec_in" | xargs)
+
+	# Validate membership
+	if printf '%s\n' "$_specs_nl" | grep -Fx -- "$_switch_spec_in" >/dev/null 2>&1; then
+		spec="${_switch_spec_in}"
+		return 0
+	fi
+
+	# Not valid => discard with warning
+	logf "\n%bwarn:%b BOOT_SPEC '%s' not in available SPECS (%s). Ignoring.\n" \
+		"${C_WARN}" "${C_RST}" "$_switch_spec_in" "${SPECS:-}"
+	spec=""
+	return 1
+}
 
 # Build system (nixos)
 _build_nixos() {
@@ -34,6 +78,9 @@ _build_nixos() {
 	fi
  
 	set -- nix build -L --max-jobs auto --cores 0 
+	if is_truthy "${NO_SUB:-}"; then
+		set -- "$@" --option substitute false
+	fi
 	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
 	set -- "$@" --out-link "result-${host}-nixos" \
 		"path:${flake_root}#nixosConfigurations.\"${_attrset}\".config.system.build.toplevel"
@@ -65,7 +112,7 @@ _build_darwin() {
 	set -- "$@" --out-link "result-${host}-darwin" \
 		"${flake_root}#darwinConfigurations.\"${_attrset}\".system"
 
-	print_cmd -- NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
+	print_cmd -- NIX_CONFIG='"extra-experimental-features = nix-command flakes"' "$@"
 
 	if NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
 		logf "\n%b✓ Nix-Darwin build success.%b\n" "${C_OK}" "${C_RST}"
@@ -111,18 +158,24 @@ _switch_nixos() {
 	logf "\n%b>>> Switching%b NixOS system configuration for %b%s%b\n" \
 		"${C_INFO}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"
 
-	set -- "${_rebuild_bin}" switch
-	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
-	set -- "$@" --flake "path:${flake_root}#${_attrset}"
-	
-	print_cmd -- as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
 
-	if as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
+	set -- "${_rebuild_bin}" switch
+	if is_truthy "${NO_SUB:-}"; then
+		set -- "$@" --option substitute false
+	fi
+	[ -n "${spec:-}" ] && set -- "$@" --specialisation "${spec}"
+	[ -n "${dry_switch:-}" ] && set -- "$@" "${dry_switch}"
+	set -- "$@" --flake "path:${flake_root}#${_attrset}"
+
+	print_cmd 'sudo NIX_CONFIG="extra-experimental-features = nix-command flakes"' "$@"
+	# Prepend the wrapper + env exactly once
+	set -- as_root env 'NIX_CONFIG=extra-experimental-features = nix-command flakes' "$@"
+
+	if "$@"; then
 		logf "\n%b✓ NixOS configuration switch success.%b\n" "${C_OK}" "${C_RST}"
 		return 0
-	else
-		err 1 "NixOS configuraiton switch failed."
 	fi
+	err 1 "NixOS configuration switch failed."
 }
 
 # Switch system configuration (darwin)
@@ -163,7 +216,7 @@ _switch_darwin() {
 	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
 	set -- "$@" --flake "path:${flake_root}#${_attrset}"
 
-	print_cmd -- as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
+	print_cmd -- sudo env NIX_CONFIG='"extra-experimental-features = nix-command flakes"' "$@"
 
 	if as_root env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
 		logf "\n%b✓ Nix-Darwin switched system configuration.%b\n" "${C_OK}" "${C_RST}"
@@ -200,6 +253,10 @@ fi
 
 if is_truthy "${DRY_RUN:-}"; then
 	dry_switch="--dry-run"
+fi
+
+if [ -n "${SWITCH_SPEC:-}" ]; then
+	_set_switch_spec 
 fi
 
 if is_truthy "${DARWIN_INSTALL:-}"; then

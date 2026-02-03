@@ -1,23 +1,13 @@
 {
-  pkgs,
   config,
+  pkgs,
   ...
 }:
-let
-  # Hyprland session restoration script
-  hypr-session-restore =
-    pkgs.writeShellScriptBin "hypr-session-restore" # sh
-      ''
-        tmux has-session -t 0 2>/dev/null || tmux new-session -s 0 -d
-        hyprctl dispatch exec "[workspace 2] firefox"
-        sleep 2
-        hyprctl dispatch exec "[workspace 1] alacritty -e tmux attach -t 0"
-        hyprctl dispatch workspace 1
-      '';
-in
 {
   imports = [
+    ./hypr-scripts.nix
     ./rofi-theme.nix
+    ./rofi-help-menu.nix
     ./waybar-config.nix
   ];
 
@@ -34,46 +24,54 @@ in
       enable = true;
     };
 
+    hyprSuspendBlocker = {
+      enable = true;
+			blockers = [
+				[ "extPower" ]
+			];
+    };
+
     hyprlock = {
       enable = true;
       settings = {
         general = {
-          hide_cursor = true;
+          hide_cursor = false;
           ignore_empty_input = true;
         };
 
         animations = {
           enabled = true;
-          fade_in = {
-            duration = 300;
-            bezier = "easeOutQuint";
-          };
-          fade_out = {
-            duration = 300;
-            bezier = "easeOutQuint";
-          };
         };
+
+        # Same keywords as hyprland.conf
+        bezier = [
+          "linear, 1, 1, 0, 0"
+          "easeOut, 0.05, 0.9, 0.1, 1.0"
+        ];
+
+        animation = [
+          "fadeIn, 1, 3, easeOut"
+          "fadeOut, 1, 3, easeOut"
+        ];
 
         background = [
           {
-            path = "screenshot";
-            blur_passes = 3;
-            blur_size = 8;
+            path = "${config.xdg.userDirs.pictures}/wallpapers/hyprlock.jpg";
           }
         ];
 
-        input-field = [
+        "input-field" = [
           {
-            size = "200, 50";
+            size = "400, 100";
             position = "0, -80";
             monitor = "";
             dots_center = true;
             fade_on_empty = false;
             font_color = "rgb(202, 211, 245)";
-            inner_color = "rgb(91, 96, 120)";
+            inner_color = "rgb(0, 0, 0)";
             outer_color = "rgb(24, 25, 38)";
             outline_thickness = 5;
-            place_holder_text = "Password...";
+            placeholder_text = "Speak friend...";
             shadow_passes = 2;
           }
         ];
@@ -105,7 +103,32 @@ in
   };
 
   services = {
+    hyprpolkitagent.enable = true; # Privilege elevation request service
     swww.enable = true; # Wallpaper service
+
+    hyprlidmon = {
+      enable = true;
+      # rules evaluated on lidClosed only; first match wins
+      rules = [
+        {
+          # "Docked" with AC power and external display attached
+          cond = [
+            "extPower"
+            "extDisplay"
+          ];
+          closeCmd = [
+            "--int-display-disable"
+          ];
+          openCmd = [
+            "--int-display-enable"
+          ];
+        }
+      ];
+
+      # optional defaults if no rule matches
+      lidClosedDefaultCmd = "hyprlock";
+      lidOpenedDefaultCmd = ":";
+    };
 
     hypridle = {
       enable = true;
@@ -139,13 +162,11 @@ in
             on-resume = "hyprctl dispatch dpms on && brightnessctl -r"; # screen on when activity is detected after timeout has fired.
           }
           {
-            # TODO: Customize settings based on system: laptop on battery suspend at 10 minutes. laptop charging at 30 minutes. Desktop never.
             timeout = 600; # 10min
-            on-timeout = "systemctl suspend"; # suspend pc
+            on-timeout = "hypr-suspend-blocker";
           }
         ];
       };
-
     };
   };
 
@@ -154,8 +175,9 @@ in
     cliphist # Clipboard manager for wayland with text and image support
     grim # Screecap
     hyprshot # Easy screenshot tool
-    hypr-session-restore # Custom Hyprland session restoration script
+    hyprsysteminfo
     slurp # Compositor screen selection tool
+    waypaper # Wallpaper picker
     wdisplays # Graphical display layout for wayland
     wev # Wayland environment diagnostics
     wl-clipboard # Wayland clipboard
@@ -176,7 +198,7 @@ in
       exec-once = [
         "wl-paste --type text --watch cliphist store" # Store clipboard text
         "wl-paste --type image --watch cliphist store" # Store clipboard images
-        "wallpaper-set"
+        "systemctl --user start hyprpolkitagent"
         "hypr-session-restore"
       ];
 
@@ -304,9 +326,10 @@ in
 
       # Example binds, see https://wiki.hyprland.org/Configuring/Binds/ for more
       bind = [
+        "$mainMod, F1, exec, rofi-help-menu"
         "$mainMod, Q, exec, alacritty"
         "$mainMod, return, exec, alacritty"
-        "$mainMod SHIFT, w, exec, wallpaper-cycle"
+        "$mainMod SHIFT, w, exec, waypaper"
         "$mainMod, C, killactive"
         "$mainMod, R, exec, rofi -show-icons -combi-modi drun,run -show combi"
         "$mainMod, M, exec, rofi -show-icons -combi-modi drun,run -show calc"

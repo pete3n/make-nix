@@ -11,16 +11,16 @@ let
   fileType =
     name:
     let
-      v = entries.${name};
+      val = entries.${name};
     in
-    if builtins.isAttrs v then v.type else v;
+    if builtins.isAttrs val then val.type else val;
 
   isNixFile =
     name:
     let
-      t = fileType name;
+      type = fileType name;
     in
-    (t == "regular" || t == "symlink") && lib.strings.hasSuffix ".nix" name;
+    (type == "regular" || type == "symlink") && lib.strings.hasSuffix ".nix" name;
 
   attrFiles = builtins.filter isNixFile (
     builtins.sort (name1: name2: name1 < name2) (builtins.attrNames entries)

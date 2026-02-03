@@ -1,5 +1,5 @@
 {
-  description = "Multi-platform Nix flake";
+  description = "Pete3n's make-nix flake";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
@@ -36,8 +36,17 @@
       inputs.hyprland.follows = "hyprland";
     };
 
+		pete3n-mods = {
+			url = "github:pete3n/nix-modules?ref=nixos-25.11";
+			inputs.nixpkgs.follows = "nixpkgs";
+		};
+
+    nixvim = {
+			url = "github:pete3n/nixvim-flake?ref=nixos-25.11";
+			inputs.nixpkgs.follows = "nixpkgs";
+		};
+
     hyprcursor.url = "github:hyprwm/hyprcursor";
-    nixvim.url = "github:pete3n/nixvim-flake?ref=nixos-25.11";
     deploy-rs.url = "github:serokell/deploy-rs";
     agenix.url = "github:ryantm/agenix";
   };
@@ -56,7 +65,7 @@
     let
 
       # make-nix library
-      makeNix = import ./lib {
+      makeNixLib = import ./lib {
         lib = nixpkgs.lib;
         inherit inputs;
       };
@@ -68,17 +77,17 @@
       # own outputs in our outputs
 
       # Home-manager users that have a NixOS/Nix-Darwin system config
-      linuxUsers = nixpkgs.lib.filterAttrs (_: sa: makeNix.isLinux sa.system) hmUsers;
-      darwinUsers = nixpkgs.lib.filterAttrs (_: sa: makeNix.isDarwin sa.system) hmUsers;
+      linuxUsers = nixpkgs.lib.filterAttrs (_: sa: makeNixLib.isLinux sa.system) hmUsers;
+      darwinUsers = nixpkgs.lib.filterAttrs (_: sa: makeNixLib.isDarwin sa.system) hmUsers;
 
-      hmUsers = makeNix.getHomeAttrs { dir = ./make-attrs/system; };
+      hmUsers = makeNixLib.getHomeAttrs { dir = ./make-attrs/system; };
       hmConfigs = builtins.mapAttrs (
         _key: hmAttrs:
         let
-          ctx = makeNix.makeAttrsCtx hmAttrs;
+          ctx = makeNixLib.makeAttrsCtx hmAttrs;
 
           userOverlays = import ./overlays {
-            inherit inputs makeNix;
+            inherit inputs makeNixLib;
             makeNixAttrs = ctx;
           };
 
@@ -96,12 +105,12 @@
         home-manager.lib.homeManagerConfiguration {
           pkgs = pkgsForUser;
           extraSpecialArgs = {
-            inherit inputs makeNix;
+            inherit inputs makeNixLib;
             homeModules = homeModules';
             makeNixAttrs = ctx;
           };
           modules = [
-            (makeNix.getHomePath {
+            (makeNixLib.getHomePath {
               system = ctx.system;
               user = ctx.user;
               basePath = ./users;
@@ -110,14 +119,14 @@
         }
       ) hmUsers;
 
-      hmAloneUsers = makeNix.getHomeAttrs { dir = ./make-attrs/home-alone; };
+      hmAloneUsers = makeNixLib.getHomeAttrs { dir = ./make-attrs/home-alone; };
       hmAloneConfigs = builtins.mapAttrs (
         _key: haAttrs:
         let
-          ctx = makeNix.makeAttrsCtx haAttrs;
+          ctx = makeNixLib.makeAttrsCtx haAttrs;
 
           userOverlays = import ./overlays {
-            inherit inputs makeNix;
+            inherit inputs makeNixLib;
             makeNixAttrs = ctx;
           };
           pkgsForUser = import nixpkgs {
@@ -134,12 +143,12 @@
         home-manager.lib.homeManagerConfiguration {
           pkgs = pkgsForUser;
           extraSpecialArgs = {
-            inherit inputs makeNix;
+            inherit inputs makeNixLib;
             homeModules = homeModules';
             makeNixAttrs = ctx;
           };
           modules = [
-            (makeNix.getHomePath {
+            (makeNixLib.getHomePath {
               system = ctx.system;
               user = ctx.user;
               basePath = ./users;
@@ -179,7 +188,7 @@
           # for non-Linux build targets, this prevents errors when evaluating
           # the flake
           localLinuxPackages =
-            if makeNix.isLinux system then
+            if makeNixLib.isLinux system then
               import ./packages/linux {
                 inherit system pkgs;
                 config = {
@@ -192,7 +201,7 @@
           # These packages only support Darwin so they are excluded
           # for non-Darwin build targets
           localDarwinPackages =
-            if makeNix.isDarwin system then
+            if makeNixLib.isDarwin system then
               import ./packages/darwin {
                 inherit system pkgs;
                 config = {
@@ -205,7 +214,7 @@
         # Combine our local cross-platform packages with the appropriate
         # Linux-only or Darwin-only local packages depending on the build target
         pkgs.lib.recursiveUpdate localPackages (
-          if makeNix.isLinux system then localLinuxPackages else localDarwinPackages
+          if makeNixLib.isLinux system then localLinuxPackages else localDarwinPackages
         )
       );
 
@@ -213,7 +222,7 @@
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
 
       # Flake wide overlays accessible though ouputs.overlays
-      overlays = import ./overlays { inherit inputs makeNix; };
+      overlays = import ./overlays { inherit inputs makeNixLib; };
 
       # Provide an easy import for all home-manager modules to each configuration
       homeModules = import ./modules/home-manager;
@@ -226,8 +235,8 @@
         _key: sa:
         nixpkgs.lib.nixosSystem {
           specialArgs = {
-            inherit inputs outputs makeNix;
-            makeNixAttrs = makeNix.makeAttrsCtx sa;
+            inherit inputs outputs makeNixLib;
+            makeNixAttrs = makeNixLib.makeAttrsCtx sa;
           };
           modules = [
             (
@@ -256,8 +265,8 @@
         _key: sa:
         nix-darwin.lib.darwinSystem {
           specialArgs = {
-            inherit inputs outputs makeNix;
-            makeNixAttrs = makeNix.makeAttrsCtx sa;
+            inherit inputs outputs makeNixLib;
+            makeNixAttrs = makeNixLib.makeAttrsCtx sa;
           };
           modules = [
             (

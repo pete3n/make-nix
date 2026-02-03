@@ -3,6 +3,7 @@
   inputs,
   lib,
   pkgs,
+  makeNixLib,
   makeNixAttrs,
   homeModules,
   ...
@@ -37,7 +38,8 @@ let
 in
 {
   imports =
-    builtins.attrValues homeModules
+		[ inputs.pete3n-mods.homeManagerModules.linux.default ]
+		++ builtins.attrValues homeModules
     ++ [
       ../cross-platform/alacritty-config.nix
       ../cross-platform/git-config.nix
@@ -131,7 +133,7 @@ in
         unstable.teams-for-linux
 
         ## CLI utilities
-				age # Age encryption utilties
+        age # Age encryption utilties
         asciinema # Terminal recorder
         bandwhich # Network utilization monitor
         cdrkit # CD writing tools
@@ -146,7 +148,7 @@ in
         hyperfine # CLI benchmark tool
         jc # JSON converter
         jq # JSON processor
-				lsof # List open files
+        lsof # List open files
         lynx # Text-mode browser
         magic-wormhole # Easy remote file transfer - python
         magic-wormhole-rs # Easy remote file transfer - rust
@@ -154,8 +156,8 @@ in
         mutt # Terminal email
         navi # Cheat-sheets
         nb # CLI note-taking
-				nix-search-tv # Awesome Nix package fuzzy finder
-				nix-inspect # Awesome Nix flake explorer
+        nix-search-tv # Awesome Nix package fuzzy finder
+        nix-inspect # Awesome Nix flake explorer
         nix-tree # Interactively browse Nix store dependencies
         procs # Better process viewer
         python311Packages.base58
@@ -163,7 +165,7 @@ in
         ripgrep-all # rg with PDF, office doc, compress file support
         rsync
         sd # Better sed
-				sops # Secrets management
+        sops # Secrets management
         speedtest-cli # Internet speed test CLI
         sshs # SSH config manager TUI
         tldr # Better man pages
@@ -225,13 +227,14 @@ in
       ];
     };
 
-    battery-minder = {
-      enable = true;
-    };
+    powerproud = {
+			enable = true;
+		};
 
-    power-profile-switcher = {
-      enable = true;
-    };
+    batmond = {
+			enable = lib.mkDefault (makeNixLib.hasTag "laptop" makeNixAttrs.tags);
+			warnBelowPercent = 90;
+		};
   };
 
   # Modules with additional program configuration
@@ -250,47 +253,47 @@ in
       enable = true;
     };
 
-		ssh = {
-			enable = true;
-			enableDefaultConfig = false;
-			matchBlocks = {
-				"framework-dt" = {
-					hostname = "framework-dt.p22";
-					user = "pete";
-					identityFile = "/home/${makeNixAttrs.user}/.ssh/id_ed25519_sk_rk_p22";
-					identitiesOnly = true;
-				};
-				"backupsvr" = {
-					hostname = "backupsvr.p22";
-					user = "root";
-					identityFile = "/home/${makeNixAttrs.user}/.ssh/id_ed25519_sk_rk_p22";
-					identitiesOnly = true;
-				};
-				"mediasvr" = {
-					hostname = "media.p22";
-					user = "root";
-					identityFile = "/home/${makeNixAttrs.user}/.ssh/id_ed25519_sk_rk_p22";
-					identitiesOnly = true;
-				};
-				"github" = {
-					hostname = "github.com";
-					user = "git";
-					identityFile = "/home/${makeNixAttrs.user}/.ssh/id_ed25519_sk_rk_github";
-					identitiesOnly = true;
-				};
-			};
-		};
+    ssh = {
+      enable = true;
+      enableDefaultConfig = false;
+      matchBlocks = {
+        "framework-dt" = {
+          hostname = "framework-dt.p22";
+          user = "pete";
+          identityFile = "/home/${makeNixAttrs.user}/.ssh/id_ed25519_sk_rk_p22";
+          identitiesOnly = true;
+        };
+        "backupsvr" = {
+          hostname = "backupsvr.p22";
+          user = "root";
+          identityFile = "/home/${makeNixAttrs.user}/.ssh/id_ed25519_sk_rk_p22";
+          identitiesOnly = true;
+        };
+        "mediasvr" = {
+          hostname = "media.p22";
+          user = "root";
+          identityFile = "/home/${makeNixAttrs.user}/.ssh/id_ed25519_sk_rk_p22";
+          identitiesOnly = true;
+        };
+        "github" = {
+          hostname = "github.com";
+          user = "git";
+          identityFile = "/home/${makeNixAttrs.user}/.ssh/id_ed25519_sk_rk_github";
+          identitiesOnly = true;
+        };
+      };
+    };
 
-		# Import resident keys from Yubikey if any are missing from ~/.ssh
-		import-yubikey-ssh = {
-			enable = true;
-			userKeys = [
-				"id_ed25519_sk_rk_aws"
-				"id_ed25519_sk_rk_github"
-				"id_ed25519_sk_rk_linode"
-				"id_ed25519_sk_rk_p22"
-			];
-		};
+    # Import resident keys from Yubikey if any are missing from ~/.ssh
+    import-yubikey-ssh = {
+      enable = true;
+      userKeys = [
+        "id_ed25519_sk_rk_aws"
+        "id_ed25519_sk_rk_github"
+        "id_ed25519_sk_rk_linode"
+        "id_ed25519_sk_rk_p22"
+      ];
+    };
 
     clip58.enable = true;
     quick-notes.enable = true;

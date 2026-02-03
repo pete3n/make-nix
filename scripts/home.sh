@@ -31,12 +31,16 @@ _build_home() {
   [ "${dry_switch}" = "--dry-run" ] && \
     logf "\n%binfo: DRY_RUN%b: no result output will be created.\n" "${C_INFO}" "${C_RST}"
 
-  set -- nix build --max-jobs auto --cores 0 --print-build-logs
-  [ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
+  set -- nix build --max-jobs auto --cores 0 --print-build-logs 
+	if is_truthy "${NO_SUB:-}"; then
+		set -- "$@" --option substitute false
+	fi
+	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
+
   set -- "$@" --out-link "result-${_flake_key}-home" \
     "path:${flake_root}#homeConfigurations.\"${_flake_key}\".activationPackage"
 
-  print_cmd NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
+  print_cmd NIX_CONFIG='"extra-experimental-features = nix-command flakes"' "$@"
   NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@" || err 1 "Home build failed."
 
   logf "\n%b✓ Home build success.%b\n" "${C_OK}" "${C_RST}"
@@ -82,12 +86,14 @@ _switch_home() {
 		logf "\n%binfo: DRY_RUN%b: no result output will be created.\n" "${C_INFO}" "${C_RST}"
 	fi
  
-	set -- "$@" switch -b "${_backup_ext}" \
-		--max-jobs auto --cores 0 
+	set -- "$@" switch -b "${_backup_ext}" --max-jobs auto --cores 0 
 	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
+	if is_truthy "${NO_SUB:-}"; then
+		set -- "$@" --no-substitute
+	fi
 	set -- "$@" --flake "path:${flake_root}#${_flake_key}"
 
-	print_cmd -- env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
+	print_cmd -- env NIX_CONFIG='"extra-experimental-features = nix-command flakes"' "$@"
 
 	if env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
 		logf "\n%b✓ Home-manager configuration switch success.%b\n" "${C_OK}" "${C_RST}"

@@ -18,4 +18,6 @@ rec {
 		useKeys = makeAttrs.useKeys or false;
 		useCache = makeAttrs.useCache or false;
 	};
+
+  hasTag = tag: tags: builtins.elem tag tags;
 }

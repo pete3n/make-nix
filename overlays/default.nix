@@ -3,7 +3,7 @@
 # Optionally accept makeNixAttrs (user/system context); if not provided, fall back to final.system.
 {
   inputs,
-  makeNix,
+  makeNixLib,
   makeNixAttrs ? null,
 }:
 let
@@ -14,14 +14,14 @@ let
     let
       sys = if makeNixAttrs == null then final.stdenv.hostPlatform.system else makeNixAttrs.system;
     in
-    makeNix.isLinux sys;
+    makeNixLib.isLinux sys;
 
   isDarwinFor =
     final:
     let
       sys = if makeNixAttrs == null then final.stdenv.hostPlatform.system else makeNixAttrs.system;
     in
-    makeNix.isDarwin sys;
+    makeNixLib.isDarwin sys;
 
   # Import local pkgs from ./packages as overlays.local-packages and prepend
   # them with local to differentiate between nixpkgs version. Call with pkgs.local

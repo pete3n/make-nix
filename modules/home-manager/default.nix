@@ -1,6 +1,5 @@
 {
 	backup = import ./cross-platform/backup.nix;
-	battery-minder = import ./linux/battery-minder.nix;
   clip58 = import ./cross-platform/clip58.nix;
 	import-yubikey-ssh = import ./cross-platform/import-yubikey-ssh.nix;
   lazydocker = import ./cross-platform/lazydocker.nix;
