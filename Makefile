@@ -76,7 +76,7 @@ show-help:
 #
 
 .PHONY: install
-install: prep-goal write-attrs-sh install-sh clean-sh
+install: prep-goal install-sh clean-sh
 
 .PHONY: install-sh
 install-sh:
