@@ -81,11 +81,9 @@ _find_attrs_path() {
 			*)  printf "%s/%s\n" "$(pwd)" "${_test_path#./}" ;;
 		esac
 		return 0
+	else 
+		return 1
 	fi
-
-	_msg="Nix attribute file ${C_PATH}${_filename}${C_RST} not found in:\n${C_PATH}"
-	_msg="${_msg} ${_base_path}${C_RST} or any subdirectory."
-	err 1 "${_msg}"
 }
 
 # Flag invalid configuration options
