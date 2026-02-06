@@ -371,7 +371,7 @@ check_attrs() {
 
 		# Print command to stderr so it shows up immediately
 		# shellcheck disable=SC2086
-		print_cmd nix eval --no-warn-dirty --impure --raw "$_expr" >&2
+		print_cmd nix eval --extra-experimental-features nix-command --extra-experimental-features flakes --no-warn-dirty --impure --raw "$_expr" >&2
 
 		if [ "${_use_script}" = "true" ]; then
 				# Force script to run without buffering issues
