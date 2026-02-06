@@ -364,8 +364,7 @@ check_attrs() {
 
 	_eval_drv() {
 		_expr="${1}"
-		_eval_env="NIX_CONFIG='extra-experimental-features = nix-commmand flakes'"
-		_eval_cmd="${_eval_env} nix eval --no-warn-dirty --impure --raw ${_expr}"
+		_eval_cmd="nix eval --extra-experimental-features nix-command --extra-experimental-features flakes --no-warn-dirty --impure --raw ${_expr}"
 		_rcfile="${MAKE_NIX_TMPDIR:-/tmp}/nix-eval.$$.rc"
 		_outfile="${MAKE_NIX_TMPDIR:-/tmp}/nix-eval.$$.out"
 		_use_script="$(normalize_bool "${USE_SCRIPT:-}")"
