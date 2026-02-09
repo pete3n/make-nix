@@ -37,22 +37,23 @@ let
 
 in
 {
-  imports =
-		[ inputs.pete3n-mods.homeManagerModules.linux.default ]
-		++ builtins.attrValues homeModules
-    ++ [
-      ../cross-platform/alacritty-config.nix
-      ../cross-platform/git-config.nix
-      ../cross-platform/cli-programs.nix
-      ./awesome-config.nix
-      ./bash-config.nix
-      ./firefox-config.nix
-      ./media-tools.nix
-      ./theme-style.nix
-      ./tmux-config.nix
-      ./yubikey-u2f.nix
-    ]
-    ++ tagImports;
+  imports = [
+    inputs.pete3n-mods.homeManagerModules.linux.default
+  ]
+  ++ builtins.attrValues homeModules
+  ++ [
+    ../cross-platform/alacritty-config.nix
+    ../cross-platform/git-config.nix
+    ../cross-platform/cli-programs.nix
+    ./awesome-config.nix
+    ./bash-config.nix
+    ./firefox-config.nix
+    ./media-tools.nix
+    ./theme-style.nix
+    ./tmux-config.nix
+    ./yubikey-u2f.nix
+  ]
+  ++ tagImports;
 
   nixpkgs = {
     config = {
@@ -228,13 +229,12 @@ in
     };
 
     powerproud = {
-			enable = true;
-		};
+      enable = true;
+    };
 
     batmond = {
-			enable = lib.mkDefault (makeNixLib.hasTag "laptop" makeNixAttrs.tags);
-			warnBelowPercent = 90;
-		};
+      enable = lib.mkDefault (makeNixLib.hasTag "laptop" makeNixAttrs.tags);
+    };
   };
 
   # Modules with additional program configuration
