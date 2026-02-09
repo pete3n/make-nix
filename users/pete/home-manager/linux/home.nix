@@ -88,6 +88,16 @@ in
         XDG_PROJECT_DIR = "/home/${makeNixAttrs.user}/Projects";
       };
     };
+
+    mimeApps = {
+      enable = true;
+      associations.added = {
+        "application/pdf" = [ "org.kde.okular.desktop" ];
+      };
+      defaultApplications = {
+					"application/pdf" = [ "org.kde.okular.desktop" ];
+      };
+    };
   };
 
   home = {
