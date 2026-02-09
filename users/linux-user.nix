@@ -34,14 +34,6 @@ let
     yubi-age-user = "User that uses a hardware Yubikey to manage age secrets.";
   };
 
-  # TODO: refactor hard-coded keys
-  userSshKeys = [
-    # Primary Yubikey
-    "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIEFU2BKDdywiMqeD7LY8lgKeBo0mjHEyP7ej+Y2JNuJDAAAABHNzaDo= pete@framework16"
-    # Backup Yubikey
-    "sk-ssh-ed25519@openssh.com AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAIHwNQ411TYRwGAGINX4i4FI7Ek7lfTQv0s8vbXmnqVh/AAAABHNzaDo= pete@framework16"
-  ];
-
   tagRoleGroups = lib.flatten (builtins.map (tag: tagGroupMap.${tag}) availableTags);
   tagRoleDescription = lib.concatStringsSep "; " (
     builtins.map (tag: tagDescriptionMap.${tag}) availableTags
@@ -58,7 +50,7 @@ in
     isNormalUser = true;
     description = tagRoleDescription;
     extraGroups = tagRoleGroups;
-    openssh.authorizedKeys.keys = lib.optionals (hasTag "sshuser") userSshKeys;
+    openssh.authorizedKeys.keys = lib.optionals (hasTag "sshuser") makeNixAttrs.sshPubKeys;
   };
 
   nix.settings.trusted-users = lib.mkIf (hasTag "trusteduser" || hasTag "poweruser") (
