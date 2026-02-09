@@ -60,7 +60,8 @@
 
   qt = {
     enable = true;
-    platformTheme.name = "gtk";
+    platformTheme.name = "adwaita";
     style.name = "adwaita-dark";
+		style.package = "adwaita-qt";
   };
 }
