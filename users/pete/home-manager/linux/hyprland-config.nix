@@ -1,8 +1,578 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }:
+let
+  mkWlrWkCfg =
+    {
+      anchor,
+      background,
+      border,
+      font,
+      menu,
+    }:
+    lib.generators.toYAML { } {
+      inherit
+        anchor
+        background
+        border
+        font
+        menu
+        ;
+      inhibit_compositor_keyboard_shortcuts = true;
+      auto_kbd_layout = true;
+    };
+
+  mkWlrWkMenu =
+    {
+      name,
+    }:
+    pkgs.writeShellScriptBin name # sh
+      ''
+        exec ${lib.getExe pkgs.wlr-which-key} "$@"
+      '';
+
+  mkWlrWkItem = item: {
+    key = item.menuKey;
+    desc = item.desc;
+    cmd = mkWlrWkHyprCmd item;
+  };
+
+  # Convert an item into the command which-key should execute.
+  mkWlrWkHyprCmd =
+    item:
+    let
+      type = item.type or "nop";
+      disp =
+        "hyprctl dispatch ${item.dispatch}"
+        + lib.optionalString ((item ? arg) && item.arg != null) " ${item.arg}";
+    in
+    if type == "dispatch" then
+      disp
+    else if type == "exec" then
+      item.cmd
+    else
+      "true"; # nop
+
+  # Hyprland bind line for an action (or null)
+  mkWlrWkHyprBind =
+    item:
+    let
+      type = item.type or "nop";
+      dispatch =
+        "${item.hyprKey}, ${item.dispatch}"
+        + lib.optionalString ((item ? arg) && item.arg != null) ", ${item.arg}";
+    in
+    if !(item ? hyprKey) || item.hyprKey == null then
+      null
+    else if type == "dispatch" then
+      dispatch
+    else if type == "exec" then
+      "${item.hyprKey}, exec, ${item.cmd}"
+    else
+      null; # nop does not generate Hypr binds
+
+  validateWlrWkItem =
+    item:
+    let
+      type = item.type or "nop";
+      ident = item.desc or (if item ? menuKey then "menuKey=" + toString item.menuKey else "<unknown>");
+      die = msg: throw "Action invalid (${ident}): ${msg}";
+    in
+    if
+      !(lib.elem type [
+        "nop"
+        "exec"
+        "dispatch"
+      ])
+    then
+      die "bad type '${type}'"
+    else if !(item ? menuKey) then
+      die "missing menuKey"
+    else if !(item ? desc) then
+      die "missing desc"
+    else if type == "exec" && !(item ? cmd) then
+      die "type=exec missing cmd"
+    else if type == "dispatch" && !(item ? dispatch) then
+      die "type=dispatch missing dispatch"
+    else if (item ? hyprKey) && item.hyprKey == null then
+      die "hyprKey is null"
+    else if (item ? hyprKey) && item.hyprKey != null && type == "nop" then
+      die "type=nop cannot have hyprKey (would create a useless bind); set type=exec/dispatch or remove hyprKey"
+    else
+      item;
+
+  wlrWkItems = {
+    apps = [
+      {
+        type = "exec";
+        menuKey = "c";
+        desc = "Calculator";
+        cmd = "rofi -show-icons -combi-modi drun,run -show calc";
+      }
+      {
+        type = "exec";
+        menuKey = "e";
+        desc = "Emoji Picker";
+        cmd = "rofi -show-icons -combi-modi drun,run -show emoji";
+      }
+      {
+        type = "exec";
+        menuKey = "q";
+        hyprKey = "$mainMod, Q";
+        desc = "Terminal (Super + q)";
+        cmd = "alacritty";
+      }
+      {
+        type = "exec";
+        menuKey = "r";
+        hyprKey = "$mainMod, R";
+        desc = "Run (Super + r)";
+        cmd = "rofi -show-icons -combi-modi drun,run -show combi";
+      }
+      {
+        type = "exec";
+        menuKey = "t";
+        hyprKey = "$mainMod, T";
+        desc = "Tmux (Super + t)";
+        cmd = "alacritty -e tmux new-session -A -s main";
+      }
+      {
+        type = "exec";
+        menuKey = "v";
+        hyprKey = "$mainMod, V";
+        desc = "Clipboard (Super + v)";
+        cmd = "cliphist list | rofi -dmenu -display-columns 2 | cliphist decode | wl-copy";
+      }
+      {
+        type = "exec";
+        menuKey = "w";
+        hyprKey = "$mainMod SHIFT, w";
+        desc = "Wallpaper browser (Super + W)";
+        cmd = "waypaper";
+      }
+      {
+        type = "exec";
+        menuKey = "y";
+        hyprKey = "$mainMod, Y";
+        desc = "Yazi (Super + y)";
+        cmd = "alacritty -e yazi";
+      }
+    ];
+    window = [
+      {
+        type = "dispatch";
+        menuKey = "c";
+        hyprKey = "$mainMod, C";
+        desc = "Close active window";
+        dispatch = "killactive";
+      }
+      {
+        type = "dispatch";
+        menuKey = "f";
+        hyprKey = "$mainMod, F";
+        desc = "Fullscreen active window";
+        dispatch = "fullscreen";
+        arg = "1";
+      }
+      {
+        type = "dispatch";
+        menuKey = "l";
+        desc = "Toggle floating window";
+        dispatch = "togglefloating";
+      }
+      {
+        type = "dispatch";
+        menuKey = "p";
+        hyprKey = "$mainMod, P";
+        desc = "Pseudo (dwindle)";
+        dispatch = "pseudo";
+      }
+      {
+        type = "dispatch";
+        menuKey = "t";
+        hyprKey = "$mainMod, T";
+        desc = "Toggle split (dwindle)";
+        dispatch = "togglesplit";
+      }
+      {
+        type = "exec";
+        menuKey = "w";
+        hyprKey = "$mainMod, W";
+        desc = "Toggle waybar";
+        cmd = "pkill -SIGUSR1 waybar";
+      }
+    ];
+    lock = [
+      {
+        type = "exec";
+        menuKey = "l";
+        hyprKey = "$mainMod SHIFT, l";
+        desc = "Lock (hyprlock)";
+        cmd = "hyprlock";
+      }
+    ];
+    screenshots = [
+      {
+        type = "exec";
+        menuKey = "w";
+        hyprKey = "$mainMod, PRINT";
+        desc = "Window (hyprshot -m window)";
+        cmd = "hyprshot -m window";
+      }
+      {
+        type = "exec";
+        menuKey = "o";
+        hyprKey = ", PRINT";
+        desc = "Output (hyprshot -m output)";
+        cmd = "hyprshot -m output";
+      }
+      {
+        type = "exec";
+        menuKey = "r";
+        hyprKey = "$shiftMod, PRINT";
+        desc = "Region (hyprshot -m region)";
+        cmd = "hyprshot -m region";
+      }
+    ];
+    navigation = [
+      {
+        type = "dispatch";
+        menuKey = "h";
+        desc = "Focus left   (Super+h)";
+        hyprKey = "$mainMod, h";
+        dispatch = "movefocus";
+        arg = "l";
+      }
+      {
+        type = "dispatch";
+        menuKey = "j";
+        desc = "Focus down   (Super+j)";
+        hyprKey = "$mainMod, j";
+        dispatch = "movefocus";
+        arg = "d";
+      }
+      {
+        type = "dispatch";
+        menuKey = "k";
+        desc = "Focus up     (Super+k)";
+        hyprKey = "$mainMod, k";
+        dispatch = "movefocus";
+        arg = "u";
+      }
+      {
+        type = "dispatch";
+        menuKey = "l";
+        desc = "Focus right  (Super+l)";
+        hyprKey = "$mainMod, l";
+        dispatch = "movefocus";
+        arg = "r";
+      }
+
+      {
+        type = "dispatch";
+        menuKey = "H";
+        desc = "Move window left    (Super+Shift+h)";
+        hyprKey = "$mainMod SHIFT, h";
+        dispatch = "movewindow";
+        arg = "l";
+      }
+      {
+        type = "dispatch";
+        menuKey = "J";
+        desc = "Move window down    (Super+Shift+j)";
+        hyprKey = "$mainMod SHIFT, j";
+        dispatch = "movewindow";
+        arg = "d";
+      }
+      {
+        type = "dispatch";
+        menuKey = "K";
+        desc = "Move window up      (Super+Shift+k)";
+        hyprKey = "$mainMod SHIFT, k";
+        dispatch = "movewindow";
+        arg = "u";
+      }
+      {
+        type = "dispatch";
+        menuKey = "L";
+        desc = "Move window right   (Super+Shift+l)";
+        hyprKey = "$mainMod SHIFT, l";
+        dispatch = "movewindow";
+        arg = "r";
+      }
+    ];
+    workspaces = [
+      {
+        type = "dispatch";
+        menuKey = "1";
+        desc = "Switch to Workspace 1  (Super+1)";
+        hyprKey = "$mainMod, 1";
+        dispatch = "workspace";
+        arg = "1";
+      }
+      {
+        type = "dispatch";
+        menuKey = "2";
+        desc = "Switch to Workspace 2  (Super+2)";
+        hyprKey = "$mainMod, 2";
+        dispatch = "workspace";
+        arg = "2";
+      }
+      {
+        type = "dispatch";
+        menuKey = "3";
+        desc = "Switch to Workspace 3  (Super+3)";
+        hyprKey = "$mainMod, 3";
+        dispatch = "workspace";
+        arg = "3";
+      }
+      {
+        type = "dispatch";
+        menuKey = "4";
+        desc = "Switch to Workspace 4  (Super+4)";
+        hyprKey = "$mainMod, 4";
+        dispatch = "workspace";
+        arg = "4";
+      }
+      {
+        type = "dispatch";
+        menuKey = "5";
+        desc = "Switch to Workspace 5  (Super+5)";
+        hyprKey = "$mainMod, 5";
+        dispatch = "workspace";
+        arg = "5";
+      }
+      {
+        type = "dispatch";
+        menuKey = "6";
+        desc = "Switch to Workspace 6  (Super+6)";
+        hyprKey = "$mainMod, 6";
+        dispatch = "workspace";
+        arg = "6";
+      }
+      {
+        type = "dispatch";
+        menuKey = "7";
+        desc = "Switch to Workspace 7  (Super+7)";
+        hyprKey = "$mainMod, 7";
+        dispatch = "workspace";
+        arg = "7";
+      }
+      {
+        type = "dispatch";
+        menuKey = "8";
+        desc = "Switch to Workspace 8  (Super+8)";
+        hyprKey = "$mainMod, 8";
+        dispatch = "workspace";
+        arg = "8";
+      }
+      {
+        type = "dispatch";
+        menuKey = "9";
+        desc = "Switch to Workspace 9  (Super+9)";
+        hyprKey = "$mainMod, 9";
+        dispatch = "workspace";
+        arg = "9";
+      }
+      {
+        type = "dispatch";
+        menuKey = "0";
+        desc = "Switch to Workspace 10 (Super+0)";
+        hyprKey = "$mainMod, 0";
+        dispatch = "workspace";
+        arg = "10";
+      }
+      {
+        type = "dispatch";
+        menuKey = "1";
+        desc = "Move window to ws 1  (Super+Shift+1)";
+        hyprKey = "$mainMod SHIFT, 1";
+        dispatch = "movetoworkspace";
+        arg = "1";
+      }
+      {
+        type = "dispatch";
+        menuKey = "2";
+        desc = "Move window to ws 2  (Super+Shift+2)";
+        hyprKey = "$mainMod SHIFT, 2";
+        dispatch = "movetoworkspace";
+        arg = "2";
+      }
+      {
+        type = "dispatch";
+        menuKey = "3";
+        desc = "Move window to ws 3  (Super+Shift+3)";
+        hyprKey = "$mainMod SHIFT, 3";
+        dispatch = "movetoworkspace";
+        arg = "3";
+      }
+      {
+        type = "dispatch";
+        menuKey = "4";
+        desc = "Move window to ws 4  (Super+Shift+4)";
+        hyprKey = "$mainMod SHIFT, 4";
+        dispatch = "movetoworkspace";
+        arg = "4";
+      }
+      {
+        type = "dispatch";
+        menuKey = "5";
+        desc = "Move window to ws 5  (Super+Shift+5)";
+        hyprKey = "$mainMod SHIFT, 5";
+        dispatch = "movetoworkspace";
+        arg = "5";
+      }
+      {
+        type = "dispatch";
+        menuKey = "6";
+        desc = "Move window to ws 6  (Super+Shift+6)";
+        hyprKey = "$mainMod SHIFT, 6";
+        dispatch = "movetoworkspace";
+        arg = "6";
+      }
+      {
+        type = "dispatch";
+        menuKey = "7";
+        desc = "Move window to ws 7  (Super+Shift+7)";
+        hyprKey = "$mainMod SHIFT, 7";
+        dispatch = "movetoworkspace";
+        arg = "7";
+      }
+      {
+        type = "dispatch";
+        menuKey = "8";
+        desc = "Move window to ws 8  (Super+Shift+8)";
+        hyprKey = "$mainMod SHIFT, 8";
+        dispatch = "movetoworkspace";
+        arg = "8";
+      }
+      {
+        type = "dispatch";
+        menuKey = "9";
+        desc = "Move window to ws 9  (Super+Shift+9)";
+        hyprKey = "$mainMod SHIFT, 9";
+        dispatch = "movetoworkspace";
+        arg = "9";
+      }
+      {
+        type = "dispatch";
+        menuKey = "0";
+        desc = "Move window to ws 10 (Super+Shift+0)";
+        hyprKey = "$mainMod SHIFT, 0";
+        dispatch = "movetoworkspace";
+        arg = "10";
+      }
+      {
+        type = "dispatch";
+        menuKey = "d";
+        desc = "Workspace next (Super+wheel down)";
+        hyprKey = "$mainMod, mouse_down";
+        dispatch = "workspace";
+        arg = "e+1";
+      }
+      {
+        type = "dispatch";
+        menuKey = "u";
+        desc = "Workspace prev (Super+wheel up)";
+        hyprKey = "$mainMod, mouse_up";
+        dispatch = "workspace";
+        arg = "e-1";
+      }
+
+      {
+        type = "dispatch";
+        menuKey = "s";
+        desc = "Toggle scratch (Super+S)";
+        hyprKey = "$mainMod, S";
+        dispatch = "togglespecialworkspace";
+        arg = "magic";
+      }
+      {
+        type = "dispatch";
+        menuKey = "S";
+        desc = "Move to scratch (Super+Shift+S)";
+        hyprKey = "$mainMod SHIFT, S";
+        dispatch = "movetoworkspace";
+        arg = "special:magic";
+      }
+    ];
+  };
+
+  wlrWkMenu = [
+    {
+      key = "?";
+      desc = "Help";
+      submenu = [
+        {
+          key = "F1";
+          desc = "Searchable help (Super+F1)";
+          cmd = "rofi-help-menu";
+        }
+
+        {
+          key = "n";
+          desc = "Navigation";
+          submenu = map mkWlrWkItem wlrWkItems.navigation;
+        }
+
+        {
+          key = "w";
+          desc = "Workspaces";
+          submenu = map mkWlrWkItem wlrWkItems.workspaces;
+        }
+      ];
+    }
+    {
+      key = "a";
+      desc = "Apps / Launchers";
+      submenu = map mkWlrWkItem wlrWkItems.apps;
+    }
+    {
+      key = "w";
+      desc = "Window";
+      submenu = map mkWlrWkItem wlrWkItems.window;
+    }
+    {
+      key = "s";
+      desc = "Screenshots";
+      submenu = map mkWlrWkItem wlrWkItems.screenshots;
+    }
+    {
+      key = "l";
+      desc = "Lock";
+      submenu = map mkWlrWkItem wlrWkItems.lock;
+    }
+  ];
+
+  wlrWkCfgParams = {
+    anchor = "center";
+    background = "#282828d0";
+    border = "#4688fa";
+    font = "JetBrainsMono Nerd Font 24";
+    menu = wlrWkMenu;
+  };
+
+  wlrWkBin = mkWlrWkMenu {
+    name = "wlr-which-key";
+  };
+
+  wlrWkCfg = mkWlrWkCfg wlrWkCfgParams;
+
+  # Flatten all action groups you want to generate binds for:
+  hyprBindWkItems = map validateWlrWkItem (
+    wlrWkItems.apps
+    ++ wlrWkItems.lock
+    ++ wlrWkItems.navigation
+    ++ wlrWkItems.screenshots
+    ++ wlrWkItems.window
+    ++ wlrWkItems.workspaces
+  );
+
+  hyprBindsFromWkItems = lib.filter (bind: bind != null) (map mkWlrWkHyprBind hyprBindWkItems);
+in
 {
   imports = [
     ./hypr-scripts.nix
@@ -19,6 +589,20 @@
     };
   };
 
+  # All Wayland/Hyprland dependent packages
+  home.packages = with pkgs; [
+    cliphist # Clipboard manager for wayland with text and image support
+    grim # Screecap
+    hyprshot # Easy screenshot tool
+    hyprsysteminfo
+    slurp # Compositor screen selection tool
+    waypaper # Wallpaper picker
+    wdisplays # Graphical display layout for wayland
+    wev # Wayland environment diagnostics
+    wl-clipboard # Wayland clipboard
+    wlrWkBin
+  ];
+
   programs = {
     swaylock = {
       enable = true;
@@ -26,9 +610,9 @@
 
     hyprSuspendBlocker = {
       enable = true;
-			blockers = [
-				[ "extPower" ]
-			];
+      blockers = [
+        [ "extPower" ]
+      ];
     };
 
     hyprlock = {
@@ -170,18 +754,7 @@
     };
   };
 
-  # All Wayland/Hyprland dependent packages
-  home.packages = with pkgs; [
-    cliphist # Clipboard manager for wayland with text and image support
-    grim # Screecap
-    hyprshot # Easy screenshot tool
-    hyprsysteminfo
-    slurp # Compositor screen selection tool
-    waypaper # Wallpaper picker
-    wdisplays # Graphical display layout for wayland
-    wev # Wayland environment diagnostics
-    wl-clipboard # Wayland clipboard
-  ];
+  xdg.configFile."wlr-which-key/config.yaml".text = wlrWkCfg;
 
   wayland.windowManager.hyprland = {
     enable = true;
@@ -247,11 +820,20 @@
         "WLR_NO_HARDWARE_CURSORS,1"
       ];
 
+      # See https://wiki.hyprland.org/Configuring/Window-Rules/ for window rules
       # Fix for steam menus
       "windowrulev2" = [
         "stayfocused, title:^()$,class:^(steam)$"
         "minsize 1 1, title:^()$,class:^(steam)$"
-      ];
+      ]
+      ++
+        # PIP for Firefox video popouts
+        [
+          "float, title:^(Picture-in-Picture)$"
+          "pin, title:^(Picture-in-Picture)$"
+          "size 30% 30%, title:^(Picture-in-Picture)$"
+          "move 65% 5%, title:^(Picture-in-Picture)$"
+        ];
 
       general = {
         gaps_in = 4;
@@ -296,112 +878,32 @@
         ];
       };
 
+      # See https://wiki.hyprland.org/Configuring/Dwindle-Layout/ for more
       dwindle = {
-        # See https://wiki.hyprland.org/Configuring/Dwindle-Layout/ for more
         pseudotile = true; # master switch for pseudotiling. Enabling is bound to mainMod + P in the keybinds section below
         preserve_split = true; # you probably want this
       };
 
+      # See https://wiki.hyprland.org/Configuring/Master-Layout/ for more
       master = {
-        # See https://wiki.hyprland.org/Configuring/Master-Layout/ for more
         new_status = "master";
       };
 
+      # See https://wiki.hyprland.org/Configuring/Variables/ for more
       misc = {
-        # See https://wiki.hyprland.org/Configuring/Variables/ for more
         force_default_wallpaper = 0; # Set to 0 to disable the anime mascot wallpapers
       };
 
-      # Example per-device config
-      # See https://wiki.hyprland.org/Configuring/Keywords/#executing for more
-
-      # Example windowrule v1
-      # windowrule = float, ^(kitty)$
-      # Example windowrule v2
-      # windowrulev2 = float,class:^(kitty)$,title:^(kitty)$
-      # See https://wiki.hyprland.org/Configuring/Window-Rules/ for more
-
-      # See https://wiki.hyprland.org/Configuring/Keywords/ for more
+      # See https://wiki.hypr.land/Configuring/Binds/ for binds
       "$mainMod" = "SUPER";
+      "$shiftMod" = "SHIFT";
 
-      # Example binds, see https://wiki.hyprland.org/Configuring/Binds/ for more
+      # Binds built from wlr-which-key functions
       bind = [
         "$mainMod, F1, exec, rofi-help-menu"
-        "$mainMod, Q, exec, alacritty"
-        "$mainMod, return, exec, alacritty"
-        "$mainMod SHIFT, w, exec, waypaper"
-        "$mainMod, C, killactive"
-        "$mainMod, R, exec, rofi -show-icons -combi-modi drun,run -show combi"
-        "$mainMod, M, exec, rofi -show-icons -combi-modi drun,run -show calc"
-        "$mainMod, E, exec, rofi -show-icons -combi-modi drun,run -show emoji"
-        "$mainMod, V, exec, cliphist list | rofi -dmenu -display-columns 2 | cliphist decode | wl-copy"
-        "$mainMod, P, pseudo, # dwindle"
-        "$mainMod, T, togglesplit, # dwindle"
-        "$mainMod, W, exec, pkill -SIGUSR1 waybar" # Toggle waybar visibility
-        "$mainMod, Y, exec, alacritty -e yazi" # Launch yazi file manager
-
-        # Move focus with mainMod + arrow keys
-        "$mainMod, left, movefocus, l"
-        "$mainMod, right, movefocus, r"
-        "$mainMod, up, movefocus, u"
-        "$mainMod, down, movefocus, d"
-
-        # Move focus with mainMod + vim keys
-        "$mainMod, h, movefocus, l"
-        "$mainMod, l, movefocus, r"
-        "$mainMod, k, movefocus, u"
-        "$mainMod, j, movefocus, d"
-
-        # Move window with mainMod + vim keys
-        "$mainMod SHIFT, h, movewindow, l"
-        "$mainMod SHIFT, l, movewindow, r"
-        "$mainMod SHIFT, k, movewindow, u"
-        "$mainMod SHIFT, j, movewindow, d"
-
-        # Switch workspaces with mainMod + [0-9]
-        "$mainMod, 1, workspace, 1"
-        "$mainMod, 2, workspace, 2"
-        "$mainMod, 3, workspace, 3"
-        "$mainMod, 4, workspace, 4"
-        "$mainMod, 5, workspace, 5"
-        "$mainMod, 6, workspace, 6"
-        "$mainMod, 7, workspace, 7"
-        "$mainMod, 8, workspace, 8"
-        "$mainMod, 9, workspace, 9"
-        "$mainMod, 0, workspace, 10"
-
-        # Move active window to a workspace with mainMod + SHIFT + [0-9]
-        "$mainMod SHIFT, 1, movetoworkspace, 1"
-        "$mainMod SHIFT, 2, movetoworkspace, 2"
-        "$mainMod SHIFT, 3, movetoworkspace, 3"
-        "$mainMod SHIFT, 4, movetoworkspace, 4"
-        "$mainMod SHIFT, 5, movetoworkspace, 5"
-        "$mainMod SHIFT, 6, movetoworkspace, 6"
-        "$mainMod SHIFT, 7, movetoworkspace, 7"
-        "$mainMod SHIFT, 8, movetoworkspace, 8"
-        "$mainMod SHIFT, 9, movetoworkspace, 9"
-        "$mainMod SHIFT, 0, movetoworkspace, 10"
-
-        # Example special workspace (scratchpad)
-        "$mainMod, S, togglespecialworkspace, magic"
-        "$mainMod SHIFT, S, movetoworkspace, special:magic"
-
-        # Toggle fullscreen
-        "$mainMod, F, fullscreen, 1"
-
-        # Toggle lock
-        "$mainMod SHIFT, l, exec, hyprlock"
-
-        # Screenshots
-        "$mainMod, PRINT, exec, hyprshot -m window" # Window
-        ", PRINT, exec, hyprshot -m output" # Monitor output
-        "$shiftMod, PRINT, exec, hyprshot -m region" # Select region
-
-        # Scroll through existing workspaces with mainMod + scroll
-        "$mainMod, mouse_down, workspace, e+1"
-        "$mainMod, mouse_up, workspace, e-1"
-      ];
-
+        "$mainMod, space, exec, ${lib.getExe wlrWkBin}"
+      ]
+      ++ hyprBindsFromWkItems;
       bindm = [
         # Move/resize windows with mainMod + LMB/RMB and dragging
         "$mainMod, mouse:272, movewindow"
