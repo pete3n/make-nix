@@ -172,16 +172,21 @@
     hyprWhichKey = {
       enable = true;
       hypr = {
-        prettyMods = {
+        keyVars = {
+          "$mainMod" = "SUPER";
+          "$shiftMod" = "SHIFT";
+        };
+
+        printMods = {
           "SUPER" = "Super";
           "SHIFT" = "Shift";
           "CTRL" = "Ctrl";
           "ALT" = "Alt";
         };
-        keyVars = {
-          "$mainMod" = "SUPER";
-          "$shiftMod" = "SHIFT";
-        };
+
+        extraBinds = [
+          "$mainMod, F1, exec, rofi-help-menu"
+        ];
       };
       settings = {
         leaderKey = "$mainMod, space";
@@ -198,692 +203,33 @@
 
         menu.groups = {
           apps = {
-            key = "a";
             desc = "Apps/Launchers";
+            key = "a";
           };
-          window = {
-            key = "w";
-            desc = "Window";
-          };
-          navigation = {
-            key = "n";
-            desc = "Navigation";
-          };
-          workspaces = {
-            key = "W";
-            desc = "Workspaces";
+          display = {
+            key = "d";
+            desc = "Display";
+            submenu = [
+              {
+                key = "s";
+                desc = "Screenshots";
+                fromGroup = "screenshots";
+              }
+              {
+                desc = "Wallpaper select";
+                key = "w";
+                cmd = "waypaper";
+              }
+            ];
+
           };
           screenshots = {
             key = "s";
             desc = "Screenshots";
           };
-          power = {
-            key = "p";
-            desc = "Power/Lock";
-          };
-        };
-
-        menu.submenuGroups = [
-          "apps"
-          "power"
-          "screenshots"
-          "window"
-        ];
-
-        menu.bindGroups = [
-          "apps"
-          "navigation"
-          "power"
-          "screenshots"
-          "window"
-          "workspaces"
-        ];
-
-        menu.items.apps = [
-          {
-            desc = "Calculator";
-            menuKey = "c";
-            hyprAction = {
-              type = "exec";
-              cmd = "rofi -show-icons -combi-modi drun,run -show calc";
-            };
-          }
-          {
-            desc = "Emoji Picker";
-            menuKey = "e";
-            hyprAction = {
-              type = "exec";
-              cmd = "rofi -show-icons -combi-modi drun,run -show emoji";
-            };
-          }
-          {
-            desc = "Firefox";
-            menuKey = "f";
-            hyprAction = {
-              type = "exec";
-              cmd = "firefox";
-            };
-          }
-          {
-            desc = "Clipboard History";
-            menuKey = "h";
-            hyprAction = {
-              type = "exec";
-              cmd = "cliphist list | rofi -dmenu -display-columns 2 | cliphist decode | wl-copy";
-            };
-          }
-          {
-            desc = "Terminal";
-            menuKey = "q";
-            hyprKeyMod = [ "$mainMod" ];
-            hyprKey = "q";
-            hyprAction = {
-              type = "exec";
-              cmd = "alacritty";
-            };
-          }
-          {
-            desc = "Run";
-            menuKey = "r";
-            hyprKeyMod = [ "$mainMod" ];
-            hyprKey = "r";
-            hyprAction = {
-              type = "exec";
-              cmd = "rofi -show-icons -combi-modi drun,run -show combi";
-            };
-          }
-          {
-            desc = "Tmux";
-            menuKey = "t";
-            hyprKeyMod = [ "$mainMod" ];
-            hyprKey = "t";
-            hyprAction = {
-              type = "exec";
-              cmd = "alacritty -e tmux new-session -A -s main";
-            };
-          }
-          {
-            desc = "Wallpaper select";
-            menuKey = "w";
-            hyprAction = {
-              type = "exec";
-              cmd = "waypaper";
-            };
-          }
-          {
-            desc = "Yazi";
-            menuKey = "y";
-            hyprKeyMod = [ "$mainMod" ];
-            hyprKey = "y";
-            hyprAction = {
-              type = "exec";
-              cmd = "alacritty -e yazi";
-            };
-          }
-        ];
-
-        menu.items.power = [
-          {
-            desc = "Lock (hyprlock)";
-            menuKey = "l";
-            hyprAction = {
-              type = "exec";
-              cmd = "hyprlock";
-            };
-          }
-          {
-            desc = "Poweroff";
-            menuKey = "o";
-            hyprAction = {
-              type = "exec";
-              cmd = "poweroff";
-            };
-          }
-          {
-            desc = "Reboot";
-            menuKey = "r";
-            hyprAction = {
-              type = "exec";
-              cmd = "reboot";
-            };
-          }
-          {
-            desc = "Suspend";
-            menuKey = "s";
-            hyprAction = {
-              type = "exec";
-              cmd = "systemctl suspend";
-            };
-          }
-        ];
-
-        menu.items.window = [
-          {
-            desc = "Close active window";
-            menuKey = "c";
-            hyprKeyMod = [ "$mainMod" ];
-            hyprKey = "c";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "killactive";
-            };
-          }
-          {
-            desc = "Fullscreen active window";
-            menuKey = "f";
-            hyprKeyMod = [ "$mainMod" ];
-            hyprKey = "f";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "fullscreen";
-              arg = "1";
-            };
-          }
-          {
-            desc = "Toggle floating window";
-            menuKey = "l";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "togglefloating";
-            };
-          }
-          {
-            desc = "Pseudo";
-            menuKey = "p";
-            hyprKeyMod = [ "$mainMod" ];
-            hyprKey = "p";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "pseudo";
-            };
-          }
-          {
-            desc = "Toggle horizontal/vertical";
-            menuKey = "T";
-            hyprKeyMod = [ "$mainMod" "$shiftMod" ];
-            hyprKey = "T";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "togglesplit";
-            };
-          }
-          {
-            desc = "Toggle waybar";
-            menuKey = "w";
-            hyprKeyMod = [ "$mainMod" ];
-            hyprKey = "w";
-            hyprAction = {
-              type = "exec";
-              cmd = "pkill -SIGUSR1 waybar";
-            };
-          }
-        ];
-
-        menu.items.screenshots = [
-          {
-            desc = "Window (hyprshot -m window)";
-            menuKey = "w";
-            hyprKeyMod = [ "$mainMod" ];
-            hyprKey = "PRINT";
-            hyprAction = {
-              type = "exec";
-              cmd = "hyprshot -m window";
-            };
-          }
-          {
-            desc = "Output (hyprshot -m output)";
-            menuKey = "o";
-            hyprKey = "PRINT";
-            hyprAction = {
-              type = "exec";
-              cmd = "hyprshot -m output";
-            };
-          }
-          {
-            desc = "Region (hyprshot -m region)";
-            menuKey = "r";
-            hyprKeyMod = [ "$shiftMod" ];
-            hyprKey = "PRINT";
-            hyprAction = {
-              type = "exec";
-              cmd = "hyprshot -m region";
-            };
-          }
-        ];
-
-        menu.items.navigation = [
-          {
-            desc = "Focus left";
-            menuKey = "h";
-            hyprKeyMod = [ "$mainMod" ];
-            hyprKey = "h";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "movefocus";
-              arg = "l";
-            };
-          }
-          {
-            desc = "Focus down";
-            menuKey = "j";
-            hyprKeyMod = [ "$mainMod" ];
-            hyprKey = "j";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "movefocus";
-              arg = "d";
-            };
-          }
-          {
-            desc = "Focus up";
-            menuKey = "k";
-            hyprKeyMod = [ "$mainMod" ];
-            hyprKey = "k";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "movefocus";
-              arg = "u";
-            };
-          }
-          {
-            desc = "Focus right";
-            menuKey = "l";
-            hyprKeyMod = [ "$mainMod" ];
-            hyprKey = "l";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "movefocus";
-              arg = "r";
-            };
-          }
-          {
-            desc = "Move window left";
-            menuKey = "H";
-            hyprKeyMod = [
-              "$mainMod"
-              "$shiftMod"
-            ];
-            hyprKey = "h";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "movewindow";
-              arg = "l";
-            };
-          }
-          {
-            desc = "Move window down";
-            menuKey = "J";
-            hyprKeyMod = [
-              "$mainMod"
-              "$shiftMod"
-            ];
-            hyprKey = "j";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "movewindow";
-              arg = "d";
-            };
-          }
-          {
-            desc = "Move window up";
-            menuKey = "K";
-            hyprKeyMod = [
-              "$mainMod"
-              "$shiftMod"
-            ];
-            hyprKey = "k";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "movewindow";
-              arg = "u";
-            };
-          }
-          {
-            desc = "Move window right";
-            menuKey = "L";
-            hyprKeyMod = [
-              "$mainMod"
-              "$shiftMod"
-            ];
-            hyprKey = "l";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "movewindow";
-              arg = "r";
-            };
-          }
-        ];
-
-        menu.items.workspaces = [
-          {
-            desc = "Switch to Workspace 1";
-            menuKey = "1";
-            hyprKeyMod = [
-              "$mainMod"
-            ];
-            hyprKey = "1";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "workspace";
-              arg = "1";
-            };
-          }
-          {
-            desc = "Switch to Workspace 2";
-            menuKey = "2";
-            hyprKeyMod = [
-              "$mainMod"
-            ];
-            hyprKey = "2";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "workspace";
-              arg = "2";
-            };
-          }
-          {
-            desc = "Switch to Workspace 3";
-            menuKey = "3";
-            hyprKeyMod = [
-              "$mainMod"
-            ];
-            hyprKey = "3";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "workspace";
-              arg = "3";
-            };
-          }
-          {
-            desc = "Switch to Workspace 4";
-            menuKey = "4";
-            hyprKeyMod = [
-              "$mainMod"
-            ];
-            hyprKey = "4";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "workspace";
-              arg = "4";
-            };
-          }
-          {
-            desc = "Switch to Workspace 5";
-            menuKey = "5";
-            hyprKeyMod = [
-              "$mainMod"
-            ];
-            hyprKey = "5";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "workspace";
-              arg = "5";
-            };
-          }
-          {
-            desc = "Switch to Workspace 6";
-            menuKey = "6";
-            hyprKeyMod = [
-              "$mainMod"
-            ];
-            hyprKey = "6";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "workspace";
-              arg = "6";
-            };
-          }
-          {
-            desc = "Switch to Workspace 7";
-            menuKey = "7";
-            hyprKeyMod = [
-              "$mainMod"
-            ];
-            hyprKey = "7";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "workspace";
-              arg = "7";
-            };
-          }
-          {
-            desc = "Switch to Workspace 8";
-            menuKey = "8";
-            hyprKeyMod = [
-              "$mainMod"
-            ];
-            hyprKey = "8";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "workspace";
-              arg = "8";
-            };
-          }
-          {
-            desc = "Switch to Workspace 9";
-            menuKey = "9";
-            hyprKeyMod = [
-              "$mainMod"
-            ];
-            hyprKey = "9";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "workspace";
-              arg = "9";
-            };
-          }
-          {
-            desc = "Switch to Workspace 10";
-            menuKey = "0";
-            hyprKeyMod = [
-              "$mainMod"
-            ];
-            hyprKey = "0";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "workspace";
-              arg = "10";
-            };
-          }
-          {
-            desc = "Move window to WS 1";
-            menuKey = "1";
-            hyprKeyMod = [
-              "$mainMod"
-              "$shiftMod"
-            ];
-            hyprKey = "1";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "movetoworkspace";
-              arg = "1";
-            };
-          }
-          {
-            desc = "Move window to WS 2";
-            menuKey = "2";
-            hyprKeyMod = [
-              "$mainMod"
-              "$shiftMod"
-            ];
-            hyprKey = "2";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "movetoworkspace";
-              arg = "2";
-            };
-          }
-          {
-            desc = "Move window to WS 3";
-            menuKey = "3";
-            hyprKeyMod = [
-              "$mainMod"
-              "$shiftMod"
-            ];
-            hyprKey = "3";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "movetoworkspace";
-              arg = "3";
-            };
-          }
-          {
-            desc = "Move window to WS 4";
-            menuKey = "4";
-            hyprKeyMod = [
-              "$mainMod"
-              "$shiftMod"
-            ];
-            hyprKey = "4";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "movetoworkspace";
-              arg = "4";
-            };
-          }
-          {
-            desc = "Move window to WS 5";
-            menuKey = "5";
-            hyprKeyMod = [
-              "$mainMod"
-              "$shiftMod"
-            ];
-            hyprKey = "5";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "movetoworkspace";
-              arg = "5";
-            };
-          }
-          {
-            desc = "Move window to WS 6";
-            menuKey = "6";
-            hyprKeyMod = [
-              "$mainMod"
-              "$shiftMod"
-            ];
-            hyprKey = "6";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "movetoworkspace";
-              arg = "6";
-            };
-          }
-          {
-            desc = "Move window to WS 7";
-            menuKey = "7";
-            hyprKeyMod = [
-              "$mainMod"
-              "$shiftMod"
-            ];
-            hyprKey = "7";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "movetoworkspace";
-              arg = "7";
-            };
-          }
-          {
-            desc = "Move window to WS 8";
-            menuKey = "8";
-            hyprKeyMod = [
-              "$mainMod"
-              "$shiftMod"
-            ];
-            hyprKey = "8";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "movetoworkspace";
-              arg = "8";
-            };
-          }
-          {
-            desc = "Move window to WS 9";
-            menuKey = "9";
-            hyprKeyMod = [
-              "$mainMod"
-              "$shiftMod"
-            ];
-            hyprKey = "9";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "movetoworkspace";
-              arg = "9";
-            };
-          }
-          {
-            desc = "Move window to WS 10";
-            menuKey = "0";
-            hyprKeyMod = [
-              "$mainMod"
-              "$shiftMod"
-            ];
-            hyprKey = "0";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "movetoworkspace";
-              arg = "10";
-            };
-          }
-          {
-            desc = "Workspace next";
-            menuKey = "d";
-            hyprKeyMod = [
-              "$mainMod"
-            ];
-            hyprKey = "mouse_down";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "workspace";
-              arg = "e+1";
-            };
-          }
-          {
-            desc = "Workspace prev";
-            menuKey = "u";
-            hyprKeyMod = [
-              "$mainMod"
-            ];
-            hyprKey = "mouse_up";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "workspace";
-              arg = "e-1";
-            };
-          }
-          {
-            desc = "Toggle scratch";
-            menuKey = "s";
-            hyprKeyMod = [
-              "$mainMod"
-            ];
-            hyprKey = "s";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "togglespecialworkspace";
-              arg = "magic";
-            };
-          }
-          {
-            desc = "Move to scratch";
-            menuKey = "S";
-            hyprKeyMod = [
-              "$mainMod"
-              "$shiftMod"
-            ];
-            hyprKey = "S";
-            hyprAction = {
-              type = "dispatch";
-              dispatch = "movetoworkspace";
-              arg = "special:magic";
-            };
-          }
-        ];
-
-        menu.prefixEntries = [
-          {
-            key = "?";
+          help = {
             desc = "Help";
+            key = "?";
             submenu = [
               {
                 key = "F1";
@@ -901,15 +247,739 @@
                 desc = "Workspaces";
               }
             ];
+          };
+          navigation = {
+            desc = "Navigation";
+            key = "n";
+          };
+          power = {
+            desc = "Power/Lock";
+            key = "p";
+          };
+          window = {
+            desc = "Window";
+            key = "w";
+          };
+          workspaces = {
+            desc = "Workspaces";
+            key = "W";
+          };
+        };
+
+        menu.order = [
+          "help"
+          "apps"
+          "display"
+          "power"
+          "window"
+        ];
+
+        menu.entries.apps = [
+          {
+            desc = "Calculator";
+            menuKey = "c";
+            cmd = "rofi -show-icons -combi-modi drun,run -show calc";
+          }
+          {
+            desc = "Emoji Picker";
+            menuKey = "e";
+            cmd = "rofi -show-icons -combi-modi drun,run -show emoji";
+          }
+          {
+            desc = "Firefox";
+            menuKey = "f";
+            cmd = "firefox";
+          }
+          {
+            desc = "Clipboard History";
+            menuKey = "h";
+            cmd = "cliphist list | rofi -dmenu -display-columns 2 | cliphist decode | wl-copy";
+          }
+          {
+            desc = "Terminal";
+            menuKey = "q";
+            hyprBind = {
+              mods = [ "$mainMod" ];
+              key = "q";
+              action = {
+                type = "exec";
+                cmd = "alacritty";
+              };
+            };
+          }
+          {
+            desc = "Run";
+            menuKey = "r";
+            hyprBind = {
+              mods = [ "$mainMod" ];
+              key = "r";
+              action = {
+                type = "exec";
+                cmd = "rofi -show-icons -combi-modi drun,run -show combi";
+              };
+            };
+          }
+          {
+            desc = "Tmux";
+            menuKey = "t";
+            hyprBind = {
+              mods = [ "$mainMod" ];
+              key = "t";
+              action = {
+                type = "exec";
+                cmd = "alacritty -e tmux new-session -A -s main";
+              };
+            };
+          }
+          {
+            desc = "Yazi";
+            menuKey = "y";
+            hyprBind = {
+              mods = [ "$mainMod" ];
+              key = "y";
+              action = {
+                type = "exec";
+                cmd = "alacritty -e yazi";
+              };
+            };
           }
         ];
 
-        menu.suffixEntries = [ ];
-      };
+        menu.entries.power = [
+          {
+            desc = "Lock (hyprlock)";
+            menuKey = "l";
+            cmd = "hyprlock";
+          }
+          {
+            desc = "Poweroff";
+            menuKey = "o";
+            cmd = "poweroff";
+          }
+          {
+            desc = "Reboot";
+            menuKey = "r";
+            cmd = "reboot";
+          }
+          {
+            desc = "Suspend";
+            menuKey = "s";
+            cmd = "systemctl suspend";
+          }
+        ];
 
-      extraBinds = [
-        "$mainMod, F1, exec, rofi-help-menu"
-      ];
+        menu.entries.window = [
+          {
+            desc = "Close active window";
+            menuKey = "c";
+            hyprBind = {
+              mods = [ "$mainMod" ];
+              key = "c";
+              action = {
+                type = "dispatch";
+                dispatch = "killactive";
+              };
+            };
+          }
+          {
+            desc = "Fullscreen active window";
+            menuKey = "f";
+            hyprBind = {
+              mods = [ "$mainMod" ];
+              key = "f";
+              action = {
+                type = "dispatch";
+                dispatch = "fullscreen";
+                arg = "1";
+              };
+            };
+          }
+          {
+            desc = "Toggle floating window";
+            menuKey = "l";
+            cmd = "hyprctl dispatch togglefloating";
+          }
+          {
+            desc = "Pseudo";
+            menuKey = "p";
+            hyprBind = {
+              mods = [ "$mainMod" ];
+              key = "p";
+              action = {
+                type = "dispatch";
+                dispatch = "pseudo";
+              };
+
+            };
+          }
+          {
+            desc = "Toggle horizontal/vertical";
+            menuKey = "T";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+                "$shiftMod"
+              ];
+              key = "T";
+              action = {
+                type = "dispatch";
+                dispatch = "togglesplit";
+              };
+
+            };
+          }
+          {
+            desc = "Toggle waybar";
+            menuKey = "w";
+            hyprBind = {
+              mods = [ "$mainMod" ];
+              key = "w";
+              action = {
+                type = "exec";
+                cmd = "pkill -SIGUSR1 waybar";
+              };
+            };
+          }
+        ];
+
+        menu.entries.screenshots = [
+          {
+            desc = "Edit last screenshot (gimp)";
+            menuKey = "e";
+            cmd = "gimp ${config.xdg.userDirs.pictures}/$(ls ${config.xdg.userDirs.pictures} -t | grep -e 'hyprshot.png' | head -n1)";
+          }
+          {
+            desc = "Output (hyprshot -m output)";
+            menuKey = "o";
+            hyprBind = {
+              key = "PRINT";
+              action = {
+                type = "exec";
+                cmd = "hyprshot -m output";
+              };
+            };
+          }
+          {
+            desc = "Region (hyprshot -m region)";
+            menuKey = "r";
+            hyprBind = {
+              mods = [ "$shiftMod" ];
+              key = "PRINT";
+              action = {
+                type = "exec";
+                cmd = "hyprshot -m region";
+              };
+            };
+          }
+          {
+            desc = "Window (hyprshot -m window)";
+            menuKey = "w";
+            hyprBind = {
+              mods = [ "$mainMod" ];
+              key = "PRINT";
+              action = {
+                type = "exec";
+                cmd = "hyprshot -m window";
+              };
+            };
+          }
+        ];
+
+        menu.entries.navigation = [
+          {
+            desc = "Focus left";
+            menuKey = "h";
+            hyprBind = {
+              mods = [ "$mainMod" ];
+              key = "h";
+              action = {
+                type = "dispatch";
+                dispatch = "movefocus";
+                arg = "l";
+              };
+            };
+          }
+          {
+            desc = "Focus down";
+            menuKey = "j";
+            hyprBind = {
+              mods = [ "$mainMod" ];
+              key = "j";
+              action = {
+                type = "dispatch";
+                dispatch = "movefocus";
+                arg = "d";
+              };
+            };
+          }
+          {
+            desc = "Focus up";
+            menuKey = "k";
+            hyprBind = {
+              mods = [ "$mainMod" ];
+              key = "k";
+              action = {
+                type = "dispatch";
+                dispatch = "movefocus";
+                arg = "u";
+              };
+            };
+          }
+          {
+            desc = "Focus right";
+            menuKey = "l";
+            hyprBind = {
+              mods = [ "$mainMod" ];
+              key = "l";
+              action = {
+                type = "dispatch";
+                dispatch = "movefocus";
+                arg = "r";
+              };
+            };
+          }
+          {
+            desc = "Move window left";
+            menuKey = "H";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+                "$shiftMod"
+              ];
+              key = "h";
+              action = {
+                type = "dispatch";
+                dispatch = "movewindow";
+                arg = "l";
+              };
+            };
+          }
+          {
+            desc = "Move window down";
+            menuKey = "J";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+                "$shiftMod"
+              ];
+              key = "j";
+              action = {
+                type = "dispatch";
+                dispatch = "movewindow";
+                arg = "d";
+              };
+            };
+          }
+          {
+            desc = "Move window up";
+            menuKey = "K";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+                "$shiftMod"
+              ];
+              key = "k";
+              action = {
+                type = "dispatch";
+                dispatch = "movewindow";
+                arg = "u";
+              };
+            };
+          }
+          {
+            desc = "Move window right";
+            menuKey = "L";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+                "$shiftMod"
+              ];
+              key = "l";
+              action = {
+                type = "dispatch";
+                dispatch = "movewindow";
+                arg = "r";
+              };
+            };
+          }
+        ];
+
+        menu.entries.workspaces = [
+          {
+            desc = "Switch to Workspace 1";
+            menuKey = "1";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+              ];
+              key = "1";
+              action = {
+                type = "dispatch";
+                dispatch = "workspace";
+                arg = "1";
+              };
+            };
+          }
+          {
+            desc = "Switch to Workspace 2";
+            menuKey = "2";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+              ];
+              key = "2";
+              action = {
+                type = "dispatch";
+                dispatch = "workspace";
+                arg = "2";
+              };
+            };
+          }
+          {
+            desc = "Switch to Workspace 3";
+            menuKey = "3";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+              ];
+              key = "3";
+              action = {
+                type = "dispatch";
+                dispatch = "workspace";
+                arg = "3";
+              };
+            };
+          }
+          {
+            desc = "Switch to Workspace 4";
+            menuKey = "4";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+              ];
+              key = "4";
+              action = {
+                type = "dispatch";
+                dispatch = "workspace";
+                arg = "4";
+              };
+            };
+          }
+          {
+            desc = "Switch to Workspace 5";
+            menuKey = "5";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+              ];
+              key = "5";
+              action = {
+                type = "dispatch";
+                dispatch = "workspace";
+                arg = "5";
+              };
+            };
+          }
+          {
+            desc = "Switch to Workspace 6";
+            menuKey = "6";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+              ];
+              key = "6";
+              action = {
+                type = "dispatch";
+                dispatch = "workspace";
+                arg = "6";
+              };
+            };
+          }
+          {
+            desc = "Switch to Workspace 7";
+            menuKey = "7";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+              ];
+              key = "7";
+              action = {
+                type = "dispatch";
+                dispatch = "workspace";
+                arg = "7";
+              };
+            };
+          }
+          {
+            desc = "Switch to Workspace 8";
+            menuKey = "8";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+              ];
+              key = "8";
+              action = {
+                type = "dispatch";
+                dispatch = "workspace";
+                arg = "8";
+              };
+            };
+          }
+          {
+            desc = "Switch to Workspace 9";
+            menuKey = "9";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+              ];
+              key = "9";
+              action = {
+                type = "dispatch";
+                dispatch = "workspace";
+                arg = "9";
+              };
+            };
+          }
+          {
+            desc = "Switch to Workspace 10";
+            menuKey = "0";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+              ];
+              key = "0";
+              action = {
+                type = "dispatch";
+                dispatch = "workspace";
+                arg = "10";
+              };
+            };
+          }
+          {
+            desc = "Move window to WS 1";
+            menuKey = "1";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+                "$shiftMod"
+              ];
+              key = "1";
+              action = {
+                type = "dispatch";
+                dispatch = "movetoworkspace";
+                arg = "1";
+              };
+            };
+          }
+          {
+            desc = "Move window to WS 2";
+            menuKey = "2";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+                "$shiftMod"
+              ];
+              key = "2";
+              action = {
+                type = "dispatch";
+                dispatch = "movetoworkspace";
+                arg = "2";
+              };
+            };
+          }
+          {
+            desc = "Move window to WS 3";
+            menuKey = "3";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+                "$shiftMod"
+              ];
+              key = "3";
+              action = {
+                type = "dispatch";
+                dispatch = "movetoworkspace";
+                arg = "3";
+              };
+            };
+          }
+          {
+            desc = "Move window to WS 4";
+            menuKey = "4";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+                "$shiftMod"
+              ];
+              key = "4";
+              action = {
+                type = "dispatch";
+                dispatch = "movetoworkspace";
+                arg = "4";
+              };
+            };
+          }
+          {
+            desc = "Move window to WS 5";
+            menuKey = "5";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+                "$shiftMod"
+              ];
+              key = "5";
+              action = {
+                type = "dispatch";
+                dispatch = "movetoworkspace";
+                arg = "5";
+              };
+            };
+          }
+          {
+            desc = "Move window to WS 6";
+            menuKey = "6";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+                "$shiftMod"
+              ];
+              key = "6";
+              action = {
+                type = "dispatch";
+                dispatch = "movetoworkspace";
+                arg = "6";
+              };
+            };
+          }
+          {
+            desc = "Move window to WS 7";
+            menuKey = "7";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+                "$shiftMod"
+              ];
+              key = "7";
+              action = {
+                type = "dispatch";
+                dispatch = "movetoworkspace";
+                arg = "7";
+              };
+            };
+          }
+          {
+            desc = "Move window to WS 8";
+            menuKey = "8";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+                "$shiftMod"
+              ];
+              key = "8";
+              action = {
+                type = "dispatch";
+                dispatch = "movetoworkspace";
+                arg = "8";
+              };
+            };
+          }
+          {
+            desc = "Move window to WS 9";
+            menuKey = "9";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+                "$shiftMod"
+              ];
+              key = "9";
+              action = {
+                type = "dispatch";
+                dispatch = "movetoworkspace";
+                arg = "9";
+              };
+            };
+          }
+          {
+            desc = "Move window to WS 10";
+            menuKey = "0";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+                "$shiftMod"
+              ];
+              key = "0";
+              action = {
+                type = "dispatch";
+                dispatch = "movetoworkspace";
+                arg = "10";
+              };
+            };
+          }
+          {
+            desc = "Workspace next";
+            menuKey = "d";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+              ];
+              key = "mouse_down";
+              action = {
+                type = "dispatch";
+                dispatch = "workspace";
+                arg = "e+1";
+              };
+
+            };
+          }
+          {
+            desc = "Workspace prev";
+            menuKey = "u";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+              ];
+              key = "mouse_up";
+              action = {
+                type = "dispatch";
+                dispatch = "workspace";
+                arg = "e-1";
+              };
+
+            };
+          }
+          {
+            desc = "Toggle scratch";
+            menuKey = "s";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+              ];
+              key = "s";
+              action = {
+                type = "dispatch";
+                dispatch = "togglespecialworkspace";
+                arg = "magic";
+              };
+            };
+          }
+          {
+            desc = "Move to scratch";
+            menuKey = "S";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+                "$shiftMod"
+              ];
+              key = "S";
+              action = {
+                type = "dispatch";
+                dispatch = "movetoworkspace";
+                arg = "special:magic";
+              };
+            };
+          }
+        ];
+      };
     };
   };
 
