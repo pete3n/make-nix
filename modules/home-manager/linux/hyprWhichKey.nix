@@ -351,7 +351,7 @@ let
 
         rm -f "$pidfile"
 
-        if [ "$rc" -ne 0 ]; then
+        if [ "$rc" -ne 0 ] && [ "$rc" -ne 143 ]; then
         	if [ "$DEBUG_LOG" = "true" ]; then
         		_tail_out="$(${pkgs.coreutils}/bin/tail -n 15 "$log" 2>/dev/null || true)"
         		_extra="Full log: $log"
