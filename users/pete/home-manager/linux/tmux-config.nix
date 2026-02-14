@@ -1,16 +1,4 @@
 { pkgs, ... }:
-let
-  floax = pkgs.tmuxPlugins.mkTmuxPlugin {
-    pluginName = "floax";
-    version = "unstable-2024-31-08";
-    src = pkgs.fetchFromGitHub {
-      owner = "omerxx";
-      repo = "tmux-floax";
-      rev = "dab0587c5994f3b061a597ac6d63a5c9964d2883";
-      sha256 = "sha256-gp/l3SLmRHOwNV3glaMsEUEejdeMHW0CXmER4cRhYD4=";
-    };
-  };
-in
 {
   home.packages = with pkgs; [ powerline-fonts ];
   programs.fzf.tmux.enableShellIntegration = true;
@@ -71,37 +59,35 @@ in
     sensibleOnTop = false;
     escapeTime = 10;
     mouse = true;
-    plugins =
-      [
-        {
-          plugin = floax;
-          extraConfig = ''
-            set -g @floax-border-color 'blue'
-          '';
-        }
-      ]
-      ++ (with pkgs.tmuxPlugins; [
-        onedark-theme
-        pain-control
-        vim-tmux-navigator
-        logging
-        yank
-        tmux-fzf
-        {
-          plugin = extrakto;
-          extraConfig = ''
-            set -g @extrakto_clip_tool "wl-copy"
-          '';
-        }
-        resurrect
-        {
-          plugin = continuum;
-          extraConfig = ''
-            set -g @continuum-restore 'on'
-            set -g @continuum-save-interval '10'
-          '';
-        }
-      ]);
+    plugins = with pkgs.tmuxPlugins; [
+      onedark-theme
+      pain-control
+      vim-tmux-navigator
+      logging
+      yank
+      {
+        plugin = tmux-floax;
+        extraConfig = ''
+          set -g @floax-border-color 'blue'
+        '';
+      }
+
+      tmux-fzf
+      {
+        plugin = extrakto;
+        extraConfig = ''
+          set -g @extrakto_clip_tool "wl-copy"
+        '';
+      }
+      resurrect
+      {
+        plugin = continuum;
+        extraConfig = ''
+          set -g @continuum-restore 'on'
+          set -g @continuum-save-interval '10'
+        '';
+      }
+    ];
     extraConfig = # sh
       ''
         set -g history-limit 50000
