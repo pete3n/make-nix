@@ -171,6 +171,7 @@
 
     hyprWhichKey = {
       enable = true;
+
       hypr = {
         keyVars = {
           "$mainMod" = "SUPER";
@@ -188,6 +189,7 @@
           "$mainMod, F1, exec, rofi-help-menu"
         ];
       };
+
       settings = {
         leaderKey = "$mainMod, space";
         style = {
@@ -1002,6 +1004,10 @@
     settings = {
       debug = {
         disable_logs = false;
+      };
+
+      ecosystem = {
+        enforce_permissions = true;
       };
       # Mitigate Xwayland pixelation scaling issues
       xwayland = {
