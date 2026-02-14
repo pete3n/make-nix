@@ -4,8 +4,7 @@
   programs.fzf.tmux.enableShellIntegration = true;
   programs.bash = {
     enable = true;
-    initExtra =
-      # bash
+    initExtra = # bash
       ''
         # Change the Tmux window name based on the SSH destination host
         # to more easily track open connections
@@ -15,7 +14,7 @@
         	if ps -p $$ -o ppid= | xargs -I {} ps -p {} -o comm= | grep -qw tmux; then
         		# Save the current window name so we can restore it
         		local original_window_name=""
-						original_window_name=$(tmux display-message -p '#W')
+        		original_window_name=$(tmux display-message -p '#W')
 
         		reset_window_name() {
         			tmux rename-window "$original_window_name"
@@ -26,7 +25,7 @@
 
         		# Parse and extract the destination host with some really ugly character matching
         		local destination=""
-						destination=$(printf "%s\n" "$@" | sed 's/[[:space:]]*\(\(\(-[46AaCfGgKkMNnqsTtVvXxYy]\)\|\(-[^[:space:]]*\([[:space:]]\+[^[:space:]]*\)\?\)\)[[:space:]]*\)*[[:space:]]\+\([^-][^[:space:]]*\).*/\6/')
+        		destination=$(printf "%s\n" "$@" | sed 's/[[:space:]]*\(\(\(-[46AaCfGgKkMNnqsTtVvXxYy]\)\|\(-[^[:space:]]*\([[:space:]]\+[^[:space:]]*\)\?\)\)[[:space:]]*\)*[[:space:]]\+\([^-][^[:space:]]*\).*/\6/')
 
         		tmux rename-window "$destination"
 
@@ -54,7 +53,7 @@
   };
 
   programs.tmux = {
-		shell = "${pkgs.bash}/bin/bash";
+    shell = "${pkgs.bash}/bin/bash";
     enable = true;
     sensibleOnTop = false;
     escapeTime = 10;
@@ -100,6 +99,11 @@
 
         # List key bindings
         bind b list-keys
+
+        # "Zen" mode - zoom window without status bar
+        bind Z if -F '#{window_zoomed_flag}' \
+        'resize-pane -Z; set -g status on' \
+        'resize-pane -Z; set -g status off'
 
         # Enter visual selection with vim binding
         bind-key -T copy-mode-vi v send-keys -X begin-selection
