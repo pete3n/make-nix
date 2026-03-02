@@ -35,6 +35,7 @@ use_homebrew=""
 use_keys=""
 use_cache=""
 tags=""
+ssh_pub_keys=""
 specs=""
 
 # Either use a hostname provided from commandline args or default to current hostname
@@ -110,6 +111,7 @@ _update_env() {
 	[ -n "${is_home_alone:-}" ] && _filter="${_filter}|HOME_ALONE"
 	[ -n "${tags:-}" ] && _filter="${_filter}|CFG_TAGS"
 	[ -n "${specs:-}" ] && _filter="${_filter}|SPECS"
+	[ -n "${ssh_pub_keys:-}" ] && _filter="${_filter}|SSH_PUB_KEYS"
 	[ -n "${use_homebrew:-}" ] && _filter="${_filter}|USE_HOMEBREW"
 	[ -n "${use_cache:-}" ] && _filter="${_filter}|USE_CACHE"
 	[ -n "${use_keys:-}" ] && _filter="${_filter}|USE_KEYS"
@@ -135,6 +137,7 @@ _update_env() {
 		[ -n "${is_home_alone:-}" ] && printf "HOME_ALONE=%s\n" "${is_home_alone}"
 		[ -n "${tags:-}" ] && printf "CFG_TAGS=%s\n" "${tags}"
 		[ -n "${specs:-}" ] && printf "SPECS=%s\n" "${specs}"
+		[ -n "${ssh_pub_keys:-}" ] && printf "SSH_PUB_KEYS=%s\n" "${ssh_pub_keys}"
 		[ -n "${use_homebrew:-}" ] && printf "USE_HOMEBREW=%s\n" "${use_homebrew}"
 		[ -n "${use_cache:-}" ] && printf "USE_CACHE=%s\n" "${use_cache}"
 		[ -n "${use_keys:-}" ] && printf "USE_KEYS=%s\n" "${use_keys}"
