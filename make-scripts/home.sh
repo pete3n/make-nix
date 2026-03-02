@@ -31,7 +31,7 @@ _build_home() {
   [ "${dry_switch}" = "--dry-run" ] && \
     logf "\n%binfo: DRY_RUN%b: no result output will be created.\n" "${C_INFO}" "${C_RST}"
 
-  set -- nix build --max-jobs auto --cores 0 --print-build-logs 
+  set -- nix build --max-jobs auto --cores 0 --print-build-logs --option fallback true
 	if is_truthy "${NO_SUB:-}"; then
 		set -- "$@" --option substitute false
 	fi

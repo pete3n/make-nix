@@ -77,7 +77,7 @@ _build_nixos() {
 		logf "\n%binfo: --dry-run%b - no result output will be created.\n" "${C_INFO}" "${C_RST}"
 	fi
  
-	set -- nix build -L --max-jobs auto --cores 0 
+	set -- nix build -L --max-jobs auto --cores 0 --option fallback true
 	if is_truthy "${NO_SUB:-}"; then
 		set -- "$@" --option substitute false
 	fi
@@ -107,7 +107,7 @@ _build_darwin() {
 		logf "\n%binfo: --dry-run%b - no result output will be created.\n" "${C_INFO}" "${C_RST}"
 	fi
 	
-	set -- nix build --max-jobs auto --cores 0
+	set -- nix build --max-jobs auto --cores 0 --option fallback true
 	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
 	set -- "$@" --out-link "result-${host}-darwin" \
 		"${flake_root}#darwinConfigurations.\"${_attrset}\".system"
@@ -159,7 +159,7 @@ _switch_nixos() {
 		"${C_INFO}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"
 
 
-	set -- "${_rebuild_bin}" switch
+	set -- "${_rebuild_bin}" switch --option fallback true
 	if is_truthy "${NO_SUB:-}"; then
 		set -- "$@" --option substitute false
 	fi
@@ -212,7 +212,7 @@ _switch_darwin() {
 	logf "\n%b>>> Switching%b Nix-Darwin system configuration for %b%s%b\n" \
 		"${C_INFO}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"
 
-	set -- "${_rebuild_bin}" switch
+	set -- "${_rebuild_bin}" switch --option fallback true
 	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
 	set -- "$@" --flake "path:${flake_root}#${_attrset}"
 
