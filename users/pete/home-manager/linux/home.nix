@@ -42,6 +42,7 @@ in
   ]
   ++ builtins.attrValues homeModules
   ++ [
+		../cross-platform/aichat.nix
     ../cross-platform/alacritty-config.nix
     ../cross-platform/git-config.nix
     ../cross-platform/cli-programs.nix
