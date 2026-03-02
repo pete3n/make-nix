@@ -1,33 +1,13 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 let
-  # Custom Nix snowflake info tooltip script
-  jq = pkgs.jq;
-  nixVersions =
-    pkgs.writeShellScriptBin "get-nix-versions" # sh
-      ''
-				os_title=""
-        # Most Linux distros
-        if [ -f "/etc/os-release" ]; then
-        	os=$(grep "^NAME=" </etc/os-release | cut -f2 -d= | tr -d '"')
-        	os_ver=$(grep "^VERSION=" </etc/os-release | cut -f2 -d= | tr -d '"')
-        	os_title="$os: $os_ver"
-        fi
-        # MacOS
-        if [ "$(which sw_vers)" ]; then
-        	os=$(sw_vers | grep "ProductName" | cut -f2 -d: | tr -d '[:space:]')
-        	os_ver=$(sw_vers | grep "ProductVersion" | cut -f2 -d: | tr -d '[:space:]')
-        	os_title="$os}: $os_ver"
-        fi
-        kernelVer=$(uname -r)
-        nixVer=$(nix --version)
-        ${jq}/bin/jq -c -n --arg os "$os_title" \
-        	--arg kernel "Kernel: $kernelVer" \
-        	--arg nix "$nixVer" \
-        	'{"tooltip": "\($os)\r\($kernel)\r\($nix)"}'
-      '';
+  waybarScripts = import ./waybar-scripts.nix { inherit pkgs; };
 in
 {
-  home.packages = [ pkgs.pavucontrol ];
+  home.packages = with pkgs; [
+    fuzzel
+    hyprsysteminfo
+    pavucontrol
+  ];
 
   programs.waybar = {
     enable = true;
@@ -49,18 +29,24 @@ in
         modules-center = [ "clock" ];
 
         modules-right = [
+          "custom/mpd_prev"
+          "custom/playerctl"
+          "custom/mpd_next"
+          "custom/mpd_shuffle"
+          "custom/mpd_repeat_cycle"
+          "pulseaudio"
           "custom/wdisplays"
           "backlight"
-          "pulseaudio"
           "battery"
         ];
 
         "custom/snowflake" = {
-          exec = "${nixVersions}/bin/get-nix-versions";
+          exec = "${waybarScripts.nixVersions}/bin/get-nix-versions";
           format = "❄️";
           return-type = "json";
-          tooltip = false; # Disable tooltip
-          on-click = "${pkgs.libnotify}/bin/notify-send 'Nix Info' \"$(${nixVersions}/bin/get-nix-versions | jq -r '.tooltip')\"";
+          tooltip = false;
+          on-click = "${pkgs.libnotify}/bin/notify-send 'Nix Info' \"$(${waybarScripts.nixVersions}/bin/get-nix-versions | ${pkgs.jq}/bin/jq -r '.tooltip')\"";
+          on-click-right = "${pkgs.hyprsysteminfo}/bin/hyprsysteminfo";
         };
 
         "hyprland/workspaces" = {
@@ -71,6 +57,46 @@ in
             "active" = " ";
             "default" = " ";
           };
+        };
+
+        "custom/mpd_prev" = {
+          format = "⏮";
+          tooltip = false;
+          on-click = "playerctl -p mpd previous";
+        };
+
+        "custom/playerctl" = {
+          format = "<span>{}</span>";
+          return-type = "json";
+          max-length = 35;
+          interval = 1;
+          exec = lib.getExe waybarScripts.mpdWaybarTicker;
+
+          on-click = "playerctl -p mpd play-pause";
+          on-click-right = lib.getExe waybarScripts.mpdPopout;
+					on-click-middle = lib.getExe waybarScripts.mpdVizArtPopout;
+          on-scroll-up = "playerctl -p mpd next";
+          on-scroll-down = "playerctl -p mpd previous";
+        };
+
+        "custom/mpd_next" = {
+          format = "⏭";
+          tooltip = false;
+          on-click = "playerctl -p mpd next";
+        };
+
+        "custom/mpd_shuffle" = {
+          return-type = "json";
+          exec = lib.getExe waybarScripts.mpdShuffleWaybar;
+          interval = 1;
+          on-click = "${pkgs.mpc}/bin/mpc random";
+        };
+
+        "custom/mpd_repeat_cycle" = {
+          return-type = "json";
+          exec = lib.getExe waybarScripts.mpdRepeatCycle;
+          interval = 1;
+          on-click = lib.getExe waybarScripts.mpdRepeatCycleClick;
         };
 
         "custom/wdisplays" = {
@@ -119,6 +145,7 @@ in
           };
           scroll-step = 1;
           on-click = "pavucontrol";
+          on-click-right = "easyeffects";
         };
 
         "battery" = {
@@ -147,15 +174,33 @@ in
 
     style = # css
       ''
+        /* Global defaults */
         * {
           border: none;
           border-radius: 0;
           font-size: 14px;
           min-height: 25px;
         }
+
         window#waybar {
           background: transparent;
         }
+
+        /* Uniform hover + smooth transition */
+        #waybar button,
+        #waybar label,
+        #waybar box {
+          transition: background-color 0.15s ease;
+        }
+
+        #waybar button:hover,
+        #waybar label:hover,
+        #waybar box:hover {
+          background-color: rgba(82, 119, 195, 0.15);
+        }
+
+        /* --- Your existing module styling (kept close to what you had) --- */
+
         #custom-snowflake {
           font-size: 20px;
           background: transparent;
@@ -163,8 +208,43 @@ in
           border-radius: 5px;
           padding-left: 10px;
         }
+
+        /* Now playing */
+        #custom-playerctl {
+          background: transparent;
+          color: #5277c3;
+          padding-left: 10px;
+          padding-right: 10px;
+          border-radius: 6px; /* makes hover look nicer */
+        }
+        #custom-playerctl.Playing { opacity: 1.0; }
+        #custom-playerctl.Paused  { opacity: 0.7; }
+        #custom-playerctl.Stopped { opacity: 0.4; }
+
+        /* MPD control buttons */
+        #custom-mpd_prev,
+        #custom-mpd_next,
+        #custom-mpd_shuffle,
+        #custom-mpd_repeat_cycle {
+          background: transparent;
+          color: #5277c3;
+          padding: 0 8px;
+          margin: 0 2px;
+          border-radius: 6px;
+        }
+
+        /* Repeat-cycle state styling */
+        #custom-mpd_repeat_cycle.off      { opacity: 0.45; }
+        #custom-mpd_repeat_cycle.playlist { opacity: 1.0; }
+        #custom-mpd_repeat_cycle.track    { opacity: 1.0; text-shadow: 0 0 6px rgba(126, 186, 228, 0.55); }
+
+        /* Shuffle state styling */
+        #custom-mpd_shuffle.off { opacity: 0.45; }
+        #custom-mpd_shuffle.on  { opacity: 1.0; text-shadow: 0 0 6px rgba(126, 186, 228, 0.55); }
+
+        /* Workspaces */
         #hyprland-workspaces {
-          background-color: transparent;
+          background: transparent;
           color: #5277c3;
           padding-right: 10px;
         }
@@ -173,36 +253,52 @@ in
           color: #5277c3;
           padding: 0 5px;
         }
+
+        /* Clock */
         #clock {
-          background-color: transparent;
+          background: transparent;
           color: #7ebae4;
+          border-radius: 6px;
+          padding: 0 10px;
         }
+
+        /* Displays launcher */
         #custom-wdisplays {
-          background-color: transparent;
+          background: transparent;
           color: #5277c3;
           padding-top: 3px;
           padding-left: 15px;
           padding-right: 10px;
+          border-radius: 6px;
         }
+
+        /* Backlight */
         #backlight {
-          background-color: transparent;
+          background: transparent;
           color: #5277c3;
           padding-top: 2px;
           padding-bottom: 2px;
           padding-left: 10px;
           padding-right: 10px;
+          border-radius: 6px;
         }
+
+        /* Audio */
         #pulseaudio {
-          border-radius: 0px;
-          background-color: transparent;
+          background: transparent;
           color: #5277c3;
+          padding-left: 10px;
           padding-right: 10px;
+          border-radius: 6px;
         }
+
+        /* Battery */
         #battery {
-          border-radius: 0px;
-          background-color: transparent;
+          background: transparent;
           color: #5277c3;
-          padding-right: 0px;
+          padding-left: 10px;
+          padding-right: 10px;
+          border-radius: 6px;
         }
       '';
   };
