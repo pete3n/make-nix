@@ -42,7 +42,7 @@ in
   ]
   ++ builtins.attrValues homeModules
   ++ [
-		../cross-platform/aichat.nix
+    ../cross-platform/aichat.nix
     ../cross-platform/alacritty-config.nix
     ../cross-platform/git-config.nix
     ../cross-platform/cli-programs.nix
@@ -78,7 +78,7 @@ in
         bottles # Wine container manager
         borgbackup
         browsh # Terminal browser
-				ddgr # Search duckduckgo from the terminal
+        ddgr # Search duckduckgo from the terminal
         unstable.cryptomator # Encrypted container GUI
         fdupes # Duplicate file finder
         heroic # Heroic game launcher
@@ -92,7 +92,6 @@ in
         mod._86Box
         mosh # Mobile-shell SSH replacement
         nextcloud-client
-        onlyoffice-desktopeditors
         protonmail-bridge
         remmina
         unstable.standardnotes
@@ -229,6 +228,14 @@ in
 
     librewolf = {
       enable = true;
+    };
+
+    onlyoffice = {
+      enable = true;
+      settings = {
+        UITheme = "theme-night"; # the internal ID for Modern Dark
+        UserName = "makeNixAttrs.user";
+      };
     };
 
     ssh = {
