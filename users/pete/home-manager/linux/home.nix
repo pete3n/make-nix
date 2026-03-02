@@ -84,6 +84,7 @@ in
         hunspell # Dictionary
         hunspellDicts.en_US
         kdePackages.okular # Okular PDF viewer
+        kdePackages.dolphin # Dolphin file browser
         libreoffice
         litemdview # Simple markdown viewer
         mod._86Box
@@ -99,7 +100,6 @@ in
         unstable.monero-gui
         unzip
         xdg-user-dirs
-        xfce.thunar # Lightweight graphical file browser
         zip
 
         ## Messaging apps
