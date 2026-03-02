@@ -2,11 +2,13 @@
 let
   cfg = config.programs.yubi-age-secrets;
 
-  wifiFiles =
-    lib.mapAttrs' (name: path: {
-      name = "wpa_supplicant/${name}.conf.age";
-      value = { source = path; };
-    }) cfg.wifiProfiles;
+  wifiFiles = lib.mapAttrs' (name: path: {
+    name = "wpa_supplicant/${name}.conf.age";
+    value = {
+      source = path;
+    };
+  }) cfg.wifiProfiles;
+
 in
 {
   options.programs.yubi-age-secrets = {
@@ -20,15 +22,24 @@ in
 
     wifiProfiles = lib.mkOption {
       type = lib.types.attrsOf lib.types.path;
-      default = {};
+      default = { };
       description = "profileName -> path-to-*.conf.age to install under ~/.config/wpa_supplicant/<name>.conf.age";
     };
+
+    apiKeys = lib.mkOption {
+      type = lib.types.attrsOf lib.types.path;
+      default = { };
+      description = "ENV_VAR_NAME -> path-to-*.age encrypted file.";
+    };
+
   };
 
   config = lib.mkIf cfg.enable {
     xdg.configFile = lib.mkMerge [
       (lib.optionalAttrs (cfg.identityFile != null) {
-        "age/age-plugin-yubikeys" = { source = cfg.identityFile; };
+        "age/age-plugin-yubikeys" = {
+          source = cfg.identityFile;
+        };
       })
       wifiFiles
     ];
