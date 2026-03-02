@@ -71,24 +71,88 @@ let
     '';
   smart_help = # sh
     ''
-      smart_help() { 
-      	${pkgs.tldr}/bin/tldr "$@" || ${pkgs.ddgr}/bin/ddgr "$@"
+      smart_help() {
+      if [ -z "''${1:-}" ]; then
+      	printf "Usage: ? <command|topic|question>\n" >&2
+      	return 1
+      fi
+
+      NIX_CURL="${pkgs.curl}/bin/curl"
+      NIX_JQ="${pkgs.jq}/bin/jq"
+      NIX_DDGR="${pkgs.ddgr}/bin/ddgr"
+      NIX_SED="${pkgs.gnused}/bin/sed"
+
+      ${pkgs.tldr}/bin/tldr "$@" && return 0
+
+      _query_plus="$(printf '%s' "$*" | tr ' ' '+')"
+      _query_url="$(printf '%s' "$*" | $NIX_SED 's/ /%20/g')"
+
+      printf "tldr not found for '%s', checking cheat.sh...\n" "$*" >&2
+      _cheat_out="$(
+      "$NIX_CURL" --silent --max-time 10 \
+      "https://cheat.sh/''${_query_plus}"
+      )" || _cheat_out=""
+
+      # Strip ANSI escape codes for plain-text detection only
+      # Regex matches ESC[ followed by numeric params and a letter command
+      _ansi_strip_pattern='s/\x1b\[[0-9;]*[a-zA-Z]//g'
+      _cheat_plain="$(printf '%s\n' "''${_cheat_out}" | $NIX_SED "''${_ansi_strip_pattern}")"
+
+      # cheat.sh always returns HTTP 200 — detect failure by body content
+      # 404 response is a CSS comment block containing "Unknown cheat sheet"
+      if printf '%s\n' "''${_cheat_plain}" | ${pkgs.gnugrep}/bin/grep -qF "Unknown cheat sheet"; then
+      	_cheat_out=""
+      fi
+
+      if [ -n "''${_cheat_out:-}" ]; then
+      	printf '%s\n' "''${_cheat_out}"
+      	return 0
+      fi
+
+      printf "Checking DuckDuckGo instant answers...\n" >&2
+      _ddg_json="$(
+      "$NIX_CURL" --silent --max-time 10 \
+      --user-agent "smart_help/1.0 (terminal helper)" \
+      "https://api.duckduckgo.com/?q=''${_query_url}&format=json&no_html=1&skip_disambig=1"
+      )" || { printf "DEBUG curl failed\n" >&2; _ddg_json=""; }
+
+      _ddg_out="$(printf '%s\n' "''${_ddg_json}" | "$NIX_JQ" -r '
+      if .AbstractText and .AbstractText != "" then
+      "[\(.AbstractSource)]\n\(.AbstractText)"
+      elif .Answer and .Answer != "" then
+      "[Instant Answer]\n\(.Answer)"
+      elif (.RelatedTopics | length) > 0 then
+      "[Related]\n" + (
+      [ .RelatedTopics[]
+      | select(.Text)
+      | "- \(.Text)"
+      ] | .[0:5] | join("\n")
+      )
+      else "" end
+      ')"
+      if [ -n "''${_ddg_out:-}" ]; then
+      	printf '%s\n' "''${_ddg_out}"
+      	return 0
+      fi
+
+      printf "Searching DuckDuckGo...\n" >&2
+      "''${NIX_DDGR}" --noprompt "$@"
       }
-      alias '?'=smart_help
+      alias "?"=smart_help
     '';
   zfile = # sh
     ''
       zfile() {
-				if [ -z "''${1:-}" ]; then
-					printf "Usage: zfile <filename>\n" >&2
-					return 1
-				fi 
-				_match=$("${pkgs.fd}/bin/fd" --type f "''${1}" | head -n 1)
-				if [ -z "''${_match}" ]; then
-					printf "zfile: no file found matching '%s'\n" "''${1}" >&2
-					return 1
-				fi
-      	z "$(dirname "$_match")"
+      if [ -z "''${1:-}" ]; then
+      	printf "Usage: zfile <filename>\n" >&2
+      	return 1
+      fi 
+      _match=$("${pkgs.fd}/bin/fd" --type f "''${1}" | head -n 1)
+      if [ -z "''${_match}" ]; then
+      	printf "zfile: no file found matching '%s'\n" "''${1}" >&2
+      	return 1
+      fi
+      z "$(dirname "$_match")"
       }
     '';
 in
