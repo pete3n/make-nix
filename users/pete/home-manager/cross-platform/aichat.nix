@@ -189,6 +189,12 @@ in
       Example:
       _client_regex="^(firefox|org\.mozilla\.firefox)$"
       \# Matches Firefox by class name or bundle identifier
+
+			# Final Check
+			Double check if you are using scripting code inside Nix. Failure to escape
+			shell variables inside Nix is a common mistake.
+			''${pkgs.foo} is intentional Nix interpolation, while every other ''${...} 
+			in the script body is a shell variable that must be escaped.
     '';
 
   home.packages = [ aichatWrapper ];
