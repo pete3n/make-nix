@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }:
@@ -213,8 +214,13 @@
             desc = "Display";
             submenu = [
               {
-                key = "s";
+                desc = "Exit Hyprland";
+                key = "e";
+                cmd = "hyprctl dispatch exit";
+              }
+              {
                 desc = "Screenshots";
+                key = "s";
                 fromGroup = "screenshots";
               }
               {
@@ -223,7 +229,6 @@
                 cmd = "waypaper";
               }
             ];
-
           };
           screenshots = {
             key = "s";
@@ -238,21 +243,7 @@
                 desc = "Searchable help";
                 cmd = "rofi-help-menu";
               }
-              {
-                fromGroup = "navigation";
-                key = "n";
-                desc = "Navigation";
-              }
-              {
-                fromGroup = "workspaces";
-                key = "w";
-                desc = "Workspaces";
-              }
             ];
-          };
-          navigation = {
-            desc = "Navigation";
-            key = "n";
           };
           power = {
             desc = "Power/Lock";
@@ -263,15 +254,16 @@
             key = "w";
           };
           workspaces = {
-            desc = "Workspaces";
-            key = "W";
+            desc = "WorKspaces";
+            key = "k";
           };
         };
 
-        menu.order = [
+        menu.root = [
           "help"
           "apps"
           "display"
+          "workspaces"
           "power"
           "window"
         ];
@@ -281,6 +273,11 @@
             desc = "Calculator";
             menuKey = "c";
             cmd = "rofi -show-icons -combi-modi drun,run -show calc";
+          }
+          {
+            desc = "Dolphin File Browser";
+            menuKey = "d";
+            cmd = "dolphin";
           }
           {
             desc = "Emoji Picker";
@@ -397,97 +394,20 @@
             };
           }
           {
-            desc = "Toggle floating window";
-            menuKey = "l";
-            cmd = "hyprctl dispatch togglefloating";
-          }
-          {
-            desc = "Pseudo";
-            menuKey = "p";
-            hyprBind = {
-              mods = [ "$mainMod" ];
-              key = "p";
-              action = {
-                type = "dispatch";
-                dispatch = "pseudo";
-              };
-
-            };
-          }
-          {
-            desc = "Toggle horizontal/vertical";
-            menuKey = "T";
+            desc = "Floating window toggle";
+            menuKey = "F";
             hyprBind = {
               mods = [
                 "$mainMod"
                 "$shiftMod"
               ];
-              key = "T";
+              key = "F";
               action = {
                 type = "dispatch";
-                dispatch = "togglesplit";
-              };
-
-            };
-          }
-          {
-            desc = "Toggle waybar";
-            menuKey = "w";
-            hyprBind = {
-              mods = [ "$mainMod" ];
-              key = "w";
-              action = {
-                type = "exec";
-                cmd = "pkill -SIGUSR1 waybar";
+                dispatch = "togglefloating";
               };
             };
           }
-        ];
-
-        menu.entries.screenshots = [
-          {
-            desc = "Edit last screenshot (gimp)";
-            menuKey = "e";
-            cmd = "gimp ${config.xdg.userDirs.pictures}/$(ls ${config.xdg.userDirs.pictures} -t | grep -e 'hyprshot.png' | head -n1)";
-          }
-          {
-            desc = "Output (hyprshot -m output)";
-            menuKey = "o";
-            hyprBind = {
-              key = "PRINT";
-              action = {
-                type = "exec";
-                cmd = "hyprshot -m output";
-              };
-            };
-          }
-          {
-            desc = "Region (hyprshot -m region)";
-            menuKey = "r";
-            hyprBind = {
-              mods = [ "$shiftMod" ];
-              key = "PRINT";
-              action = {
-                type = "exec";
-                cmd = "hyprshot -m region";
-              };
-            };
-          }
-          {
-            desc = "Window (hyprshot -m window)";
-            menuKey = "w";
-            hyprBind = {
-              mods = [ "$mainMod" ];
-              key = "PRINT";
-              action = {
-                type = "exec";
-                cmd = "hyprshot -m window";
-              };
-            };
-          }
-        ];
-
-        menu.entries.navigation = [
           {
             desc = "Focus left";
             menuKey = "h";
@@ -601,6 +521,90 @@
                 type = "dispatch";
                 dispatch = "movewindow";
                 arg = "r";
+              };
+            };
+          }
+          {
+            desc = "Pseudo";
+            menuKey = "p";
+            hyprBind = {
+              mods = [ "$mainMod" ];
+              key = "p";
+              action = {
+                type = "dispatch";
+                dispatch = "pseudo";
+              };
+
+            };
+          }
+          {
+            desc = "Toggle horizontal/vertical";
+            menuKey = "T";
+            hyprBind = {
+              mods = [
+                "$mainMod"
+                "$shiftMod"
+              ];
+              key = "T";
+              action = {
+                type = "dispatch";
+                dispatch = "togglesplit";
+              };
+
+            };
+          }
+          {
+            desc = "Toggle waybar";
+            menuKey = "w";
+            hyprBind = {
+              mods = [ "$mainMod" ];
+              key = "w";
+              action = {
+                type = "exec";
+                cmd = "pkill -SIGUSR1 waybar";
+              };
+            };
+          }
+        ];
+
+        menu.entries.screenshots = [
+          {
+            desc = "Edit last screenshot (gimp)";
+            menuKey = "e";
+            cmd = "gimp ${config.xdg.userDirs.pictures}/$(ls ${config.xdg.userDirs.pictures} -t | grep -e 'hyprshot.png' | head -n1)";
+          }
+          {
+            desc = "Output (hyprshot -m output)";
+            menuKey = "o";
+            hyprBind = {
+              key = "PRINT";
+              action = {
+                type = "exec";
+                cmd = "hyprshot -m output";
+              };
+            };
+          }
+          {
+            desc = "Region (hyprshot -m region)";
+            menuKey = "r";
+            hyprBind = {
+              mods = [ "$shiftMod" ];
+              key = "PRINT";
+              action = {
+                type = "exec";
+                cmd = "hyprshot -m region";
+              };
+            };
+          }
+          {
+            desc = "Window (hyprshot -m window)";
+            menuKey = "w";
+            hyprBind = {
+              mods = [ "$mainMod" ];
+              key = "PRINT";
+              action = {
+                type = "exec";
+                cmd = "hyprshot -m window";
               };
             };
           }
@@ -950,7 +954,7 @@
             };
           }
           {
-            desc = "Toggle scratch";
+            desc = "Toggle scratch workspace";
             menuKey = "s";
             hyprBind = {
               mods = [
@@ -965,7 +969,7 @@
             };
           }
           {
-            desc = "Move to scratch";
+            desc = "Move window to scratch workspace";
             menuKey = "S";
             hyprBind = {
               mods = [
@@ -1001,14 +1005,18 @@
   wayland.windowManager.hyprland = {
     enable = true;
     xwayland.enable = true;
+
     settings = {
+      ecosystem.enforce_permissions = true;
+
+      permission = [
+        "${lib.escapeRegex (lib.getExe config.programs.hyprlock.package)}, screencopy, allow"
+      ];
+
       debug = {
         disable_logs = false;
       };
 
-      ecosystem = {
-        enforce_permissions = true;
-      };
       # Mitigate Xwayland pixelation scaling issues
       xwayland = {
         force_zero_scaling = true;
@@ -1079,6 +1087,29 @@
           "pin, title:^(Picture-in-Picture)$"
           "size 30% 30%, title:^(Picture-in-Picture)$"
           "move 65% 5%, title:^(Picture-in-Picture)$"
+        ]
+      ++
+        # Cava mpd visualizer and mpd art
+        [
+					"float,class:^(mpd-vis)$"
+					"noinitialfocus,class:^(mpd-vis)$"
+					"pin,class:^(mpd-vis)$"
+					"noborder,class:^(mpd-vis)$"
+					"opacity 0.92 0.92,class:^(mpd-vis)$"
+					"noanim,class:^(mpd-vis)$"
+					"size 900 240,class:^(mpd-vis)$"
+					# x = 100% - (900 + 260 + 15) = 100% - 1175
+					"move 100%-1175 40,class:^(mpd-vis)$"
+
+					"float,class:^(mpd-art)$"
+					"noinitialfocus,class:^(mpd-art)$"
+					"pin,class:^(mpd-art)$"
+					"noborder,class:^(mpd-art)$"
+					"opacity 0.82 0.82,class:^(mpd-art)$"
+					"noanim,class:^(mpd-art)$"
+					"size 260 240,class:^(mpd-art)$"
+					# x = 100% - (260 + 15) = 100% - 275
+					"move 100%-275 40,class:^(mpd-art)$"
         ];
 
       general = {
