@@ -34,19 +34,18 @@ That pursuit may never end, but for now it has take the form of Make-nix.
 
 ### How does it work?
 
-Make-nix bridges imperative setup decisions — who you are, what machine you are on, what
-options you want — with a declarative Nix flake configuration. When you run a make target,
-the Makefile collects your parameters and option flags, writes them into a Nix attribute
-set file (`make-attrs/system/<user>@<host>.nix` or `make-attrs/home-alone/<user>@<host>.nix`),
-and commits that file to git so Nix can read it cleanly. The flake imports this attribute
-set and uses it to customise your NixOS, Nix-Darwin, or Home Manager configuration at
-build time.
+Make-nix bridges imperative setup options with a declarative Nix flake configuration. 
+When you run a make target you can provide parameters and option flags with environment 
+variables that creates a customized Nix attribute set file (`make-attrs/system/<user>@<host>.nix` 
+or `make-attrs/home-alone/<user>@<host>.nix`), and commits that file to git so Nix 
+can read it cleanly. The flake imports this attribute set and uses it to customise 
+your NixOS, Nix-Darwin, or Home Manager configuration at build time.
 
-On subsequent runs, make-nix reads the existing attribute file and updates only the values
-you have explicitly overridden, preserving everything else. This means you can run
-`make switch` with no arguments and it will rebuild exactly the same configuration as
-before, or pass new flags to change specific options without specifying everything from
-scratch.
+By default make-nix autodetects the current user and host attributes and looks for 
+an existing attribute file. This allows for easy rebuilds to update configurations on
+the host system. Running `make switch` with no arguments and will rebuild exactly 
+the same configuration for both the home-manager user and the system.
+Any value can be overwridden to easily modify the configuration.
 
 ---
 
@@ -115,6 +114,7 @@ These are **boolean**. Assigning any truthy value enables the flag; assigning an
 falsey value explicitly disables it.
 
 > **Truthy values:** `1`, `y`, `Y`, `yes`, `Yes`, `YES`, `on`, `On`, `ON`, `true`, `True`, `TRUE`
+
 > **Falsey values:** `0`, `n`, `N`, `no`, `No`, `NO`, `off`, `Off`, `OFF`, `false`, `False`, `FALSE`
 
 #### **Install Flags** (`install` | `all`)
@@ -180,4 +180,3 @@ make all
 ```
 
 </details>
-```
