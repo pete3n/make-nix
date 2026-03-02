@@ -294,7 +294,7 @@ let
   validatedEntries = map validateEntry allEntries;
   bindEntries = lib.filter (entry: entry.hyprBind != null) validatedEntries;
   generatedBinds = lib.filter (bind: bind != null) (map mkHyprBind bindEntries);
-  finalMenu = map (grp: expandMenuEntry { fromGroup = grp; }) cfg.settings.menu.order;
+  finalMenu = map (grp: expandMenuEntry { fromGroup = grp; }) cfg.settings.menu.root;
 
   yamlText = mkWkCfg {
     style = cfg.settings.style;
@@ -638,21 +638,27 @@ in
           type = types.attrsOf groupModule;
           default = { };
           description = ''
-            These are the top level groups for the menu.
-            Groups contain a menu key/description and can optionally contain submenu entries.
+            This is an un-ordered set of menu groups. Groups contain a top level description and 
+            a key bind to open the associated menu entry set. The menu.entries sets contain
+            the menu leaf entries and can dynamically configure Hyprland keybinds.
+            Groups can optionally contain submenus, submenus can be dynamically created 
+            from other groups, or can contain a simple key and command combination.
+            Submenus can not currently create Hyprland keybinds.
           '';
         };
 
         entries = mkOption {
           type = types.attrsOf (types.listOf menuEntryModule);
           default = { };
-          description = "Entry groups: attrsOf(listOf(entry)).";
+          description = ''
+            The entries set contains ordered lists of menu entry attribute sets.
+          '';
         };
 
-        order = mkOption {
+        root = mkOption {
           type = types.listOf types.str;
           default = [ ];
-          description = "Ordered list of group names rendered as top-level menus.";
+          description = "Ordered list of group names shown in the root menu.";
         };
       };
 
@@ -828,7 +834,7 @@ in
         groupExists = group: hasAttr group cfg.settings.menu.groups;
 
         # Groups should only be listed in the menu order list if they exist.
-        missingMenuGroups = lib.filter (group: !(groupExists group)) cfg.settings.menu.order;
+        missingMenuGroups = lib.filter (group: !(groupExists group)) cfg.settings.menu.root;
 
         # Prettier list output for assertion errors
         # Format [ "entry1" "entry2" "entry3" ] as "'entry1', 'entry2', 'entry3'"
@@ -855,7 +861,7 @@ in
         {
           assertion = missingMenuGroups == [ ];
           message = ''
-            	programs.hyprWhichKey: order references unknown groups:
+            	programs.hyprWhichKey: root references unknown groups:
             		${quoteListEntries missingMenuGroups}
 
             	Defined groups are:
@@ -863,7 +869,7 @@ in
 
             	Fix:
                   - Add the missing groups under programs.hyprWhichKey.settings.menu.groups, or
-                  - Remove/rename them in programs.hyprWhichKey.settings.menu.order.
+                  - Remove/rename them in programs.hyprWhichKey.settings.menu.root
           '';
         }
       ];
