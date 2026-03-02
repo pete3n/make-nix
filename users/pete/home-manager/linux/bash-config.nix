@@ -2,6 +2,7 @@
 {
   config,
   lib,
+  pkgs,
   makeNixAttrs,
   ...
 }:
@@ -58,6 +59,38 @@ let
         	fi
         }
       '';
+  nix_path = # sh
+    ''
+      nixpath() {
+        if [ -z "''${1:-}" ]; then
+          printf "Usage: nixpath <binary>\n" >&2
+          return 1
+        fi
+        printf "%s\n" "$(realpath "$(command -v "''${1}")")"
+      }
+    '';
+  smart_help = # sh
+    ''
+      smart_help() { 
+      	${pkgs.tldr}/bin/tldr "$@" || ${pkgs.ddgr}/bin/ddgr "$@"
+      }
+      alias '?'=smart_help
+    '';
+  zfile = # sh
+    ''
+      zfile() {
+				if [ -z "''${1:-}" ]; then
+					printf "Usage: zfile <filename>\n" >&2
+					return 1
+				fi 
+				_match=$("${pkgs.fd}/bin/fd" --type f "''${1}" | head -n 1)
+				if [ -z "''${_match}" ]; then
+					printf "zfile: no file found matching '%s'\n" "''${1}" >&2
+					return 1
+				fi
+      	z "$(dirname "$_match")"
+      }
+    '';
 in
 {
   programs.bash = {
@@ -66,15 +99,19 @@ in
       cd = "z";
       home-manager-rollback = "home-manager generations | fzf | awk -F '-> ' '{print \$2 \"/activate\"}'";
       lsc = "lsd --classic";
-			ns = "nix-search-tv print | fzf --preview 'nix-search-tv preview {}' --scheme history";
+      ns = "nix-search-tv print | fzf --preview 'nix-search-tv preview {}' --scheme history";
       screenshot = "grim";
     };
     initExtra = # sh
-      ''
-        set -o vi
-      ''
-      + tmux_preserve_path
-      + sudo_wrapper;
+    ''
+			set -o vi
+			alias zf=zfile
+    ''
+    + tmux_preserve_path
+    + sudo_wrapper
+    + nix_path
+    + smart_help
+    + zfile;
 
     profileExtra = # sh
       ''
