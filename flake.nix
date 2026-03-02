@@ -36,15 +36,15 @@
       inputs.hyprland.follows = "hyprland";
     };
 
-		pete3n-mods = {
-			url = "github:pete3n/nix-modules?ref=nixos-25.11";
-			inputs.nixpkgs.follows = "nixpkgs";
-		};
+    pete3n-mods = {
+      url = "github:pete3n/nix-modules?ref=nixos-25.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     nixvim = {
-			url = "github:pete3n/nixvim-flake?ref=nixos-25.11";
-			inputs.nixpkgs.follows = "nixpkgs";
-		};
+      url = "github:pete3n/nixvim-flake?ref=nixos-25.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     hyprcursor.url = "github:hyprwm/hyprcursor";
     deploy-rs.url = "github:serokell/deploy-rs";
