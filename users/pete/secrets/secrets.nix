@@ -3,6 +3,11 @@ let
   pete_yk_bak = "age1yubikey1qdxcmeztxrax00vx5gnyteacgqn7jmdc3qnuvts82rkg2zwwmuccc85afcz";
 in
 {
+	"api_keys/anthropic-aichat-api.age".publicKeys = [
+		pete_yk_pri
+		pete_yk_bak
+	];
+
   "wpa_supplicant/p22-lan-2g.conf.age".publicKeys = [
     pete_yk_pri
     pete_yk_bak

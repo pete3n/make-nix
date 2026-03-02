@@ -9,6 +9,12 @@ in
     "/etc/static/age/${user}/age-plugin-yubikeys"
   ];
 
+  age.secrets."anthropic-api-key" = {
+    file = ./api_keys/anthropic-aichat-api.age;
+		owner = user;
+		mode = "0400";
+  };
+
   age.secrets."wifi-${user}-p22-lan-2g" = {
     file = ./wpa_supplicant/p22-lan-2g.conf.age;
     owner = "root";
