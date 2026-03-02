@@ -44,15 +44,15 @@ endif
 
 .PHONY: validate-args
 validate-args:
-	@sh "scripts/validate_args.sh" $(MAKECMDGOALS)
+	@sh "make-scripts/validate_args.sh" $(MAKECMDGOALS)
 
 .PHONY: set-env
 set-env:
-	@sh "scripts/set_env.sh"
+	@sh "make-scripts/set_env.sh"
 
 .PHONY: check-deps
 check-deps:
-	@sh "scripts/check_deps.sh" $(MAKECMDGOALS)
+	@sh "make-scripts/check_deps.sh" $(MAKECMDGOALS)
 
 .PHONY: prep-goal
 prep-goal: validate-args set-env check-deps
@@ -62,14 +62,14 @@ clean: prep-goal clean-sh
 
 .PHONY: clean-sh
 clean-sh: 
-	@sh "scripts/clean.sh"
+	@sh "make-scripts/clean.sh"
 
 .PHONY: help
 help: set-env show-help
 
 .PHONY: show-help
 show-help:
-	@sh "scripts/print_help.sh"
+	@sh "make-scripts/print_help.sh"
 
 #
 # Install/uninstall targets.
@@ -80,14 +80,14 @@ install: prep-goal install-sh clean-sh
 
 .PHONY: install-sh
 install-sh:
-	@sh "scripts/installs.sh"
+	@sh "make-scripts/installs.sh"
 
 .PHONY: uninstall
 uninstall: prep-goal uninstall-sh
 
 .PHONY: uninstall-sh
 uninstall-sh:
-	@sh "scripts/uninstalls.sh" $(MAKECMDGOALS)
+	@sh "make-scripts/uninstalls.sh" $(MAKECMDGOALS)
 
 #
 # Check targets.
@@ -108,27 +108,27 @@ check-system: prep-goal check-system-sh clean-sh
 # Check previous configuration based on username and hostname
 .PHONY: check-sh
 check-sh:
-	@sh "scripts/attrs.sh" --check-all
+	@sh "make-scripts/attrs.sh" --check-all
 
 # Check previous home configuration based on username and hostname
 .PHONY: check-home-sh
 check-home-sh:
-	@sh "scripts/attrs.sh" --check-home
+	@sh "make-scripts/attrs.sh" --check-home
 
 # Check previous system configuration based on username and hostname
 .PHONY: check-system-sh
 check-system-sh:
-	@sh "scripts/attrs.sh" --check-system
+	@sh "make-scripts/attrs.sh" --check-system
 
 # Pass imperative configuration attributes from make to flake.nix
 .PHONY: write-attrs-sh
 write-attrs-sh:
-	@sh "scripts/attrs.sh" --write
+	@sh "make-scripts/attrs.sh" --write
 
 # Read imperative configuration attributes
 .PHONY: read-attrs-sh
 read-attrs-sh:
-	@sh "scripts/attrs.sh" --read
+	@sh "make-scripts/attrs.sh" --read
 
 #
 # Build targets.
@@ -146,25 +146,25 @@ build-home: prep-goal write-attrs-sh check-home-sh build-home-sh clean-sh
 # Build flake-based system configurations for Linux or Darwin systems.
 .PHONY: build-system-sh
 build-system-sh:
-	@sh "scripts/system.sh" --build
+	@sh "make-scripts/system.sh" --build
 
 # Build flake-based Home-manager configurations for Linux or Darwin systems.
 .PHONY: build-home-sh
 build-home-sh:
-	@sh "scripts/home.sh" --build
+	@sh "make-scripts/home.sh" --build
 
 # Check for a dirty git tree and warn on a failed build about the confusing
 # missing path error. I should not have to write this...
 .PHONY: warn-if-dirty-sh
 warn-if-dirty-sh-sh:
-	@sh "scripts/common.sh [warn_if_dirty]"
+	@sh "make-scripts/common.sh [warn_if_dirty]"
 
 .PHONY: warn-test
 warn-test: prep-goal warn-if-dirty-sh clean-sh
 
 .PHONY: set-boot-sh
 set-boot-sh:
-	@sh "scripts/set_boot.sh"
+	@sh "make-scripts/set_boot.sh"
 
 #
 # Switch targets.
@@ -184,27 +184,27 @@ switch-home: prep-goal write-attrs-sh check-home-sh switch-home-sh clean-sh
 # Build and activate flake-based system configurations for Linux or Darwin systems.
 .PHONY: switch-system-sh
 switch-system-sh:
-	@sh scripts/system.sh --switch
+	@sh make-scripts/system.sh --switch
 
 # Activate flake-based Home-manager configurations for Linux or Darwin systems.
 .PHONY: activate-home-sh
 activate-home-sh:
-	@sh scripts/home.sh --activate
+	@sh make-scripts/home.sh --activate
 
 # Build and activate flake-based Home-manager configurations for Linux or Darwin systems.
 .PHONY: switch-home-sh
 switch-home-sh:
-	@sh scripts/home.sh --switch
+	@sh make-scripts/home.sh --switch
 
 .PHONY: update
 update: prep-goal update-sh clean-sh
 
 .PHONY: update-sh
 update-sh:
-	@sh scripts/update.sh
+	@sh make-scripts/update.sh
 
 .PHONY: test
-test: prep-goal check-nix-attrs warn-if-dirty-sh
+test: prep-goal check-sh warn-if-dirty-sh
 # Set the default boot menu option to the first specified specialisation for a system.
 
 .PHONY: all
