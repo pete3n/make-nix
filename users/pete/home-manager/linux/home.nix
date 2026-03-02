@@ -78,6 +78,7 @@ in
         bottles # Wine container manager
         borgbackup
         browsh # Terminal browser
+				ddgr # Search duckduckgo from the terminal
         unstable.cryptomator # Encrypted container GUI
         fdupes # Duplicate file finder
         heroic # Heroic game launcher
@@ -87,6 +88,7 @@ in
         kdePackages.dolphin # Dolphin file browser
         libreoffice
         litemdview # Simple markdown viewer
+        nix-melt # Flake lock explorer
         mod._86Box
         mosh # Mobile-shell SSH replacement
         nextcloud-client
@@ -215,6 +217,7 @@ in
   # Modules with additional program configuration
   programs = {
     home-manager.enable = true;
+
     nix-search-tv = {
       enable = true;
       enableTelevisionIntegration = true;
