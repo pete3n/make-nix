@@ -3,6 +3,7 @@
     - Organize Home-manager configurations and user configuration files
 
 ## Directory structure
+```
 users/<username> -- individual user level configuration files
 ├── darwin-user.nix -- system level user configuration for Darwin based hosts
 ├── linux-user.nix -- system level user configuration for Linux based hosts
@@ -15,3 +16,4 @@ users/<username> -- individual user level configuration files
 │       └── <application-config.nix> -- Application specific config for user
 └─── secrets -- User specific secrets files (no private keys) 
      └── <keyfile> -- Decryption information needed for things like Yubikeys
+```
