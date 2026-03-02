@@ -8,6 +8,7 @@
 
 let
   availableSpecialisations = [
+		"kmscon"
     "x11"
     "x11_egpu"
     "wayland"
@@ -21,6 +22,7 @@ let
   ) makeNixAttrs.specialisations;
 
   specMap = {
+    kmscon = import ./specialisations/kmscon.nix { inherit lib pkgs; };
     x11 = import ./specialisations/x11.nix { inherit lib pkgs outputs; };
     x11_egpu = import ./specialisations/x11_egpu.nix { inherit lib pkgs outputs; };
     wayland = import ./specialisations/wayland.nix { inherit lib pkgs outputs; };
