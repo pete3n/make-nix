@@ -62,13 +62,43 @@ in
 
     plugins = {
       "office" = yaziOffice;
-			"ouch" = pkgs.yaziPlugins.ouch;
-			"lazygit" = pkgs.yaziPlugins.lazygit;
+      "ouch" = pkgs.yaziPlugins.ouch;
+      "lazygit" = pkgs.yaziPlugins.lazygit;
     };
 
     settings = {
       mgr = {
         linemode = "size";
+      };
+
+      opener = {
+        pdf = [
+          {
+            run = "okular \"$@\"";
+            orphan = true;
+            desc = "Okular";
+          }
+        ];
+        vlc = [
+          {
+            run = "vlc \"$@\"";
+            orphan = true;
+            desc = "VLC";
+          }
+        ];
+      };
+
+      open = {
+        prepend_rules = [
+          {
+            mime = "application/pdf";
+            use = "pdf";
+          }
+          {
+            mime = "video/*";
+            use = "vlc";
+          }
+        ];
       };
 
       plugin = {
@@ -135,5 +165,6 @@ in
       };
     };
 
-  } // shellIntegration;
+  }
+  // shellIntegration;
 }
