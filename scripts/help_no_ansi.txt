@@ -1,82 +1,110 @@
 make-nix help
 
 Usage:
-make <help|install|home|system|all|test>
+make <help|install|check|build|switch|all>
 [TGT_USER=<user>]
 [TGT_HOST=<host>]
-[CFG_TAGS=<tag1>,<tag2>,<tag3>,...]
 [TGT_SYSTEM=<system>]
-[SPECS=<spc1>,<spc2>,<spc3>,...]
+[CFG_TAGS=<tag1>,<tag2>,...]
+[SPECS=<spc1>,<spc2>,...]
 [OPTION FLAGS]
 
 Make targets:
   help    - You are here.
-  install - Install Nix and/or Nix-Darwin. Will not execute on NixOS or Nix-Darwin systems.
-  home    - Build and activate a Home-manager configuration.
-  system  - Build and activate a NixOS or Nix-Darwin system configuration.
-  all     - Execute both the system and home targets in that order.
-  test    - Check all flake configurations.
+  install - Install Nix and/or Nix-Darwin on a bare MacOS or Linux system.
+           Will not execute on NixOS or Nix-Darwin managed systems.
+  check   - Validate flake configurations for the target user and host.
+           Sub-targets: check-home, check-system
+  build   - Build Nix closures for home and system configurations.
+           Runs check first to prevent configuration mismatches.
+           Sub-targets: build-home, build-system
+  switch  - Check, build, and activate configurations.
+           Sub-targets: switch-home, switch-system
+  all     - Full pipeline: install through switch for a bare system.
 
-Configuration parameters:
-  TGT_USER    - User configuration (current user will be passed by default).
-  TGT_HOST    - System configuration host (current hostname will be passed by default).
-  CFG_TAGS		- User allows to customizing home-manager user configuration based on tags similar to specialisations for system configurations.
-  TGT_SYSTEM  - System platform to target for builds: x86_64-linux, aarch64-linux, x86_64-darwin, or aarch64-darwin (current platform will be passed by default.)
-  SPECS    - Comma separated list of NixOS system specialisation configurations (no spaces).
+Configuration parameters (autodetected from current system if not set):
+  TGT_USER    - Target username. Defaults to current user.
+             Override to build a configuration for a different user.
+  TGT_HOST    - Target hostname. Defaults to current hostname.
+             Override to build a configuration for a different host.
+  TGT_SYSTEM  - Target system tuple. Defaults to current platform.
+             Valid values: x86_64-linux, aarch64-linux, x86_64-darwin, aarch64-darwin.
+             Override to cross-build for a different architecture.
+  CFG_TAGS    - Comma-separated tags to customise the Home Manager configuration
+             at build time (no spaces). Example: CFG_TAGS=server,minimal
+  SPECS       - Comma-separated list of NixOS specialisation configurations
+             to build (no spaces). Example: SPECS=egpu,powersave
 
-Option flags (These are boolean, assigning any truthy value will enable them):
-Truthy values are 1 yes Yes YES true True TRUE on On ON y Y
+  Configuration is stored in make-attrs/system/<user>@<host>.nix or
+  make-attrs/home-alone/<user>@<host>.nix and committed to git automatically.
+  On subsequent runs, existing attribute files are read and updated with any new values.
 
-Install option flags (install):
+Option flags (boolean — assign any truthy value to enable):
+Truthy values: 1 y Y yes Yes YES on On ON true True TRUE
+Falsey values: 0 n N no No NO off Off OFF false False FALSE
+
+Install flags (install|all):
   USE_DETERMINATE=true  - Install Nix using the Determinate Systems installer.
+                         Default installer is the official NixOS installer.
 
   INSTALL_DARWIN=true   - Install Nix-Darwin for MacOS.
 
-  USE_HOMEBREW=true - Install Homebrew.
+  USE_HOMEBREW=true     - Install Homebrew (MacOS only).
 
-  SINGLE_USER=true  - Install Nix for single-user mode (default installer only).
+  SINGLE_USER=true      - Install Nix in single-user mode.
+                         Only supported with the default installer.
 
-  USE_CACHE=true    - Set a additional cache server URLs to be used as substituters (cache.nixos.org is used by default). This option is defined in make.env as a comma separated list of URLs (no spaces) in order of precedence.
+  USE_CACHE=true        - Use additional binary cache substituters defined in
+                         make.env as NIX_CACHE_URLS (comma-separated, no spaces).
 
-  USE_KEYS=true     - Set additional trusted public keys for nix stores (cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= is used by default). This option is defined in make.env as comma separated list of Nix keyname:keyvalue pairs.
+  USE_KEYS=true         - Trust additional public keys defined in
+                         make.env as TRUSTED_PUBLIC_KEYS (comma-separated).
 
-Configuration option flags (home|system|all):
-  DRY_RUN=true      - Evaluate the new configuration but don't activate it.
+Configuration flags (check|build|switch|all):
+  DRY_RUN=true          - Evaluate the configuration without building or activating it.
+                         Passes --dry-run to Nix. No outputs will be produced.
 
-  USE_HOMEBREW=true - Configure Homebrew package options for Nix-Darwin configurations.
+  HOME_ALONE=true       - Configure for a system running Home Manager without
+                         NixOS or Nix-Darwin. Autodetected if not set.
 
-  HOME_ALONE=true   - Configure options for a system running home-manager without NixOS or Nix-Darwin (autodetects current system).
+  USE_HOMEBREW=true     - Enable Homebrew package options in a Nix-Darwin configuration.
 
-  BOOT_SPEC=true    - Set the default boot menu option to the first listed specialisation. (NOTE: Only supports systemd boot configurations.)
+  USE_CACHE=true        - Use additional binary cache substituters (see above).
 
-Additional option flags (any target):
-  KEEP_LOGS=true    - Don't erase logs after operations (for debugging).
+  USE_KEYS=true         - Trust additional public keys (see above).
+
+Universal flags (any target):
+  KEEP_LOGS=true        - Preserve logs after operations instead of cleaning up.
+                         Useful for debugging. Log paths are printed at startup.
 
 Usage examples:
-  - Install Nix using the default installer for single-user mode:
-    make install SINGLE_USER=Y
+  - Install Nix using the default installer in single-user mode:
+    make install SINGLE_USER=true
 
-  - Install Nix-Darwin using the Determinate Systems installer:
-    make install USE_DETERMINATE=1 INSTALL_DARWIN=y
+  - Install Nix using the Determinate Systems installer and Nix-Darwin on MacOS:
+    make install USE_DETERMINATE=true INSTALL_DARWIN=true
 
-  - Build and activate the home-manager configuration for the current user using a standalone home-manager configuration; autodetect hostname and system type:
-    make home HOME_ALONE=true
+  - Validate flake configurations for the current user and host:
+    make check
 
-  - Build and activate the current system's configuration; autodetect hostname and system platform:
-    make system
+  - Validate only the home-manager configuration for the current user:
+    make check-home
 
-  - Build and activate the standalone home-manager configuration for user sam on host xps-15, set the tags 'debian' and 'server', and build for an aarch64-linux platform:
-    make home user=sam host=xps-15 system=aarch64-linux HOME_ALONE=1 tags=debian,server
+  - Build and activate the Home Manager configuration for the current user
+    on a standalone system (no NixOS or Nix-Darwin):
+    make switch-home HOME_ALONE=true
 
-  - Rebuild and switch the system configuration for host workstation1; autodetect platform; build specialisation configurations for wayland and x11_egpu; set default boot menu selection to wayland:
-    make system host=workstation1 spec=wayland,x11_egpu BOOT_SPEC=1
+  - Build and activate the current system configuration; autodetect all settings:
+    make switch-system
 
-  - Rebuild and switch the current system's configuration and current user's home-manager configuration; autodetect all settings:
+  - Build and activate the Home Manager configuration for user sam on host xps-15,
+    with tags 'debian' and 'server', targeting aarch64-linux:
+    make switch-home TGT_USER=sam TGT_HOST=xps-15 \
+      TGT_SYSTEM=aarch64-linux CFG_TAGS=debian,server HOME_ALONE=true
+
+  - Dry-run evaluation of both system and home configurations; autodetect all settings:
+    make switch DRY_RUN=true
+
+  - Full bootstrap of a bare system: install Nix and activate all configurations:
     make all
-
-  - Evaluate the current system's configuration and current user's home-manager config; autodetect all settings:
-    make all DRY_RUN=1
-
-  - Run 'nix flake check' for all configurations (current system and user must have a valid configuration):
-    make test
 

@@ -1,82 +1,110 @@
 make-nix help
 
 Usage:
-[0;31mmake[0m [1m<help|install|home|system|all|test>[0m
+[0;31mmake[0m [1m<help|install|check|build|switch|all>[0m
 [[1;36mTGT_USER[0m[0;31m=[0m<user>]
 [[1;36mTGT_HOST[0m[0;31m=[0m<host>]
 [[1;36mTGT_SYSTEM[0m[0;31m=[0m<system>]
-[[1;36mCFG_TAGS[0m[0;31m=[0m<tag1>[0;31m,[0m<tag2>[0;31m,[0m<tag3>[0;31m,[0m...]
-[[1;36mSPECS[0m[0;31m=[0m<spc1>[0;31m,[0m<spc2>[0;31m,[0m<spc3>[0;31m,[0m...]
+[[1;36mCFG_TAGS[0m[0;31m=[0m<tag1>[0;31m,[0m<tag2>[0;31m,[0m...]
+[[1;36mSPECS[0m[0;31m=[0m<spc1>[0;31m,[0m<spc2>[0;31m,[0m...]
 [[1;34mOPTION FLAGS[0m]
 
 [1mMake targets:[0m
   [1mhelp[0m    - You are here.
-  [1minstall[0m - Install Nix and/or Nix-Darwin. Will not execute on NixOS or Nix-Darwin systems.
-  [1mhome[0m    - Build and activate a Home-manager configuration.
-  [1msystem[0m  - Build and activate a NixOS or Nix-Darwin system configuration.
-  [1mall[0m     - Execute both the system and home targets in that order.
-  [1mtest[0m    - Check all flake configurations.
+  [1minstall[0m - Install Nix and/or Nix-Darwin on a bare MacOS or Linux system.
+           Will not execute on NixOS or Nix-Darwin managed systems.
+  [1mcheck[0m   - Validate flake configurations for the target user and host.
+           Sub-targets: [1mcheck-home[0m, [1mcheck-system[0m
+  [1mbuild[0m   - Build Nix closures for home and system configurations.
+           Runs check first to prevent configuration mismatches.
+           Sub-targets: [1mbuild-home[0m, [1mbuild-system[0m
+  [1mswitch[0m  - Check, build, and activate configurations.
+           Sub-targets: [1mswitch-home[0m, [1mswitch-system[0m
+  [1mall[0m     - Full pipeline: install through switch for a bare system.
 
-[1;36mConfiguration parameters:[0m
-  [1;36mTGT_USER[0m    - User configuration (current user will be passed by default).
-  [1;36mTGT_HOST[0m    - System configuration host (current hostname will be passed by default).
-  [1;36mCFG_TAGS[0m    - User allows to customizing home-manager user configuration based on tags similar to specialisations for system configurations.
-  [1;36mTGT_SYSTEM[0m  - System platform to target for builds: x86_64-linux, aarch64-linux, x86_64-darwin, or aarch64-darwin (current platform will be passed by default.)
-  [1;36mSPECS[0m    - Comma separated list of NixOS system specialisation configurations (no spaces).
+[1;36mConfiguration parameters[0m (autodetected from current system if not set):
+  [1;36mTGT_USER[0m    - Target username. Defaults to current user.
+             Override to build a configuration for a different user.
+  [1;36mTGT_HOST[0m    - Target hostname. Defaults to current hostname.
+             Override to build a configuration for a different host.
+  [1;36mTGT_SYSTEM[0m  - Target system tuple. Defaults to current platform.
+             Valid values: x86_64-linux, aarch64-linux, x86_64-darwin, aarch64-darwin.
+             Override to cross-build for a different architecture.
+  [1;36mCFG_TAGS[0m    - Comma-separated tags to customise the Home Manager configuration
+             at build time (no spaces). Example: [1;36mCFG_TAGS[0m[0;31m=[0mserver,minimal
+  [1;36mSPECS[0m       - Comma-separated list of NixOS specialisation configurations
+             to build (no spaces). Example: [1;36mSPECS[0m[0;31m=[0megpu,powersave
 
-[1;34mOption flags[0m (These are boolean, assigning [1many truthy[0m value will enable them):
-Truthy values are 1 yes Yes YES true True TRUE on On ON y Y
+  Configuration is stored in [0;35mmake-attrs/system/<user>@<host>.nix[0m or
+  [0;35mmake-attrs/home-alone/<user>@<host>.nix[0m and committed to git automatically.
+  On subsequent runs, existing attribute files are read and updated with any new values.
 
-Install option flags (install):
-  [1;34mDETERMINATE[0m[0;31m=[0mtrue  - Install Nix using the Determinate Systems installer.
+[1;34mOption flags[0m (boolean — assign any truthy value to enable):
+Truthy values: 1 y Y yes Yes YES on On ON true True TRUE
+Falsey values: 0 n N no No NO off Off OFF false False FALSE
 
-  [1;34mNIX_DARWIN[0m[0;31m=[0mtrue   - Install Nix-Darwin for MacOS.
+Install flags ([1minstall[0m[0;31m|[0m[1mall[0m):
+  [1;34mUSE_DETERMINATE[0m[0;31m=[0mtrue  - Install Nix using the Determinate Systems installer.
+                         Default installer is the official NixOS installer.
 
-  [1;34mUSE_HOMEBREW[0m[0;31m=[0mtrue - Install Homebrew.
+  [1;34mINSTALL_DARWIN[0m[0;31m=[0mtrue   - Install Nix-Darwin for MacOS.
 
-  [1;34mSINGLE_USER[0m[0;31m=[0mtrue  - Install Nix for single-user mode (default installer only).
+  [1;34mUSE_HOMEBREW[0m[0;31m=[0mtrue     - Install Homebrew (MacOS only).
 
-  [1;34mUSE_CACHE[0m[0;31m=[0mtrue    - Set a additional cache server URLs to be used as substituters (cache.nixos.org is used by default). This option is defined in make.env as a comma separated list of URLs (no spaces) in order of precedence.
+  [1;34mSINGLE_USER[0m[0;31m=[0mtrue      - Install Nix in single-user mode.
+                         Only supported with the default installer.
 
-  [1;34mUSE_KEYS[0m[0;31m=[0mtrue     - Set additional trusted public keys for nix stores (cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= is used by default). This option is defined in make.env as comma separated list of Nix keyname:keyvalue pairs.
+  [1;34mUSE_CACHE[0m[0;31m=[0mtrue        - Use additional binary cache substituters defined in
+                         [0;35mmake.env[0m as [1;36mNIX_CACHE_URLS[0m (comma-separated, no spaces).
 
-Configuration option flags (home|system|all):
-  [1;34mDRY_RUN[0m[0;31m=[0mtrue      - Evaluate the new configuration but don't activate it.
+  [1;34mUSE_KEYS[0m[0;31m=[0mtrue         - Trust additional public keys defined in
+                         [0;35mmake.env[0m as [1;36mTRUSTED_PUBLIC_KEYS[0m (comma-separated).
 
-  [1;34mUSE_HOMEBREW[0m[0;31m=[0mtrue - Configure Homebrew package options for Nix-Darwin configurations.
+Configuration flags ([1mcheck[0m[0;31m|[0m[1mbuild[0m[0;31m|[0m[1mswitch[0m[0;31m|[0m[1mall[0m):
+  [1;34mDRY_RUN[0m[0;31m=[0mtrue          - Evaluate the configuration without building or activating it.
+                         Passes --dry-run to Nix. No outputs will be produced.
 
-  [1;34mHOME_ALONE[0m[0;31m=[0mtrue   - Configure options for a system running home-manager without NixOS or Nix-Darwin (autodetects current system).
+  [1;34mHOME_ALONE[0m[0;31m=[0mtrue       - Configure for a system running Home Manager without
+                         NixOS or Nix-Darwin. Autodetected if not set.
 
-  [1;34mBOOT_SPEC[0m[0;31m=[0mtrue    - Set the default boot menu option to the [1mfirst[0m listed specialisation. (NOTE: Only supports systemd boot configurations.)
+  [1;34mUSE_HOMEBREW[0m[0;31m=[0mtrue     - Enable Homebrew package options in a Nix-Darwin configuration.
 
-Additional option flags (any target):
-  [1;34mKEEP_LOGS[0m[0;31m=[0mtrue    - Don't erase logs after operations (for debugging).
+  [1;34mUSE_CACHE[0m[0;31m=[0mtrue        - Use additional binary cache substituters (see above).
+
+  [1;34mUSE_KEYS[0m[0;31m=[0mtrue         - Trust additional public keys (see above).
+
+Universal flags (any target):
+  [1;34mKEEP_LOGS[0m[0;31m=[0mtrue        - Preserve logs after operations instead of cleaning up.
+                         Useful for debugging. Log paths are printed at startup.
 
 Usage examples:
-  [1;32m- Install Nix using the default installer for single-user mode:
-    [0;31mmake[0m [1minstall[0m [1;34mSINGLE_USER[0m[0;31m=[0mY
+  [1;32m- Install Nix using the default installer in single-user mode:[0m
+    [0;31mmake[0m [1minstall[0m [1;34mSINGLE_USER[0m[0;31m=[0mtrue
 
-  [1;32m- Install Nix-Darwin using the Determinate Systems installer:
-    [0;31mmake[0m [1minstall[0m [1;34mDETERMINATE[0m[0;31m=[0m1 [1;34mNIX_DARWIN[0m[0;31m=[0my
+  [1;32m- Install Nix using the Determinate Systems installer and Nix-Darwin on MacOS:[0m
+    [0;31mmake[0m [1minstall[0m [1;34mUSE_DETERMINATE[0m[0;31m=[0mtrue [1;34mINSTALL_DARWIN[0m[0;31m=[0mtrue
 
-  [1;32m- Build and activate the home-manager configuration for the current user using a standalone home-manager configuration; autodetect hostname and system type:[0m
-    [0;31mmake[0m [1mhome[0m [1;34mHOME_ALONE[0m[0;31m=[0mtrue
+  [1;32m- Validate flake configurations for the current user and host:[0m
+    [0;31mmake[0m [1mcheck[0m
 
-  [1;32m- Build and activate the current system's configuration; autodetect hostname and system platform:[0m
-    [0;31mmake[0m [1msystem[0m
+  [1;32m- Validate only the home-manager configuration for the current user:[0m
+    [0;31mmake[0m [1mcheck-home[0m
 
-  [1;32m- Build and activate the standalone home-manager configuration for user sam on host xps-15, set the tags 'debian' and 'server', and build for an aarch64-linux platform:[0m
-    [0;31mmake[0m [1mhome[0m [1;36muser[0m[0;31m=[0msam [1;36mhost[0m[0;31m=[0mxps-15 [1;36msystem[0m[0;31m=[0maarch64-linux [1;34mHOME_ALONE[0m[0;31m=[0m1 [1;36mtags[0m[0;31m=[0mdebian,server
+  [1;32m- Build and activate the Home Manager configuration for the current user[0m
+  [1;32m  on a standalone system (no NixOS or Nix-Darwin):[0m
+    [0;31mmake[0m [1mswitch-home[0m [1;34mHOME_ALONE[0m[0;31m=[0mtrue
 
-  [1;32m- Rebuild and switch the system configuration for host workstation1; autodetect platform; build specialisation configurations for wayland and x11_egpu; set default boot menu selection to wayland:[0m
-    [0;31mmake[0m [1msystem[0m [1;36mhost[0m[0;31m=[0mworkstation1 [1;36mspec[0m[0;31m=[0mwayland[0;31m,[0mx11_egpu [1;34mBOOT_SPEC[0m[0;31m=[0m1
+  [1;32m- Build and activate the current system configuration; autodetect all settings:[0m
+    [0;31mmake[0m [1mswitch-system[0m
 
-  [1;32m- Rebuild and switch the current system's configuration and current user's home-manager configuration; autodetect all settings:[0m
+  [1;32m- Build and activate the Home Manager configuration for user sam on host xps-15,[0m
+  [1;32m  with tags 'debian' and 'server', targeting aarch64-linux:[0m
+    [0;31mmake[0m [1mswitch-home[0m [1;36mTGT_USER[0m[0;31m=[0msam [1;36mTGT_HOST[0m[0;31m=[0mxps-15 \
+      [1;36mTGT_SYSTEM[0m[0;31m=[0maarch64-linux [1;36mCFG_TAGS[0m[0;31m=[0mdebian,server [1;34mHOME_ALONE[0m[0;31m=[0mtrue
+
+  [1;32m- Dry-run evaluation of both system and home configurations; autodetect all settings:[0m
+    [0;31mmake[0m [1mswitch[0m [1;34mDRY_RUN[0m[0;31m=[0mtrue
+
+  [1;32m- Full bootstrap of a bare system: install Nix and activate all configurations:[0m
     [0;31mmake[0m [1mall[0m
-
-  [1;32m- Evaluate the current system's configuration and current user's home-manager config; autodetect all settings:[0m
-    [0;31mmake[0m [1mall[0m [1;34mDRY_RUN[0m[0;31m=[0m1
-
-  [1;32m- Run 'nix flake check' for all configurations (current system and user must have a valid configuration):[0m
-    [0;31mmake[0m [1mtest[0m
 
