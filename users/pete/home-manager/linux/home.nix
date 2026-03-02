@@ -46,6 +46,7 @@ in
     ../cross-platform/alacritty-config.nix
     ../cross-platform/git-config.nix
     ../cross-platform/cli-programs.nix
+    ./xdg-config.nix
     ./awesome-config.nix
     ./bash-config.nix
     ./firefox-config.nix
@@ -59,45 +60,6 @@ in
   nixpkgs = {
     config = {
       allowUnfree = true;
-    };
-  };
-
-  xdg = {
-    enable = true;
-    portal = {
-      enable = true;
-      extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-      xdgOpenUsePortal = true;
-      config = {
-        common = {
-          default = [ "gtk" ];
-        };
-      };
-    };
-
-    userDirs = {
-      enable = true;
-      documents = "/home/${makeNixAttrs.user}/Documents";
-      download = "/home/${makeNixAttrs.user}/Downloads";
-      music = "/home/${makeNixAttrs.user}/Music";
-      pictures = "/home/${makeNixAttrs.user}/Pictures";
-      publicShare = "/home/${makeNixAttrs.user}/Public";
-      templates = "/home/${makeNixAttrs.user}/Templates";
-      videos = "/home/${makeNixAttrs.user}/Videos";
-
-      extraConfig = {
-        XDG_PROJECT_DIR = "/home/${makeNixAttrs.user}/Projects";
-      };
-    };
-
-    mimeApps = {
-      enable = true;
-      associations.added = {
-        "application/pdf" = [ "org.kde.okular.desktop" ];
-      };
-      defaultApplications = {
-					"application/pdf" = [ "org.kde.okular.desktop" ];
-      };
     };
   };
 
@@ -119,6 +81,8 @@ in
         unstable.cryptomator # Encrypted container GUI
         fdupes # Duplicate file finder
         heroic # Heroic game launcher
+        hunspell # Dictionary
+        hunspellDicts.en_US
         kdePackages.okular # Okular PDF viewer
         libreoffice
         litemdview # Simple markdown viewer
