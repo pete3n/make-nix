@@ -1,7 +1,9 @@
 { config, pkgs, ... }:
 {
-  home.packages = [
-    pkgs.mpc # Media player daemon CLI interface
+  home.packages = with pkgs; [
+    mpc # Media player daemon CLI interface
+    playerctl
+		picard # Fix metadata
   ];
 
   services.mpd = {
@@ -21,6 +23,19 @@
     '';
   };
 
+  services.mpdris2 = {
+    enable = true;
+
+    mpd = {
+      # host = "127.0.0.1";
+      # port = 6600;
+    };
+  };
+
+  services.easyeffects = {
+    enable = true;
+  };
+
   programs.cava = {
     enable = true;
     settings = {
@@ -30,26 +45,27 @@
       };
       color = {
         gradient = 1;
-        gradient_color_1 = "'#102698'";
-        gradient_color_2 = "'#1b2e9e'";
-        gradient_color_3 = "'#2536a4'";
-        gradient_color_4 = "'#2d3faa'";
-        gradient_color_5 = "'#3547b0'";
-        gradient_color_6 = "'#3d4fb6'";
-        gradient_color_7 = "'#4457bb'";
-        gradient_color_8 = "'#4c60c1'";
-        gradient_color_9 = "'#5368c6'";
-        gradient_color_10 = "'#5b70cc'";
-        gradient_color_11 = "'#6279d1'";
-        gradient_color_12 = "'#6a81d6'";
-        gradient_color_13 = "'#728adc'";
-        gradient_color_14 = "'#7a92e1'";
-        gradient_color_15 = "'#829be6'";
-        gradeint_color_16 = "'#8aa3eb'";
-        gradeint_color_17 = "'#93acf0'";
-        gradeint_color_18 = "'#9bb5f5'";
-        gradeint_color_19 = "'#a4bdfa'";
-        gradeint_color_20 = "'#adc6ff'";
+
+        gradient_color_1 = "'#1c2f5f'";
+        gradient_color_2 = "'#253a73'";
+        gradient_color_3 = "'#2e4587'";
+        gradient_color_4 = "'#38509b'";
+        gradient_color_5 = "'#415cad'";
+        gradient_color_6 = "'#4a67be'";
+        gradient_color_7 = "'#5071c6'";
+        gradient_color_8 = "'#5277c3'";
+        gradient_color_9 = "'#5c83cf'";
+        gradient_color_10 = "'#668fd9'";
+        gradient_color_11 = "'#709be3'";
+        gradient_color_12 = "'#7aa7ec'";
+        gradient_color_13 = "'#84b3f5'";
+        gradient_color_14 = "'#8ebffd'";
+        gradient_color_15 = "'#98caff'";
+        gradient_color_16 = "'#a3d4ff'";
+        gradient_color_17 = "'#afdfff'";
+        gradient_color_18 = "'#bbe9ff'";
+        gradient_color_19 = "'#c7f2ff'";
+        gradient_color_20 = "'#d3fbff'";
       };
     };
   };
