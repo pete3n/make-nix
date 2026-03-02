@@ -29,308 +29,423 @@ rec {
   # MPD Rofi menu
   mpdPopout =
     pkgs.writeShellScriptBin "mpd-popout" # sh
-      ''
-        set -eu
+    ''
+      set -u
 
-        MPC="${pkgs.mpc}/bin/mpc"
-        ROFI="${pkgs.rofi}/bin/rofi"
-        SED="${pkgs.gnused}/bin/sed"
-        AWK="${pkgs.gawk}/bin/awk"
-        GREP="${pkgs.gnugrep}/bin/grep"
-        FIND="${pkgs.findutils}/bin/find"
+      MPC=${pkgs.mpc}/bin/mpc
+      ROFI=${pkgs.rofi}/bin/rofi
+      AWK=${pkgs.gawk}/bin/awk
+      FIND=${pkgs.findutils}/bin/find
 
-        rofi_menu() {
-          _prompt="$1"; shift
-          "$ROFI" -dmenu -i -p "$_prompt" "$@"
+      rofi_menu() {
+        _prompt="''${1}"; shift
+        "''${ROFI}" -dmenu -i -p "''${_prompt}" "$@"
+      }
+
+      rofi_multi() {
+        _prompt="''${1}"; shift
+        "''${ROFI}" -dmenu -i -multi-select -p "''${_prompt}" "$@"
+      }
+
+      # file<TAB>pretty (pretty falls back to filename base)
+      fmt_file_pretty() {
+        "''${AWK}" -F'\t' '
+          function base(s) { sub(/^.*\//,"",s); sub(/\.[^.]*$/,"",s); return s }
+          {
+            _file=$1; _pretty=$2
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", _pretty)
+            if (_pretty=="" || _pretty ~ /^[[:space:]]*—[[:space:]]*$/) _pretty=base(_file)
+            printf "%s\t%s\n", _file, _pretty
+          }'
+      }
+
+      # numbered queue: pos<TAB>pretty
+      fmt_pos_pretty() {
+        "''${AWK}" -F'\t' '
+          function base(s) { sub(/^.*\//,"",s); sub(/\.[^.]*$/,"",s); return s }
+          {
+            _file=$1; _pretty=$2
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", _pretty)
+            if (_pretty=="" || _pretty ~ /^[[:space:]]*—[[:space:]]*$/) _pretty=base(_file)
+            printf "%d\t%s\n", NR, _pretty
+          }'
+      }
+
+      add_files_from_tablist() {
+        # stdin: file<TAB>pretty (multi-selected), add file column
+        _files="$(cut -f1)" || return 0
+        [ -n "''${_files:-}" ] || return 0
+        printf '%s\n' "''${_files}" | while IFS= read -r _file; do
+          [ -n "''${_file}" ] && "''${MPC}" add "''${_file}" >/dev/null
+        done
+      }
+
+      queue_jump() {
+        _lines="$("''${MPC}" -f '%file%\t%artist% — %title%' playlist 2>/dev/null \
+          | fmt_pos_pretty || true)"
+        [ -n "''${_lines:-}" ] || {
+          printf '%s\n' "Queue is empty" | rofi_menu "Queue"
+          return 0
         }
+        _sel="$(printf '%s\n' "''${_lines}" | rofi_menu "Jump to")" || return 0
+        _pos="$(printf '%s' "''${_sel}" | cut -f1 | tr -d ' ')" || _pos=""
+        [ -n "''${_pos:-}" ] || return 0
+        "''${MPC}" play "''${_pos}" >/dev/null
+      }
 
-        rofi_multi() {
-          _prompt="$1"; shift
-          "$ROFI" -dmenu -i -multi-select -p "$_prompt" "$@"
+      queue_delete() {
+        _lines="$("''${MPC}" -f '%file%\t%artist% — %title%' playlist 2>/dev/null \
+          | fmt_pos_pretty || true)"
+        [ -n "''${_lines:-}" ] || {
+          printf '%s\n' "Queue is empty" | rofi_menu "Queue"
+          return 0
         }
+        _picks="$(printf '%s\n' "''${_lines}" | rofi_multi "Delete")" || return 0
+        _poss="$(printf '%s\n' "''${_picks}" | cut -f1 | tr -d ' ')" || return 0
+        [ -n "''${_poss:-}" ] || return 0
+        # Delete highest -> lowest so indices stay valid
+        printf '%s\n' "''${_poss}" | sort -rn | while IFS= read -r _pos; do
+          [ -n "''${_pos}" ] && "''${MPC}" del "''${_pos}" >/dev/null
+        done
+      }
 
-        # file<TAB>pretty (pretty falls back to filename base)
-        fmt_file_pretty() {
-          "$AWK" -F'\t' '
-            function base(s) { sub(/^.*\//,"",s); sub(/\.[^.]*$/,"",s); return s }
-            {
-              _file=$1; _pretty=$2
-              gsub(/^[[:space:]]+|[[:space:]]+$/, "", _pretty)
-              if (_pretty=="" || _pretty ~ /^[[:space:]]*—[[:space:]]*$/) _pretty=base(file)
-              printf "%s\t%s\n", _file, _pretty
-            }'
-        }
+      queue_clear() {
+        _confirm="$(printf '%s\n' "← Back" "Clear queue (confirm)" \
+          | rofi_menu "Clear Queue")" || return 0
+        [ "''${_confirm}" = "Clear queue (confirm)" ] || return 0
+        "''${MPC}" clear >/dev/null
+      }
 
-        # numbered queue: pos<TAB>pretty
-        fmt_pos_pretty() {
-          "$AWK" -F'\t' '
-            function base(s) { sub(/^.*\//,"",s); sub(/\.[^.]*$/,"",s); return s }
-            {
-              _file=$1; _pretty=$2
-              gsub(/^[[:space:]]+|[[:space:]]+$/, "", _pretty)
-              if (_pretty=="" || _pretty ~ /^[[:space:]]*—[[:space:]]*$/) _pretty=base(file)
-              printf "%d\t%s\n", NR, _pretty
-            }'
-        }
+      queue_save() {
+        _name="$(printf '%s' "" | "''${ROFI}" -dmenu -p "Playlist name" -i)" || return 0
+        [ -n "''${_name:-}" ] || return 0
+        "''${MPC}" save "''${_name}" >/dev/null
+      }
 
-        add_files_from_tablist() {
-          # stdin: file<TAB>pretty (multi-selected), add file column
-          _files="$(cut -f1)" || return 0
-          [ -n "''${_files:-}" ] || return 0
-          printf '%s\n' "$_files" | while IFS= read -r _file; do
-            [ -n "$_file" ] && "$MPC" add "$_file" >/dev/null
-          done
-        }
-
-        queue_jump() {
-          _lines="$("$MPC" -f '%file%\t%artist% — %title%' playlist 2>/dev/null | fmt_pos_pretty || true)"
-          [ -n "''${_lines:-}" ] || { printf '%s\n' "Queue is empty" | rofi_menu "Queue"; return 0; }
-
-          _sel="$(printf '%s\n' "$_lines" | rofi_menu "Jump to")" || return 0
-          _pos="$(printf '%s' "$_sel" | cut -f1 | tr -d ' ')" || _pos=""
-          [ -n "$_pos" ] || return 0
-          "$MPC" play "$_pos" >/dev/null
-        }
-
-        queue_delete() {
-          _lines="$("$MPC" -f '%file%\t%artist% — %title%' playlist 2>/dev/null | fmt_pos_pretty || true)"
-          [ -n "''${_lines:-}" ] || { printf '%s\n' "Queue is empty" | rofi_menu "Queue"; return 0; }
-
-          _picks="$(printf '%s\n' "$_lines" | rofi_multi "Delete")" || return 0
-          _poss="$(printf '%s\n' "$_picks" | cut -f1 | tr -d ' ')" || return 0
-          [ -n "''${_poss:-}" ] || return 0
-
-          # Delete highest -> lowest so indices stay valid
-          printf '%s\n' "$_poss" | sort -rn | while IFS= read -r _sel; do
-            [ -n "$_sel" ] && "$MPC" del "$_sel" >/dev/null
-          done
-        }
-
-        queue_clear() {
-          _confirm="$(printf '%s\n' "← Back" "Clear queue (confirm)" | rofi_menu "Clear Queue")" || return 0
-          [ "$_confirm" = "Clear queue (confirm)" ] || return 0
-          "$MPC" clear >/dev/null
-        }
-
-        queue_save() {
-          _name="$(printf '%s' "" | "$ROFI" -dmenu -p "Playlist name" -i)" || return 0
-          [ -n "$_name" ] || return 0
-          "$MPC" save "$_name" >/dev/null
-        }
-
-        queue_menu() {
-          while :; do
-            _choice="$(printf '%s\n' \
-              "← Back" \
-              "Jump" \
-              "Delete" \
-              "Clear" \
-              "Save" \
-              | rofi_menu "Queue")" || return 0
-
-            case "$_choice" in
-              "← Back") return 0 ;;
-              "Jump")   queue_jump ;;
-              "Delete") queue_delete ;;
-              "Clear")  queue_clear ;;
-              "Save")   queue_save ;;
-            esac
-          done
-        }
-
-        pick_playlist() {
-          pls="$("$MPC" lsplaylists 2>/dev/null || true)"
-          [ -n "''${pls:-}" ] || { printf '%s\n' "No playlists found" | rofi_menu "Playlists"; return 1; }
-          pl="$(printf '%s\n' "← Back" "$pls" | rofi_menu "Playlists")" || return 1
-          [ "$pl" = "← Back" ] && return 1
-          [ -n "$pl" ] || return 1
-          printf '%s' "$pl"
-        }
-
-        playlist_load_replace() {
-          pl="$(pick_playlist || true)"; [ -n "''${pl:-}" ] || return 0
-          confirm="$(printf '%s\n' "← Back" "Replace queue (confirm)" | rofi_menu "Load Playlist")" || return 0
-          [ "$confirm" = "Replace queue (confirm)" ] || return 0
-          "$MPC" clear >/dev/null
-          "$MPC" load "$pl" >/dev/null
-          "$MPC" play >/dev/null 2>&1 || true
-        }
-
-        playlist_append() {
-          pl="$(pick_playlist || true)"; [ -n "''${pl:-}" ] || return 0
-          "$MPC" load "$pl" >/dev/null
-        }
-
-        playlist_delete() {
-          pl="$(pick_playlist || true)"; [ -n "''${pl:-}" ] || return 0
-          confirm="$(printf '%s\n' "← Back" "Delete (confirm): $pl" | rofi_menu "Delete Playlist")" || return 0
-          [ "$confirm" = "Delete (confirm): $pl" ] || return 0
-          "$MPC" rm "$pl" >/dev/null
-        }
-
-        playlist_menu() {
-          while :; do
-            choice="$(printf '%s\n' \
-              "← Back" \
-              "Load (replace queue)" \
-              "Append (keep queue)" \
-              "Delete playlist" \
-              | rofi_menu "Playlist")" || return 0
-
-            case "$choice" in
-              "← Back") return 0 ;;
-              "Load (replace queue)") playlist_load_replace ;;
-              "Append (keep queue)")  playlist_append ;;
-              "Delete playlist")      playlist_delete ;;
-            esac
-          done
-        }
-
-        search_add_any() {
-          picks="$(
-            "$MPC" -f '%file%\t%artist% — %title%' search any "" 2>/dev/null \
-              | fmt_file_pretty \
-              | rofi_multi "Add (All)"
-          )" || return 0
-          printf '%s\n' "$picks" | add_files_from_tablist
-        }
-
-        search_add_field_prompt() {
-          field="$1"
-          q="$(printf '%s' "" | "$ROFI" -dmenu -p "Search ''${field}" -i)" || return 0
-          [ -n "$q" ] || return 0
-          picks="$(
-            "$MPC" -f '%file%\t%artist% — %title%' search "$field" "$q" 2>/dev/null \
-              | fmt_file_pretty \
-              | rofi_multi "Add (''${field})"
-          )" || return 0
-          printf '%s\n' "$picks" | add_files_from_tablist
-        }
-
-        search_add_genre() {
-          genres="$("$MPC" list genre 2>/dev/null || true)"
-          [ -n "''${genres:-}" ] || { printf '%s\n' "No genres found" | rofi_menu "Genre"; return 0; }
-
-          genre="$(printf '%s\n' "← Back" "$genres" | rofi_menu "Genre")" || return 0
-          [ "$genre" = "← Back" ] && return 0
-
-          picks="$(
-            "$MPC" -f '%file%\t%artist% — %title%' search genre "$genre" 2>/dev/null \
-              | fmt_file_pretty \
-              | rofi_multi "Add (Genre)"
-          )" || return 0
-          printf '%s\n' "$picks" | add_files_from_tablist
-        }
-
-				get_music_dir() {
-					md="$("$MPC" config 2>/dev/null | "$AWK" -F' = ' '$1=="music_directory"{print $2; exit}' | tr -d '"')" || md=""
-					if [ -n "''${md:-}" ] && [ -d "$md" ]; then
-						printf '%s' "$md"
-						return 0
-					fi
-
-					if [ -n "''${MPD_MUSIC_DIR:-}" ] && [ -d "$MPD_MUSIC_DIR" ]; then
-						printf '%s' "$MPD_MUSIC_DIR"
-						return 0
-					fi
-
-					# 3) Fallbacks
-					if [ -d "$HOME/Music" ]; then
-						printf '%s' "$HOME/Music"
-						return 0
-					fi
-
-					printf '%s' ""
-					return 1
-				}
-
-				search_add_newest() {
-					LIMIT=500
-
-					music_dir="$(get_music_dir || true)"
-					if [ -z "''${music_dir:-}" ] || [ ! -d "$music_dir" ]; then
-						printf '%s\n' "music_directory not found (set MPD_MUSIC_DIR?)" | rofi_menu "Newest"
-						return 0
-					fi
-
-					newest="$(
-						"$FIND" "$music_dir" -type f 2>/dev/null \
-							| while IFS= read -r abs; do
-									ts="$(stat -c %Y "$abs" 2>/dev/null || echo 0)"
-									rel="''${abs#"$music_dir"/}"
-									base="''${rel##*/}"; base="''${base%.*}"
-									printf '%s\t%s\t%s\n' "$ts" "$rel" "$base"
-								done \
-							| sort -rn -k1,1 \
-							| head -n "$LIMIT"
-					)" || newest=""
-
-					[ -n "''${newest:-}" ] || { printf '%s\n' "No files found" | rofi_menu "Newest"; return 0; }
-
-					picks="$(
-						printf '%s\n' "$newest" \
-							| "$AWK" -F'\t' '{ printf "%s\t%s\n", $2, $3 }' \
-							| rofi_multi "Add (Newest)"
-					)" || return 0
-
-					printf '%s\n' "$picks" | add_files_from_tablist
-				}
-
-				search_rescan_db() {
-					confirm="$(printf '%s\n' "← Back" "Rescan MPD database (confirm)" | rofi_menu "Rescan DB")" || return 0
-					[ "$confirm" = "Rescan MPD database (confirm)" ] || return 0
-
-					if "$MPC" rescan >/dev/null 2>&1; then
-						:
-					else
-						"$MPC" update >/dev/null 2>&1 || true
-					fi
-					printf '%s\n' "Scan started (Go back)" | rofi_menu "MPD" >/dev/null || true
-				}
-
-        search_menu() {
-          while :; do
-            choice="$(printf '%s\n' \
-              "← Back" \
-              "All (any)" \
-              "Artist (prompt)" \
-              "Genre (pick)" \
-              "Newest (file mtime)" \
-              "Title (prompt)" \
-							"Update DB (re-scan)" \
-              | rofi_menu "Search")" || return 0
-
-            case "$choice" in
-              "← Back") return 0 ;;
-              "All (any)")           search_add_any ;;
-              "Artist (prompt)")     search_add_field_prompt artist ;;
-              "Genre (pick)")        search_add_genre ;;
-              "Newest (file mtime)") search_add_newest ;;
-              "Title (prompt)")      search_add_field_prompt title ;;
-							"Update DB (re-scan)") search_rescan_db ;;
-            esac
-          done
-        }
-
-        # ---------- Top level ----------
-        top_menu() {
-          printf '%s\n' \
-            "Queue" \
-            "Playlist" \
-            "Search" \
-            "Close"
-        }
-
+      queue_menu() {
         while :; do
-          choice="$(top_menu | rofi_menu "MPD")" || exit 0
-          case "$choice" in
-            "Queue")    queue_menu ;;
-            "Playlist") playlist_menu ;;
-            "Search")   search_menu ;;
-            "Close"|"" ) exit 0 ;;
+          _choice="$(printf '%s\n' \
+            "← Back" \
+            "Jump" \
+            "Delete" \
+            "Clear" \
+            "Save" \
+            | rofi_menu "Queue")" || return 0
+          case "''${_choice}" in
+            "← Back") return 0 ;;
+            "Jump")   queue_jump ;;
+            "Delete") queue_delete ;;
+            "Clear")  queue_clear ;;
+            "Save")   queue_save ;;
           esac
         done
-      '';
+      }
+
+      pick_playlist() {
+        _pls="$("''${MPC}" lsplaylists 2>/dev/null || true)"
+        [ -n "''${_pls:-}" ] || {
+          printf '%s\n' "No playlists found" | rofi_menu "Playlists"
+          return 1
+        }
+        _pl="$(printf '%s\n' "← Back" "''${_pls}" | rofi_menu "Playlists")" || return 1
+        [ "''${_pl}" = "← Back" ] && return 1
+        [ -n "''${_pl:-}" ] || return 1
+        printf '%s' "''${_pl}"
+      }
+
+      playlist_load_replace() {
+        _pl="$(pick_playlist || true)"
+        [ -n "''${_pl:-}" ] || return 0
+
+        _preview="$("''${MPC}" -f '%artist% — %title%' playlist "''${_pl}" 2>/dev/null || true)"
+
+        _confirm="$(printf '%s\n' "← Back" "Replace queue (confirm)" "''${_preview}" \
+          | rofi_menu "Load: ''${_pl}")" || return 0
+        [ "''${_confirm}" = "Replace queue (confirm)" ] || return 0
+
+        "''${MPC}" clear >/dev/null
+        "''${MPC}" load "''${_pl}" >/dev/null
+        "''${MPC}" play >/dev/null 2>&1 || true
+      }
+
+      playlist_append() {
+        _pl="$(pick_playlist || true)"
+        [ -n "''${_pl:-}" ] || return 0
+        "''${MPC}" load "''${_pl}" >/dev/null
+      }
+
+      playlist_delete() {
+        _pl="$(pick_playlist || true)"
+        [ -n "''${_pl:-}" ] || return 0
+        _confirm="$(printf '%s\n' "← Back" "Delete (confirm): ''${_pl}" \
+          | rofi_menu "Delete Playlist")" || return 0
+        [ "''${_confirm}" = "Delete (confirm): ''${_pl}" ] || return 0
+        "''${MPC}" rm "''${_pl}" >/dev/null
+      }
+
+      _get_playlist_dir() {
+        _pd="$(
+          "''${MPC}" config 2>/dev/null \
+            | "''${AWK}" -F' = ' '$1=="playlist_directory"{print $2; exit}' \
+            | tr -d '"'
+        )" || _pd=""
+        if [ -n "''${_pd:-}" ] && [ -d "''${_pd}" ]; then
+          printf '%s' "''${_pd}"
+          return 0
+        fi
+        # Common fallback locations
+        if [ -d "''${HOME}/.config/mpd/playlists" ]; then
+          printf '%s' "''${HOME}/.config/mpd/playlists"
+          return 0
+        fi
+        if [ -d "''${HOME}/.mpd/playlists" ]; then
+          printf '%s' "''${HOME}/.mpd/playlists"
+          return 0
+        fi
+        printf '%s' ""
+        return 1
+      }
+
+      playlist_add_current() {
+        _current_file="$("''${MPC}" -f '%file%' current 2>/dev/null || true)"
+        [ -n "''${_current_file:-}" ] || {
+          printf '%s\n' "Nothing is currently playing" | rofi_menu "Add to Playlist"
+          return 0
+        }
+        _current_pretty="$("''${MPC}" -f '%artist% — %title%' current 2>/dev/null || true)"
+        [ -n "''${_current_pretty:-}" ] || _current_pretty="''${_current_file}"
+
+        _existing="$("''${MPC}" lsplaylists 2>/dev/null || true)"
+        _choice="$(printf '%s\n' "← Back" "New playlist" "''${_existing}" \
+          | rofi_menu "Add: ''${_current_pretty}")" || return 0
+        [ "''${_choice}" = "← Back" ] && return 0
+        [ -n "''${_choice:-}" ] || return 0
+
+        if [ "''${_choice}" = "New playlist" ]; then
+          _pl="$(printf '%s' "" \
+            | "''${ROFI}" -dmenu -p "New playlist name" -i)" || return 0
+          [ -n "''${_pl:-}" ] || return 0
+        else
+          _pl="''${_choice}"
+        fi
+
+        "''${MPC}" addplaylist "''${_pl}" "''${_current_file}" >/dev/null || {
+          printf '%s\n' "Failed to add to ''${_pl}" | rofi_menu "Error" >/dev/null || true
+          return 0
+        }
+        printf '%s\n' "Added to ''${_pl} — press Enter" \
+          | rofi_menu "Add to Playlist" >/dev/null || true
+      }
+
+      playlist_remove_current() {
+        _current_file="$("''${MPC}" -f '%file%' current 2>/dev/null || true)"
+        [ -n "''${_current_file:-}" ] || {
+          printf '%s\n' "Nothing is currently playing" | rofi_menu "Remove from Playlist"
+          return 0
+        }
+        _current_pretty="$("''${MPC}" -f '%artist% — %title%' current 2>/dev/null || true)"
+        [ -n "''${_current_pretty:-}" ] || _current_pretty="''${_current_file}"
+
+        _existing="$("''${MPC}" lsplaylists 2>/dev/null || true)"
+        [ -n "''${_existing:-}" ] || {
+          printf '%s\n' "No playlists found" | rofi_menu "Remove from Playlist"
+          return 0
+        }
+
+        _pl="$(printf '%s\n' "← Back" "''${_existing}" \
+          | rofi_menu "Remove: ''${_current_pretty}")" || return 0
+        [ "''${_pl}" = "← Back" ] && return 0
+        [ -n "''${_pl:-}" ] || return 0
+
+        # Find all positions (1-based) of the current file in the playlist
+        _positions="$(
+          "''${MPC}" -f '%file%' playlist "''${_pl}" 2>/dev/null \
+            | "''${AWK}" -v target="''${_current_file}" \
+                'NR && $0==target { print NR }' \
+            | sort -rn
+        )" || _positions=""
+
+        [ -n "''${_positions:-}" ] || return 0
+
+        printf '%s\n' "''${_positions}" | while IFS= read -r _pos; do
+          [ -n "''${_pos:-}" ] && \
+            "''${MPC}" delplaylist "''${_pl}" "''${_pos}" >/dev/null
+        done
+      }
+
+      playlist_menu() {
+        while :; do
+          _choice="$(printf '%s\n' \
+            "← Back" \
+            "Load playlist (replace queue)" \
+            "Append playlist to queue" \
+						"Add current track to playlist" \
+						"Remove current track" \
+            "Delete playlist" \
+            | rofi_menu "Playlist")" || return 0
+          case "''${_choice}" in
+            "← Back")               return 0 ;;
+            "Load playlist (replace queue)") playlist_load_replace ;;
+            "Append playlist to queue")  playlist_append ;;
+            "Add current track to playlist")    playlist_add_current ;;
+            "Remove current track") playlist_remove_current ;;
+            "Delete playlist")      playlist_delete ;;
+          esac
+        done
+      }
+
+      search_add_any() {
+        _picks="$(
+          "''${MPC}" -f '%file%\t%artist% — %title%' search any "" 2>/dev/null \
+            | fmt_file_pretty \
+            | rofi_multi "Add (All)"
+        )" || return 0
+        printf '%s\n' "''${_picks}" | add_files_from_tablist
+      }
+
+      search_add_field_prompt() {
+        _field="''${1}"
+
+        # Pre-populate all unique values for the field so rofi can fuzzy filter them
+        _all_values="$("''${MPC}" list "''${_field}" 2>/dev/null || true)"
+        [ -n "''${_all_values:-}" ] || {
+          printf '%s\n' "No ''${_field} values found in library" | rofi_menu "''${_field}"
+          return 0
+        }
+
+        _query="$(printf '%s\n' "''${_all_values}" \
+          | rofi_menu "Search ''${_field}")" || return 0
+        [ -n "''${_query:-}" ] || return 0
+
+        _picks="$(
+          "''${MPC}" -f '%file%\t%artist% — %title%' search "''${_field}" "''${_query}" 2>/dev/null \
+            | fmt_file_pretty \
+            | rofi_multi "Add (''${_field}: ''${_query})"
+        )" || return 0
+        printf '%s\n' "''${_picks}" | add_files_from_tablist
+      }
+
+      search_add_genre() {
+        _genres="$("''${MPC}" list genre 2>/dev/null || true)"
+        [ -n "''${_genres:-}" ] || {
+          printf '%s\n' "No genres found" | rofi_menu "Genre"
+          return 0
+        }
+        _genre="$(printf '%s\n' "← Back" "''${_genres}" | rofi_menu "Genre")" || return 0
+        [ "''${_genre}" = "← Back" ] && return 0
+        _picks="$(
+          "''${MPC}" -f '%file%\t%artist% — %title%' search genre "''${_genre}" 2>/dev/null \
+            | fmt_file_pretty \
+            | rofi_multi "Add (Genre)"
+        )" || return 0
+        printf '%s\n' "''${_picks}" | add_files_from_tablist
+      }
+
+      get_music_dir() {
+        _md="$("''${MPC}" config 2>/dev/null \
+          | "''${AWK}" -F' = ' '$1=="music_directory"{print $2; exit}' \
+          | tr -d '"')" || _md=""
+        if [ -n "''${_md:-}" ] && [ -d "''${_md}" ]; then
+          printf '%s' "''${_md}"
+          return 0
+        fi
+        if [ -n "''${MPD_MUSIC_DIR:-}" ] && [ -d "''${MPD_MUSIC_DIR}" ]; then
+          printf '%s' "''${MPD_MUSIC_DIR}"
+          return 0
+        fi
+        if [ -d "''${HOME}/Music" ]; then
+          printf '%s' "''${HOME}/Music"
+          return 0
+        fi
+        printf '%s' ""
+        return 1
+      }
+
+      search_add_newest() {
+        _limit=500
+        _music_dir="$(get_music_dir || true)"
+        if [ -z "''${_music_dir:-}" ] || [ ! -d "''${_music_dir}" ]; then
+          printf '%s\n' "music_directory not found (set MPD_MUSIC_DIR?)" \
+            | rofi_menu "Newest"
+          return 0
+        fi
+        _newest="$(
+          "''${FIND}" "''${_music_dir}" -type f 2>/dev/null \
+            | while IFS= read -r _abs; do
+                _ts="$(stat -c %Y "''${_abs}" 2>/dev/null || printf '%s' "0")"
+                _rel="''${_abs#"''${_music_dir}"/}"
+                _base="''${_rel##*/}"
+                _base="''${_base%.*}"
+                printf '%s\t%s\t%s\n' "''${_ts}" "''${_rel}" "''${_base}"
+              done \
+            | sort -rn -k1,1 \
+            | head -n "''${_limit}"
+        )" || _newest=""
+        [ -n "''${_newest:-}" ] || {
+          printf '%s\n' "No files found" | rofi_menu "Newest"
+          return 0
+        }
+        _picks="$(
+          printf '%s\n' "''${_newest}" \
+            | "''${AWK}" -F'\t' '{ printf "%s\t%s\n", $2, $3 }' \
+            | rofi_multi "Add (Newest)"
+        )" || return 0
+        printf '%s\n' "''${_picks}" | add_files_from_tablist
+      }
+
+      search_rescan_db() {
+        _confirm="$(printf '%s\n' "← Back" "Rescan MPD database (confirm)" \
+          | rofi_menu "Rescan DB")" || return 0
+        [ "''${_confirm}" = "Rescan MPD database (confirm)" ] || return 0
+        if "''${MPC}" rescan >/dev/null 2>&1; then
+          :
+        else
+          "''${MPC}" update >/dev/null 2>&1 || true
+        fi
+        printf '%s\n' "Scan started (Go back)" | rofi_menu "MPD" >/dev/null || true
+      }
+
+      search_menu() {
+        while :; do
+          _choice="$(printf '%s\n' \
+            "← Back" \
+            "All (any)" \
+            "Artist (prompt)" \
+            "Genre (pick)" \
+            "Newest (file mtime)" \
+            "Title (prompt)" \
+            "Update DB (re-scan)" \
+            | rofi_menu "Search")" || return 0
+          case "''${_choice}" in
+            "← Back")              return 0 ;;
+            "All (any)")           search_add_any ;;
+            "Artist (prompt)")     search_add_field_prompt artist ;;
+            "Genre (pick)")        search_add_genre ;;
+            "Newest (file mtime)") search_add_newest ;;
+            "Title (prompt)")      search_add_field_prompt title ;;
+            "Update DB (re-scan)") search_rescan_db ;;
+          esac
+        done
+      }
+
+      top_menu() {
+        printf '%s\n' \
+          "Queue" \
+          "Playlist" \
+          "Search" \
+          "Close"
+      }
+
+      while :; do
+        _choice="$(top_menu | rofi_menu "MPD")" || exit 0
+        case "''${_choice}" in
+          "Queue")    queue_menu ;;
+          "Playlist") playlist_menu ;;
+          "Search")   search_menu ;;
+          "Close"|"") exit 0 ;;
+        esac
+      done
+    '';
   
 	# Custom mpd metadata display
   mpdWaybarTicker = 
