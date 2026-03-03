@@ -46,6 +46,12 @@
   # Workaround for suspend then sleep issues.
   # Resolved amdgpu VPE queue reset failed / ib ring test failed (-110)
   # Resolved nvme drive sleep issues.
+
+	documentation = {
+		man.enable = true;
+		man.generateCaches = true;
+	};
+
   boot = {
     kernelParams = [
       "rtc_cmos.use_acpi_alarm=1"
