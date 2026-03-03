@@ -9,48 +9,201 @@ let
       ''
         set -u
 
+        NIX_GREP="${pkgs.gnugrep}/bin/grep"
+        NIX_AICHAT="${pkgs.aichat}/bin/aichat"
+
+        AICHAT_SESSIONS_DIR="''${AICHAT_SESSIONS_DIR:-''${HOME}/.config/aichat/sessions}"
+        WAYLAND_DISPLAY="''${WAYLAND_DISPLAY:-}"
+        DISPLAY="''${DISPLAY:-}"
+        TMUX="''${TMUX:-}"
+        TERM_PROGRAM="''${TERM_PROGRAM:-}"
+
         _session_prefix="''${1:-nix_env}"
         shift
-        _session_date=$(date +%Y-%m-%d)
-        session_name="''${_session_prefix}-''${_session_date}"
 
-        WAYLAND_DISPLAY=''${WAYLAND_DISPLAY:-}
-        DISPLAY=''${DISPLAY:-}
-        TMUX=''${TMUX:-}
-        TERM_PROGRAM=''${TERM_PROGRAM:-}
+        _session_date="$(date +%Y-%m-%d)"
+        _session_name="''${_session_prefix}-''${_session_date}"
+        _session_file="''${AICHAT_SESSIONS_DIR}/''${_session_name}.yaml"
 
-        os_info=""
-        hyprland_info=""
-        context=""
+        # --session-ctx <file> is only passed once as --file to aichat when a 
+        # new session is created. Regular --file args always pass through.
+        _ctx_files=""
+        _pass_args=""
+        _skip_next=0
 
-        if [ "$(uname -s)" = "Darwin" ]; then
-        os_info=$(sw_vers | tr '\n' ' ')
-        else
-        os_info=$(${pkgs.gnugrep}/bin/grep ^PRETTY_NAME /etc/os-release | cut -d= -f2)
+        for _arg in "$@"; do
+        	if [ "''${_skip_next}" = "1" ]; then
+        		_ctx_files="''${_ctx_files:+''${_ctx_files}\n}''${_arg}"
+        		_skip_next=0
+        		continue
+        	fi
+        	case "''${_arg}" in
+        		--session-ctx)
+        		_skip_next=1
+        		;;
+        		--session-ctx=*)
+        		_ctx_files="''${_ctx_files:+''${_ctx_files}\n}''${_arg#--session-ctx=}"
+        		;;
+        		*)
+        		_pass_args="''${_pass_args:+''${_pass_args}\n}''${_arg}"
+        		;;
+        	esac
+        done
+
+        _is_new_session=0
+        [ ! -f "''${_session_file}" ] && _is_new_session=1
+
+        if [ "''${_is_new_session}" = "1" ]; then
+        	os_info=""
+        	hyprland_info=""
+
+        	if [ "$(uname -s)" = "Darwin" ]; then
+        		os_info="$(sw_vers | tr '\n' ' ')"
+        	else
+        		os_info="$("$NIX_GREP" ^PRETTY_NAME /etc/os-release | cut -d= -f2)"
+        	fi
+
+        	if command -v hyprctl >/dev/null 2>&1 && hyprctl version >/dev/null 2>&1; then
+        		hyprland_info="$(hyprctl version)"
+        	else
+        		hyprland_info="not running"
+        	fi
+
+        	_context="$(printf "Kernel: %s\nOS: %s\nShell: %s\nTerminal: %s\nCompositor: %s / %s\nTmux: %s\nHyprland: %s\nNix: %s\n" \
+        	"$(uname -a)" \
+        	"''${os_info}" \
+        	"''${SHELL}" \
+        	"''${TERM_PROGRAM:-unknown}" \
+        	"''${WAYLAND_DISPLAY:-none}" \
+        	"''${DISPLAY:-none}" \
+        	"''${TMUX:+yes}" \
+        	"''${hyprland_info}" \
+        	"$(nix --version)")"
         fi
 
-        if command -v hyprctl &>/dev/null && hyprctl version &>/dev/null 2>&1; then
-        hyprland_info=$(hyprctl version)
-        else
-        hyprland_info="not running"
+        _cmd=("$NIX_AICHAT" --session "''${_session_name}")
+
+        if [ "''${_is_new_session}" = "1" ]; then
+        	_cmd+=(--prompt "System context: \n''${_context}")
+
+        	# Expand --session-ctx files as --file only for new sessions
+        	if [ -n "''${_ctx_files:-}" ]; then
+        		while IFS= read -r _ctx_file; do
+        			[ -n "''${_ctx_file}" ] && _cmd+=(--file "''${_ctx_file}")
+        		done < <(printf '%b\n' "''${_ctx_files}")
+        	fi
         fi
 
-        context=$(printf "Kernel: %s\nOS: %s\nShell: %s\nTerminal: %s\nCompositor: %s / %s\nTmux: %s\nHyprland: %s\nNix: %s\n" \
-        "$(uname -a)" \
-        "''${os_info}" \
-        "''${SHELL}" \
-        "''${TERM_PROGRAM:-unknown}" \
-        "''${WAYLAND_DISPLAY:-none}" \
-        "''${DISPLAY:-none}" \
-        "''${TMUX:+yes}" \
-        "''${hyprland_info}" \
-        "$(nix --version)")
+        # Pass remaining args through always
+        if [ -n "''${_pass_args:-}" ]; then
+        while IFS= read -r _pass_arg; do
+        [ -n "''${_pass_arg}" ] && _cmd+=("''${_pass_arg}")
+        done < <(printf '%b\n' "''${_pass_args}")
+        fi
 
-        exec ${pkgs.aichat}/bin/aichat \
-        --session "''${session_name}" \
-        --prompt "System context: 
-        ''${context}" \
-        "$@"
+        exec "''${_cmd[@]}"
+      '';
+
+  aichatPreview =
+    pkgs.writeShellScriptBin "aichat-preview" # sh
+      ''
+        set -u
+
+        NIX_BAT="${pkgs.bat}/bin/bat"
+        NIX_GLOW="${pkgs.glow}/bin/glow"
+        NIX_SED="${pkgs.gnused}/bin/sed"
+
+        _file="''${1:-}"
+        _line="''${2:-1}"
+
+        if [ -z "''${_file}" ]; then
+          printf "Usage: aichat-preview <file> <line>\n" >&2
+          exit 1
+        fi
+
+        _start=$(( _line > 10 ? _line - 10 : 1 ))
+        _end=$(( _line + 20 ))
+
+        # Extract line range, unescape YAML literal \n and \t sequences,
+        # then render as Markdown with glow
+        "$NIX_BAT" \
+          --style=plain \
+          --color=never \
+          --line-range "''${_start}:''${_end}" \
+          "''${_file}" \
+          | "$NIX_SED" 's/\\n/\n/g; s/\\t/\t/g' \
+          | "$NIX_GLOW" --style=dark -
+      '';
+
+  aichatSearch =
+    pkgs.writeShellScriptBin "aichat-search" # sh
+      ''
+        set -u
+
+        NIX_RG="${pkgs.ripgrep}/bin/rg"
+        NIX_FZF="${pkgs.fzf}/bin/fzf"
+        NIX_BAT="${pkgs.bat}/bin/bat"
+        NIX_PREVIEW="${aichatPreview}/bin/aichat-preview"
+        NIX_GLOW="${pkgs.glow}/bin/glow"
+        NIX_SED="${pkgs.gnused}/bin/sed"
+
+        AICHAT_SESSIONS_DIR="''${AICHAT_SESSIONS_DIR:-''${HOME}/.config/aichat/sessions}"
+
+        use_tmux=0
+        query=""
+
+        for _arg in "$@"; do
+        	case "''${_arg}" in
+        		-t) use_tmux=1 ;;
+        		*)  query="''${query}''${query:+ }''${_arg}" ;;
+        	esac
+        done
+
+        if [ ! -d "''${AICHAT_SESSIONS_DIR}" ]; then
+        	printf "Sessions directory not found: %s\n" "''${AICHAT_SESSIONS_DIR}" >&2
+        	exit 1
+        fi
+
+        _result="$(
+        "$NIX_RG" \
+        --glob '*.yaml' \
+        --line-number \
+        --no-heading \
+        --color=never \
+        --smart-case \
+        "''${query:-}" \
+        | "$NIX_FZF" \
+        --delimiter ':' \
+        --nth '3..' \
+        --with-nth '1,3..' \
+        --query "''${query:-}" \
+        --preview "''${NIX_PREVIEW} {1} {2}" \
+        --preview-window 'right:60%:wrap' \
+        --bind 'ctrl-/:toggle-preview' \
+        --prompt 'aichat> ' \
+        --header 'ENTER: open  CTRL-/: toggle preview'
+        )"
+
+        [ -z "''${_result:-}" ] && exit 0
+
+        _file="$(printf '%s' "''${_result}" | cut -d':' -f1)"
+        _line="$(printf '%s' "''${_result}" | cut -d':' -f2)"
+
+        if [ -z "''${_file:-}" ] || [ -z "''${_line:-}" ]; then
+        	printf "Could not parse selection: %s\n" "''${_result}" >&2
+        	exit 1
+        fi
+
+        if [ "''${use_tmux}" = "1" ] && [ -n "''${TMUX:-}" ]; then
+        	tmux split-window -h \
+        	"$NIX_BAT --style=plain --color=never --paging=never "''${_file}" \
+        	| "$NIX_SED" 's/\\\\n/\\n/g; s/\\\\t/\\t/g' \
+        	| "$NIX_GLOW" --style=dark --pager -"
+        else
+        	"$NIX_BAT" --style=plain --color=never --paging=never "''${_file}" \
+        	| "$NIX_SED" 's/\\n/\n/g; s/\\t/\t/g' \
+        	| "$NIX_GLOW" --style=dark --pager -
+        fi
       '';
 in
 {
@@ -109,10 +262,10 @@ in
       Rule: comment on same line as function call, opening ''' on next line with one tab
       indent, script body indented one additional tab, closing ''' at one tab indent.
 
-			### POSIX and Bash shell usage
-			Shell scripts should attempt to maintain POSIX compliance, but with using
-			Nix library functions such as writeShellScriptBin using Bash only features is
-			permissable since nixpkgs will provide an appropriate shell.
+      ### POSIX and Bash shell usage
+      Shell scripts should attempt to maintain POSIX compliance, but with using
+      Nix library functions such as writeShellScriptBin using Bash only features is
+      permissable since nixpkgs will provide an appropriate shell.
 
       ### Package References
       Any binary not part of pkgs.coreutils should be referenced from nixpkgs:
@@ -146,8 +299,8 @@ in
 
       ## Shell Script Conventions
 
-			### POSIX Compliance
-			Unless otherwise specified by context, all scripts should be POSIX compliant.
+      ### POSIX Compliance
+      Unless otherwise specified by context, all scripts should be POSIX compliant.
 
       ### Defensive Programming
       Default header for all injected shell scripts:
@@ -190,19 +343,22 @@ in
       _client_regex="^(firefox|org\.mozilla\.firefox)$"
       \# Matches Firefox by class name or bundle identifier
 
-			# Final Check
-			Double check if you are using scripting code inside Nix. Failure to escape
-			shell variables inside Nix is a common mistake.
-			''${pkgs.foo} is intentional Nix interpolation, while every other ''${...} 
-			in the script body is a shell variable that must be escaped.
+      # Final Check
+      Double check if you are using scripting code inside Nix. Failure to escape
+      shell variables inside Nix is a common mistake.
+      ''${pkgs.foo} is intentional Nix interpolation, while every other ''${...} 
+      in the script body is a shell variable that must be escaped.
     '';
 
-  home.packages = [ aichatWrapper ];
+  home.packages = [
+    aichatSearch
+    aichatWrapper
+  ];
 
   programs.bash = {
     shellAliases = {
       "??" = "aichat-ctx nix_env --role nix-env";
-      "???" = "aichat-ctx make_nix --role nix-env --file ~/.config/aichat/contexts/make-nix.md";
+      "???" = "aichat-ctx make_nix --role nix-env --session-ctx ~/.config/aichat/contexts/make-nix.md";
     };
     initExtra =
       lib.mkAfter # sh
