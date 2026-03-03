@@ -48,7 +48,6 @@
       enable = true;
       extraPackages = with pkgs; [
         mesa
-        libva-mesa-driver
         rocmPackages.clr.icd
       ];
     };
