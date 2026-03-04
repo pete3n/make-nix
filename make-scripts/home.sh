@@ -85,16 +85,15 @@ _switch_home() {
 	if [ "${dry_switch}" = "--dry-run" ]; then
 		logf "\n%binfo: DRY_RUN%b: no result output will be created.\n" "${C_INFO}" "${C_RST}"
 	fi
- 
+
 	set -- "$@" switch -b "${_backup_ext}" --max-jobs auto --cores 0 
 	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
 	if is_truthy "${NO_SUB:-}"; then
 		set -- "$@" --no-substitute
 	fi
-	set -- "$@" --flake "path:${flake_root}#${_flake_key}"
+	set -- "$@" --option fallback true --flake "path:${flake_root}#${_flake_key}"
 
-	print_cmd -- env NIX_CONFIG='"extra-experimental-features = nix-command flakes"' "$@"
-
+	print_cmd -- env NIX_CONFIG="\"extra-experimental-features = nix-command flakes\"" "$@"
 	if env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
 		logf "\n%b✓ Home-manager configuration switch success.%b\n" "${C_OK}" "${C_RST}"
 		return 0
