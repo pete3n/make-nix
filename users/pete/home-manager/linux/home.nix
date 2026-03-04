@@ -211,6 +211,20 @@ in
     batmond = {
       enable = lib.mkDefault (makeNixLib.hasTag "laptop" makeNixAttrs.tags);
     };
+
+    khalNotify.enable = true;
+  };
+
+  accounts.calendar = {
+    basePath = "~/.local/share/khal/calendars";
+    accounts."default" = {
+      primary = true;
+      khal = {
+        enable = true;
+        color = "light blue";
+        type = "calendar";
+      };
+    };
   };
 
   # Modules with additional program configuration
@@ -224,6 +238,25 @@ in
 
     firefox = {
       enable = true;
+    };
+
+    khal = {
+      enable = true;
+      locale = {
+        local_timezone = "America/New_York";
+        default_timezone = "America/New_York";
+        timeformat = "%H:%M";
+        dateformat = "%Y-%m-%d";
+        datetimeformat = "%Y-%m-%d %H:%M";
+        longdateformat = "%Y-%m-%d";
+        longdatetimeformat = "%Y-%m-%d %H:%M:%S";
+        firstweekday = 0;
+      };
+      settings = {
+        default = {
+          default_calendar = "default";
+        };
+      };
     };
 
     librewolf = {
