@@ -3,6 +3,7 @@
   clip58 = import ./cross-platform/clip58.nix;
 	hyprWhichKey = import ./linux/hyprWhichKey.nix;
 	import-yubikey-ssh = import ./cross-platform/import-yubikey-ssh.nix;
+	khal-notify = import ./linux/khal-notify.nix;
   lazydocker = import ./cross-platform/lazydocker.nix;
 	power-profile-switcher = import ./linux/power-profile-switcher.nix;
 	quick-notes = import ./cross-platform/quick-notes.nix;
