@@ -155,6 +155,75 @@ let
       z "$(dirname "$_match")"
       }
     '';
+  fds = # sh
+    ''
+      fds() {
+        local _rg_pattern=""
+        local _use_fzf=0
+        local _fd_ext=""
+        local _fd_type="f"
+        local _fd_pattern=""
+        local _search_dir="."
+
+        if [ -z "''${1:-}" ]; then
+          printf "Usage: fds [OPTIONS] <fd-pattern> [search-dir]\n" >&2
+          printf "  -r <pattern>   ripgrep through matched files\n" >&2
+          printf "  -f             browse with fzf\n" >&2
+          printf "  -e <ext>       filter by extension\n" >&2
+          printf "  -t <type>      fd type filter (default: f)\n" >&2
+          return 1
+        fi
+
+        while [ $# -gt 0 ]; do
+          case "''${1}" in
+            -r) _rg_pattern="''${2}"; shift 2 ;;
+            -f) _use_fzf=1; shift ;;
+            -e) _fd_ext="''${2}"; shift 2 ;;
+            -t) _fd_type="''${2}"; shift 2 ;;
+            -*) printf "fds: unknown option: %s\n" "''${1}" >&2; return 1 ;;
+            *)
+              if [ -z "''${_fd_pattern}" ]; then
+                _fd_pattern="''${1}"
+              else
+                _search_dir="''${1}"
+              fi
+              shift
+              ;;
+          esac
+        done
+
+        if [ -z "''${_fd_pattern}" ]; then
+          printf "fds: fd pattern required\n" >&2
+          return 1
+        fi
+
+        _fd_base="${pkgs.fd}/bin/fd --type ''${_fd_type} --hidden --no-ignore"
+        if [ -n "''${_fd_ext}" ]; then
+          _fd_base="''${_fd_base} --extension ''${_fd_ext}"
+        fi
+        _fd_cmd="''${_fd_base} ''${_fd_pattern} ''${_search_dir}"
+
+        if [ "''${_use_fzf}" -eq 1 ] && [ -n "''${_rg_pattern}" ]; then
+          _selected=$(''${_fd_cmd} | ${pkgs.fzf}/bin/fzf --multi)
+          if [ -z "''${_selected}" ]; then
+            printf "fds: no files selected\n" >&2
+            return 1
+          fi
+          printf "%s\n" "''${_selected}" | xargs -d '\n' ${pkgs.ripgrep}/bin/rg "''${_rg_pattern}"
+
+        elif [ "''${_use_fzf}" -eq 1 ]; then
+          ''${_fd_cmd} | ${pkgs.fzf}/bin/fzf --multi \
+            --preview "${pkgs.bat}/bin/bat --color=always --line-range=:200 {} 2>/dev/null || head -200 {}" \
+            --preview-window "right:60%"
+
+        elif [ -n "''${_rg_pattern}" ]; then
+          ''${_fd_cmd} -0 | xargs -0 ${pkgs.ripgrep}/bin/rg "''${_rg_pattern}"
+
+        else
+          ''${_fd_cmd}
+        fi
+      }
+    '';
 in
 {
   programs.bash = {
@@ -168,14 +237,18 @@ in
     };
     initExtra = # sh
     ''
-			set -o vi
-			alias zf=zfile
+      set -o vi
+			bind 'set show-mode-in-prompt on'
+			bind 'set vi-ins-mode-string \1\e[32m\2[I]\1\e[0m\2 '
+			bind 'set vi-cmd-mode-string \1\e[34m\2[N]\1\e[0m\2 '
+      alias zf=zfile
     ''
     + tmux_preserve_path
     + sudo_wrapper
     + nix_path
     + smart_help
-    + zfile;
+    + zfile
+    + fds;
 
     profileExtra = # sh
       ''
