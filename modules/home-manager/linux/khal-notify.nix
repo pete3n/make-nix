@@ -11,102 +11,154 @@ let
   cfg = config.services.khalNotify;
 
   khalNotify =
-    pkgs.writeShellScriptBin "khal-notify" # sh
+    pkgs.writeShellScriptBin "khal-notify" # bash
       ''
         set -u
 
-        NIX_KHAL="${pkgs.khal}/bin/khal"
-        NIX_JQ="${pkgs.jq}/bin/jq"
         NIX_NOTIFY="${pkgs.libnotify}/bin/notify-send"
         NIX_DATE="${pkgs.coreutils}/bin/date"
         NIX_FIND="${pkgs.coreutils}/bin/find"
+        NIX_SQLITE="${pkgs.sqlite}/bin/sqlite3"
+        NIX_GREP="${pkgs.gnugrep}/bin/grep"
+        NIX_SED="${pkgs.gnused}/bin/sed"
 
-        KHAL_CALENDAR_DIR="${cfg.calendarDir}"
-        KHAL_CONFIG="${config.xdg.configHome}/khal/config"
-        TZ="America/New_York"
+        KHAL_DB="''${HOME}/.local/share/khal/khal.db"
+        KHAL_TZ="America/New_York"
+        NOTIFY_TIME=${toString cfg.notifyTime}
 
         state_dir="''${XDG_STATE_HOME:-''${HOME}/.local/state}/khal-notify"
         mkdir -p "''${state_dir}"
 
         now_epoch="$("''${NIX_DATE}" +%s)"
+        _event_tmp="''${state_dir}/current_event.tmp"
 
-        # Cleanup state files for events that have already passed
-        # State files are named <uid>-<offset>, mtime reflects when they were written
-        # Remove any state file older than 25 hours
-        "''${NIX_FIND}" "''${state_dir}" -maxdepth 1 -type f -mmin +1500 -delete 2>/dev/null || true
+        # Cleanup state files older than 25 hours
+        # Exclude the temp file from cleanup
+        "''${NIX_FIND}" "''${state_dir}" -maxdepth 1 -type f -mmin +1500 \
+        ! -name 'current_event.tmp' -delete 2>/dev/null || true
 
-        # Query khal for events in the next 24 hours
-        # list outputs one JSON array per day so we use jq to flatten
-        _today="$("''${NIX_DATE}" +'%Y-%m-%d')"
-        _tomorrow="$("''${NIX_DATE}" -d 'tomorrow' +'%Y-%m-%d')"
-        _day_after="$("''${NIX_DATE}" -d '2 days' +'%Y-%m-%d')"
+        # Parse ISO 8601 duration to minutes
+        # Handles -PT10M (minutes), -PT1H (hours), -P1D (days), and combinations
+        parse_trigger_minutes() {
+        	_trigger="''${1}"
+        	_days=0
+        	_hours=0
+        	_mins=0
 
-        _raw="$(
-          "''${NIX_KHAL}" --config "''${KHAL_CONFIG}" \
-            list \
-            --json title \
-            --json start \
-            --json uid \
-            --json all-day \
-            "''${_today}" "''${_day_after}" 2>/dev/null
-        )" || { printf "khal-notify: khal list failed\n" >&2; exit 1; }
+        	# Strip carriage returns, leading - and P
+        	_tstrip="$(printf '%s' "''${_trigger}" | tr -d '\r' | "''${NIX_SED}" 's/^-*P//')"
 
-        # Flatten the per-day arrays, filter empty objects and all-day events,
-        # output one event per line as: <uid>TAB<start>TAB<title>
-        _events="$(
-          printf '%s\n' "''${_raw}" \
-            | "''${NIX_JQ}" -r '
-                [.[] | select(.uid != null and .uid != "" and .["all-day"] == "False")]
-                | .[]
-                | [.uid, .start, .title] | @tsv
-              ' 2>/dev/null
-        )" || { printf "khal-notify: jq parse failed\n" >&2; exit 1; }
+        	# Match days: 1D
+        	_day_val="$(printf '%s' "''${_tstrip}" | "''${NIX_SED}" -n 's/^\([0-9]*\)D.*/\1/p')"
+        	[ -n "''${_day_val}" ] && _days="''${_day_val}"
 
-        [ -z "''${_events:-}" ] && exit 0
+        	# Match hours: T1H
+        	_hour_val="$(printf '%s' "''${_tstrip}" | "''${NIX_SED}" -n 's/.*T\([0-9]*\)H.*/\1/p')"
+        	[ -n "''${_hour_val}" ] && _hours="''${_hour_val}"
 
-        # Reminder offsets in minutes - injected from Nix at build time
-        _offsets="${lib.concatStringsSep " " (map toString cfg.reminderOffsets)}"
+        	# Match minutes: T1H10M (with preceding hours) or T10M (minutes only)
+        	_min_val="$(printf '%s' "''${_tstrip}" | "''${NIX_SED}" -n 's/.*T[0-9]*H\([0-9]*\)M/\1/p')"
+        	if [ -z "''${_min_val}" ]; then
+        	_min_val="$(printf '%s' "''${_tstrip}" | "''${NIX_SED}" -n 's/.*T\([0-9]*\)M/\1/p')"
+        	fi
+        	[ -n "''${_min_val}" ] && _mins="''${_min_val}"
 
-        printf '%s\n' "''${_events}" | while IFS="$(printf '\t')" read -r _uid _start _title; do
-          [ -n "''${_uid:-}" ] || continue
-          [ -n "''${_start:-}" ] || continue
-          [ -n "''${_title:-}" ] || continue
+        	printf '%s' "$(( (_days * 1440) + (_hours * 60) + _mins ))"
+        }
 
-          # Parse event start to epoch
-          # start format from khal: "2026-03-04 09:00"
-          _event_epoch="$(
-            TZ="''${TZ}" "''${NIX_DATE}" -d "''${_start}" +%s 2>/dev/null
-          )" || { printf "khal-notify: could not parse start '%s'\n" "''${_start}" >&2; continue; }
+        # Process a single event from temp file
+        process_event() {
+        	_file="''${1}"
 
-          for _offset in ''${_offsets}; do
-            # Target time = event start minus offset in seconds
-            _target_epoch=$(( _event_epoch - (_offset * 60) ))
+        	_uid="$("''${NIX_GREP}" '^UID:' "''${_file}" | "''${NIX_SED}" 's/^UID://')"
+        	_summary="$("''${NIX_GREP}" '^SUMMARY:' "''${_file}" | "''${NIX_SED}" 's/^SUMMARY://')"
+        	_dtstart="$("''${NIX_GREP}" '^DTSTART' "''${_file}" \
+        	| "''${NIX_SED}" 's/.*:\([0-9]*T[0-9]*\).*/\1/')"
 
-            # Only notify if we are within a 30 second window of the target
-            _delta=$(( now_epoch - _target_epoch ))
-            if [ "''${_delta}" -lt 0 ]; then
-              _delta=$(( -_delta ))
-            fi
-            [ "''${_delta}" -gt 30 ] && continue
+        	[ -n "''${_uid:-}" ]     || return 0
+        	[ -n "''${_summary:-}" ] || return 0
+        	[ -n "''${_dtstart:-}" ] || return 0
 
-            # State file prevents duplicate notifications for same event+offset
-            _state_file="''${state_dir}/''${_uid}-''${_offset}"
-            [ -f "''${_state_file}" ] && continue
+        	# Reformat DTSTART: 20260303T211500 -> 2026-03-03 21:15:00
+        	_date_part="''${_dtstart%T*}"
+        	_time_part="''${_dtstart#*T}"
+        	_start_fmt="''${_date_part:0:4}-''${_date_part:4:2}-''${_date_part:6:2} ''${_time_part:0:2}:''${_time_part:2:2}:''${_time_part:4:2}"
+        	_start_epoch="$(
+        		TZ="''${KHAL_TZ}" "''${NIX_DATE}" -d "''${_start_fmt}" +%s 2>/dev/null
+        	)" || return 0
 
-            # Fire notification
-            "''${NIX_NOTIFY}" \
-              --app-name="khal" \
-              --urgency=normal \
-              "''${_title}" \
-              "Starting in ''${_offset} minute(s) at ''${_start}" \
-              || true
+        	# Only process future events within 25 hours
+        	_lookahead=$(( now_epoch + 90000 ))
+        	[ "''${_start_epoch}" -gt "''${now_epoch}" ] || return 0
+        	[ "''${_start_epoch}" -le "''${_lookahead}" ] || return 0
 
-            # Mark as notified
-            printf '%s\n' "''${_uid}" > "''${_state_file}"
-          done
-        done
+        	# Get per-event alarm triggers if any, parse to minutes
+        	_triggers="$(
+        		"''${NIX_GREP}" '^TRIGGER:' "''${_file}" | "''${NIX_SED}" 's/^TRIGGER://'
+        	)"
+
+        	# Build list of offsets: use per-event triggers if present,
+        	# otherwise fall back to global offsets
+        	if [ -n "''${_triggers:-}" ]; then
+        		_offsets="$(
+        			printf '%s\n' "''${_triggers}" \
+        		| while IFS= read -r _trigger; do
+        				[ -n "''${_trigger:-}" ] || continue
+        				_mins="$(parse_trigger_minutes "''${_trigger}")"
+        				[ "''${_mins}" -gt 0 ] || continue
+        				printf '%s ' "''${_mins}"
+        			done
+        		)"
+        	else
+        		# Fall back to global offsets injected at build time
+        		_offsets="${lib.concatStringsSep " " (map toString cfg.reminderOffsets)}"
+        	fi
+
+        	for _offset in ''${_offsets}; do
+        		_target_epoch=$(( _start_epoch - (_offset * 60) ))
+        		_delta=$(( now_epoch - _target_epoch ))
+        		[ "''${_delta}" -lt 0 ] && _delta=$(( -_delta ))
+        		[ "''${_delta}" -le 60 ] || continue
+
+        		_state_file="''${state_dir}/''${_uid}-''${_offset}"
+        		[ -f "''${_state_file}" ] && continue
+
+        		"''${NIX_NOTIFY}" -t "''${NOTIFY_TIME}"\
+        		--app-name="khal" \
+        		--urgency=normal \
+        		"''${_summary}" \
+        		"Starting in ''${_offset} minute(s) at ''${_start_fmt}" \
+        		|| true
+
+        		printf '%s\n' "''${_uid}" > "''${_state_file}"
+        	done
+        }
+
+        # Read all event blobs from sqlite
+        # Write each VEVENT block to a temp file and process it
+        _in_vevent=0
+
+        while IFS= read -r _line; do
+        	case "''${_line}" in
+        		BEGIN:VEVENT*)
+        			: > "''${_event_tmp}"
+        			_in_vevent=1
+        			;;
+        		END:VEVENT*)
+        			_in_vevent=0
+        			process_event "''${_event_tmp}"
+        			: > "''${_event_tmp}"
+        			;;
+        		*)
+        			if [ "''${_in_vevent}" = "1" ]; then
+        				printf '%s\n' "''${_line}" >> "''${_event_tmp}"
+        			fi
+        			;;
+        	esac
+        done < <("''${NIX_SQLITE}" "''${KHAL_DB}" "SELECT item FROM events;" | tr -d '\r')
+
+        rm -f "''${_event_tmp}" 2>/dev/null || true
       '';
-
 in
 {
   options.services.khalNotify = {
@@ -125,8 +177,17 @@ in
 
     reminderOffsets = lib.mkOption {
       type = lib.types.listOf lib.types.ints.unsigned;
-      default = [ 15 5 1 ];
-      example = [ 30 15 5 1 ];
+      default = [
+        15
+        5
+        1
+      ];
+      example = [
+        30
+        15
+        5
+        1
+      ];
       description = ''
         List of reminder times in minutes before each event start.
         A notification will be sent at each offset.
@@ -134,43 +195,30 @@ in
       '';
     };
 
+    notifyTime = lib.mkOption {
+      type = lib.types.ints.between 1000 60000;
+      default = 15000;
+      description = ''
+        Time to display event notification in ms.
+        Range: 1000 - 60000
+        Default: 15000
+      '';
+    };
+
     timerIntervalSec = lib.mkOption {
       type = lib.types.ints.unsigned;
-      default = 60;
+      default = 15;
       example = 60;
       description = ''
         How often the notification service runs in seconds.
         Should be 60 or less to reliably catch the 1-minute offset window.
-        Default: 60
+        Default: 15
       '';
     };
   };
 
   config = lib.mkIf cfg.enable {
     home.packages = [ khalNotify ];
-
-    programs.khal = {
-      enable = true;
-      locale = {
-        local_timezone = "America/New_York";
-        default_timezone = "America/New_York";
-        timeformat = "%H:%M";
-        dateformat = "%Y-%m-%d";
-        datetimeformat = "%Y-%m-%d %H:%M";
-        longdatetimeformat = "%a %d %b %Y %H:%M:%S %p %Z";
-      };
-      calendars = {
-        default = {
-          path = "~/.local/share/khal/calendars/default";
-          color = "light blue";
-        };
-      };
-      settings = {
-        default = {
-          default_calendar = "default";
-        };
-      };
-    };
 
     systemd.user.services."khal-notify" = {
       Unit = {
