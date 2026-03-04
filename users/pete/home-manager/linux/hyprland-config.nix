@@ -1089,27 +1089,36 @@
           "move 65% 5%, title:^(Picture-in-Picture)$"
         ]
       ++
+        # Calendar popup - centered under waybar
+        [
+          "float,class:^(calendar-popup)$"
+          "noinitialfocus,class:^(calendar-popup)$"
+          "noborder,class:^(calendar-popup)$"
+          "opacity 0.92 0.92,class:^(calendar-popup)$"
+          "size 1280 800,class:^(calendar-popup)$"
+        ]
+      ++
         # Cava mpd visualizer and mpd art
         [
-					"float,class:^(mpd-vis)$"
-					"noinitialfocus,class:^(mpd-vis)$"
-					"pin,class:^(mpd-vis)$"
-					"noborder,class:^(mpd-vis)$"
-					"opacity 0.92 0.92,class:^(mpd-vis)$"
-					"noanim,class:^(mpd-vis)$"
-					"size 900 240,class:^(mpd-vis)$"
-					# x = 100% - (900 + 260 + 15) = 100% - 1175
-					"move 100%-1175 40,class:^(mpd-vis)$"
+          "float,class:^(mpd-vis)$"
+          "noinitialfocus,class:^(mpd-vis)$"
+          "pin,class:^(mpd-vis)$"
+          "noborder,class:^(mpd-vis)$"
+          "opacity 0.92 0.92,class:^(mpd-vis)$"
+          "noanim,class:^(mpd-vis)$"
+          "size 900 240,class:^(mpd-vis)$"
+          # x = 100% - (900 + 260 + 15) = 100% - 1175
+          "move 100%-1175 40,class:^(mpd-vis)$"
 
-					"float,class:^(mpd-art)$"
-					"noinitialfocus,class:^(mpd-art)$"
-					"pin,class:^(mpd-art)$"
-					"noborder,class:^(mpd-art)$"
-					"opacity 0.82 0.82,class:^(mpd-art)$"
-					"noanim,class:^(mpd-art)$"
-					"size 260 240,class:^(mpd-art)$"
-					# x = 100% - (260 + 15) = 100% - 275
-					"move 100%-275 40,class:^(mpd-art)$"
+          "float,class:^(mpd-art)$"
+          "noinitialfocus,class:^(mpd-art)$"
+          "pin,class:^(mpd-art)$"
+          "noborder,class:^(mpd-art)$"
+          "opacity 0.82 0.82,class:^(mpd-art)$"
+          "noanim,class:^(mpd-art)$"
+          "size 260 240,class:^(mpd-art)$"
+          # x = 100% - (260 + 15) = 100% - 275
+          "move 100%-275 40,class:^(mpd-art)$"
         ];
 
       general = {
