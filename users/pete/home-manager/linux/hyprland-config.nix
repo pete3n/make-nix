@@ -1089,6 +1089,25 @@
           "move 65% 5%, title:^(Picture-in-Picture)$"
         ]
       ++
+        # Pomodoro config TUI
+        [
+          "float, title:^(Pomodoro)$"
+          "center, title:^(Pomodoro)$"
+          "size 1200 800, title:^(Pomodoro)$"
+          "stayfocused, title:^(Pomodoro)$"
+        ]
+      ++
+        # Pomodoro transition image popup
+        [
+          "float, class:^(pomodoro-img)$"
+          "center, class:^(pomodoro-img)$"
+          "noborder, class:^(pomodoro-img)$"
+          "noshadow, class:^(pomodoro-img)$"
+          "noanim, class:^(pomodoro-img)$"
+          "opacity 0.92 0.92,class:^(pomodoro-img)$"
+          "noinitialfocus, class:^(pomodoro-img)$"
+        ]
+      ++
         # Calendar popup - centered under waybar
         [
           "float,class:^(calendar-popup)$"

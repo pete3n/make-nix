@@ -1,4 +1,9 @@
-{ lib, pkgs, ... }:
+{
+	config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   waybarScripts = import ./waybar-scripts.nix { inherit pkgs; };
 in
@@ -12,6 +17,18 @@ in
   programs = {
     khal = {
       enable = true;
+    };
+
+    pomodoro = {
+      enable = true;
+			activityIntervals = [ 1 10 15 25 50 75 ];
+			restIntervals = [ 1 5 10 15 ];
+			activityPlaylist = "focus";
+			restPlaylist = "chill";
+			activityImage = "${config.xdg.userDirs.pictures}/pomodoro/focus/";
+			restImage = "${config.xdg.userDirs.pictures}/pomodoro/chill/";
+			imageDisplayDuration = 10;
+			defaultActivityName = "Focus";
     };
 
     waybar = {
@@ -31,7 +48,7 @@ in
             "hyprland/workspaces"
           ];
 
-          modules-center = [ "clock" ];
+          modules-center = [ "custom/clock" ];
 
           modules-right = [
             "custom/mpd_prev"
@@ -40,7 +57,7 @@ in
             "custom/mpd_shuffle"
             "custom/mpd_repeat_cycle"
             "pulseaudio"
-						"backlight"
+            "backlight"
             "custom/wdisplays"
             "battery"
           ];
@@ -64,16 +81,19 @@ in
             };
           };
 
-          "clock" = {
-            format = "<span color='#7ebae4'>   </span>{:%H:%M}";
-            format-alt = "{:%a, %d- %b %H:%M}";
-            tooltip = false;
+          "custom/clock" = {
+            format = "{}";
+            return-type = "json";
+            interval = 1;
+						restart-interval = 1;
+            exec = "pomodoro ticker";
+            on-click = "pomodoro-config";
             on-click-right = lib.getExe waybarScripts.calendarToggle;
           };
 
           "custom/mpd_prev" = {
             format = "⏮";
-						tooltip-format = "Previous Track";
+            tooltip-format = "Previous Track";
             on-click = "playerctl -p mpd previous";
           };
 
@@ -94,7 +114,7 @@ in
 
           "custom/mpd_next" = {
             format = "⏭";
-						tooltip-format = "Next Track";
+            tooltip-format = "Next Track";
             on-click = "playerctl -p mpd next";
           };
 
@@ -117,7 +137,7 @@ in
             format-muted = "󰝟 ";
             tooltip = true;
             format-icons = {
-							headphone = "󰋋 ";
+              headphone = "󰋋 ";
               default = [
                 "󰕿 "
                 "󰖀 "
@@ -132,7 +152,7 @@ in
           "backlight" = {
             device = "intel_backlight";
             format = "{icon} {percent}%";
-						tooltip-format = "Brightness: {percent}%";
+            tooltip-format = "Brightness: {percent}%";
             format-icons = [
               ""
               ""
@@ -149,8 +169,8 @@ in
 
           "custom/wdisplays" = {
             format = "󰹑";
-						tooltip = true;
-						tooltip-format = "Display Settings";
+            tooltip = true;
+            tooltip-format = "Display Settings";
             on-click = "wdisplays";
           };
 
@@ -176,132 +196,142 @@ in
 
       style = # css
         ''
-          /* Global defaults */
-          * {
-            border: none;
-            border-radius: 0;
-            font-size: 14px;
-            min-height: 25px;
-          }
+                    /* Global defaults */
+                    * {
+                      border: none;
+                      border-radius: 0;
+                      font-size: 14px;
+                      min-height: 25px;
+                    }
 
-          window#waybar {
-            background: transparent;
-          }
+                    window#waybar {
+                      background: transparent;
+                    }
 
-          /* Uniform hover + smooth transition */
-          #waybar button,
-          #waybar label,
-          #waybar box {
-            transition: background-color 0.15s ease;
-          }
+                    /* Uniform hover + smooth transition */
+                    #waybar button,
+                    #waybar label,
+                    #waybar box {
+                      transition: background-color 0.15s ease;
+                    }
 
-          #waybar button:hover,
-          #waybar label:hover,
-          #waybar box:hover {
-            background-color: rgba(82, 119, 195, 0.15);
-          }
+                    #waybar button:hover,
+                    #waybar label:hover,
+                    #waybar box:hover {
+                      background-color: rgba(82, 119, 195, 0.15);
+                    }
 
-          /* --- Your existing module styling (kept close to what you had) --- */
+                    /* --- Your existing module styling (kept close to what you had) --- */
 
-          #custom-snowflake {
-            font-size: 20px;
-            background: transparent;
-            color: #5277c3;
-            border-radius: 5px;
-            padding-left: 10px;
-          }
+                    #custom-snowflake {
+                      font-size: 20px;
+                      background: transparent;
+                      color: #5277c3;
+                      border-radius: 5px;
+                      padding-left: 10px;
+                    }
 
-          /* Now playing */
-          #custom-playerctl {
-            background: transparent;
-            color: #5277c3;
-            padding-left: 10px;
-            padding-right: 10px;
-            border-radius: 6px; /* makes hover look nicer */
-          }
-          #custom-playerctl.Playing { opacity: 1.0; }
-          #custom-playerctl.Paused  { opacity: 0.7; }
-          #custom-playerctl.Stopped { opacity: 0.4; }
+                    /* Now playing */
+                    #custom-playerctl {
+                      background: transparent;
+                      color: #5277c3;
+                      padding-left: 10px;
+                      padding-right: 10px;
+                      border-radius: 6px; /* makes hover look nicer */
+                    }
+                    #custom-playerctl.Playing { opacity: 1.0; }
+                    #custom-playerctl.Paused  { opacity: 0.7; }
+                    #custom-playerctl.Stopped { opacity: 0.4; }
 
-          /* MPD control buttons */
-          #custom-mpd_prev,
-          #custom-mpd_next,
-          #custom-mpd_shuffle,
-          #custom-mpd_repeat_cycle {
-            background: transparent;
-            color: #5277c3;
-            padding: 0 8px;
-            margin: 0 2px;
-            border-radius: 6px;
-          }
+                    /* MPD control buttons */
+                    #custom-mpd_prev,
+                    #custom-mpd_next,
+                    #custom-mpd_shuffle,
+                    #custom-mpd_repeat_cycle {
+                      background: transparent;
+                      color: #5277c3;
+                      padding: 0 8px;
+                      margin: 0 2px;
+                      border-radius: 6px;
+                    }
 
-          /* Repeat-cycle state styling */
-          #custom-mpd_repeat_cycle.off      { opacity: 0.45; }
-          #custom-mpd_repeat_cycle.playlist { opacity: 1.0; }
-          #custom-mpd_repeat_cycle.track    { opacity: 1.0; text-shadow: 0 0 6px rgba(126, 186, 228, 0.55); }
+                    /* Repeat-cycle state styling */
+                    #custom-mpd_repeat_cycle.off      { opacity: 0.45; }
+                    #custom-mpd_repeat_cycle.playlist { opacity: 1.0; }
+                    #custom-mpd_repeat_cycle.track    { opacity: 1.0; text-shadow: 0 0 6px rgba(126, 186, 228, 0.55); }
 
-          /* Shuffle state styling */
-          #custom-mpd_shuffle.off { opacity: 0.45; }
-          #custom-mpd_shuffle.on  { opacity: 1.0; text-shadow: 0 0 6px rgba(126, 186, 228, 0.55); }
+                    /* Shuffle state styling */
+                    #custom-mpd_shuffle.off { opacity: 0.45; }
+                    #custom-mpd_shuffle.on  { opacity: 1.0; text-shadow: 0 0 6px rgba(126, 186, 228, 0.55); }
 
-          /* Workspaces */
-          #hyprland-workspaces {
-            background: transparent;
-            color: #5277c3;
-            padding-right: 10px;
-          }
-          #workspaces button {
-            background: transparent;
-            color: #5277c3;
-            padding: 0 5px;
-          }
+                    /* Workspaces */
+                    #hyprland-workspaces {
+                      background: transparent;
+                      color: #5277c3;
+                      padding-right: 10px;
+                    }
+                    #workspaces button {
+                      background: transparent;
+                      color: #5277c3;
+                      padding: 0 5px;
+                    }
 
-          /* Clock */
-          #clock {
-            background: transparent;
-            color: #7ebae4;
-            border-radius: 6px;
-            padding: 0 10px;
-          }
+                    /* Clock */
+                    #clock {
+                      background: transparent;
+                      color: #7ebae4;
+                      border-radius: 6px;
+                      padding: 0 10px;
+                    }
 
-          /* Displays launcher */
-          #custom-wdisplays {
-            background: transparent;
-            color: #5277c3;
-            padding-top: 3px;
-            padding-left: 15px;
-            padding-right: 10px;
-            border-radius: 6px;
-          }
+          					/* Custom-clock */
+          					#custom-clock {
+          						background: transparent;
+          						padding: 0 10px;
+          						border-radius: 6px;
+          					}
+          					#custom-clock.clock   { color: #7ebae4; }
+          					#custom-clock.activity { color: #5277c3; }
+          					#custom-clock.rest    { color: #7ebae4; }
 
-          /* Backlight */
-          #backlight {
-            background: transparent;
-            color: #5277c3;
-            padding-top: 2px;
-            padding-bottom: 2px;
-            padding-left: 10px;
-            padding-right: 10px;
-            border-radius: 6px;
-          }
+                    /* Displays launcher */
+                    #custom-wdisplays {
+                      background: transparent;
+                      color: #5277c3;
+                      padding-top: 3px;
+                      padding-left: 15px;
+                      padding-right: 10px;
+                      border-radius: 6px;
+                    }
 
-          /* Audio */
-          #pulseaudio {
-            background: transparent;
-            color: #5277c3;
-            padding-left: 10px;
-            padding-right: 10px;
-            border-radius: 6px;
-          }
+                    /* Backlight */
+                    #backlight {
+                      background: transparent;
+                      color: #5277c3;
+                      padding-top: 2px;
+                      padding-bottom: 2px;
+                      padding-left: 10px;
+                      padding-right: 10px;
+                      border-radius: 6px;
+                    }
 
-          /* Battery */
-          #battery {
-            background: transparent;
-            color: #5277c3;
-            padding-left: 10px;
-            padding-right: 10px;
-            border-radius: 6px;
-          }
+                    /* Audio */
+                    #pulseaudio {
+                      background: transparent;
+                      color: #5277c3;
+                      padding-left: 10px;
+                      padding-right: 10px;
+                      border-radius: 6px;
+                    }
+
+                    /* Battery */
+                    #battery {
+                      background: transparent;
+                      color: #5277c3;
+                      padding-left: 10px;
+                      padding-right: 10px;
+                      border-radius: 6px;
+                    }
         '';
     };
   };

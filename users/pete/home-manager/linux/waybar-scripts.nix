@@ -1,5 +1,3 @@
-# TODO: Calendar integration with clock along with Pomodoro timer
-
 { pkgs, ... }:
 rec {
   # Custom Nix snowflake info tooltip script
@@ -859,7 +857,6 @@ rec {
         	fi
         }
 
-        # ---------- main toggle ----------
         if any_open; then
         	close_all
         	exit 0
