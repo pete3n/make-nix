@@ -88,6 +88,7 @@ in
         kdePackages.dolphin # Dolphin file browser
         libreoffice
         litemdview # Simple markdown viewer
+				local.ipod-shuffle-4g
         nix-melt # Flake lock explorer
         mod._86Box
         mosh # Mobile-shell SSH replacement

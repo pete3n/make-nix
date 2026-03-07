@@ -2,4 +2,5 @@
 # You can build them using 'nix build .#example'
 { pkgs, ... }:
 {
+  ipod-shuffle-4g = import ./ipod-shuffle-4g { inherit pkgs; };
 }
