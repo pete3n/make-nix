@@ -50,7 +50,7 @@ in
     isNormalUser = true;
     description = tagRoleDescription;
     extraGroups = tagRoleGroups;
-    openssh.authorizedKeys.keys = lib.optionals (hasTag "sshuser") makeNixAttrs.sshPubKeys;
+    openssh.authorizedKeys.keys = lib.optionals (hasTag "sshuser") (makeNixAttrs.sshPubKeys or []);
   };
 
   nix.settings.trusted-users = lib.mkIf (hasTag "trusteduser" || hasTag "poweruser") (
