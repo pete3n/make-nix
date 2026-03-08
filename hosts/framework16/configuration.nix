@@ -1,7 +1,7 @@
 # See NixOS hardware project: https://github.com/NixOS/nixos-hardware/tree/master/framework/16-inch
 {
   lib,
-	inputs,
+  inputs,
   pkgs,
   outputs,
   makeNixLib,
@@ -9,8 +9,7 @@
   ...
 }:
 {
-  imports = 
-	[
+  imports = [
     # This is the hardware configuration created by the installer
     # Most importantly it contains the UUIDs for your boot and root filesystems
     # Do not use anyone other host's hardware-configuration.nix or you will be
@@ -38,19 +37,19 @@
     ../shared-imports/crypto-services.nix
     ../shared-imports/linux/linux-packages.nix
     ../shared-imports/usrp-sdr.nix
-  ] 
-	++ [ inputs.pete3n-mods.nixosModules.default ]
-	++ [ inputs.pete3n-mods.nixosModules.hardware.framework16.fw16-kbd-alsd ]
-	++ [ inputs.pete3n-mods.nixosModules.hardware.framework16.fw16-disable-wake-triggers ];
+  ]
+  ++ [ inputs.pete3n-mods.nixosModules.default ]
+  ++ [ inputs.pete3n-mods.nixosModules.hardware.framework16.fw16-kbd-alsd ]
+  ++ [ inputs.pete3n-mods.nixosModules.hardware.framework16.fw16-disable-wake-triggers ];
 
   # Workaround for suspend then sleep issues.
   # Resolved amdgpu VPE queue reset failed / ib ring test failed (-110)
   # Resolved nvme drive sleep issues.
 
-	documentation = {
-		man.enable = true;
-		man.generateCaches = true;
-	};
+  documentation = {
+    man.enable = true;
+    man.generateCaches = true;
+  };
 
   boot = {
     kernelParams = [
@@ -129,7 +128,7 @@
   services = {
     # Auto control keyboard backlight. Save power in sunlight.
     fw16-kbd-alsd.enable = true;
-		# Disable all suspend wake triggers except the power button.
+    # Disable all suspend wake triggers except the power button.
     fw16-disable-wake-triggers.enable = true;
 
     # Control lid open/close events with lidmond
@@ -143,7 +142,7 @@
 
     lidmond = {
       enable = true;
-			accessGroup = "wheel";
+      accessGroup = "wheel";
     };
 
     resolved = {
@@ -159,6 +158,17 @@
       fallbackDns = [
         "1.1.1.1"
         "8.8.8.8"
+      ];
+    };
+
+    # Generate system public key
+    openssh = {
+      enable = true;
+      hostKeys = [
+        {
+          type = "ed25519";
+          path = "/etc/ssh/ssh_host_ed25519_key";
+        }
       ];
     };
 
