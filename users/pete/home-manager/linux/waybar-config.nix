@@ -1,5 +1,5 @@
 {
-	config,
+  config,
   lib,
   pkgs,
   ...
@@ -21,14 +21,26 @@ in
 
     pomodoro = {
       enable = true;
-			activityIntervals = [ 1 10 15 25 50 75 ];
-			restIntervals = [ 1 5 10 15 ];
-			activityPlaylist = "focus";
-			restPlaylist = "chill";
-			activityImage = "${config.xdg.userDirs.pictures}/pomodoro/focus/";
-			restImage = "${config.xdg.userDirs.pictures}/pomodoro/chill/";
-			imageDisplayDuration = 10;
-			defaultActivityName = "Focus";
+      activityIntervals = [
+        1
+        10
+        15
+        25
+        50
+        75
+      ];
+      restIntervals = [
+        1
+        5
+        10
+        15
+      ];
+      activityPlaylist = "focus";
+      restPlaylist = "chill";
+      activityImage = "${config.xdg.userDirs.pictures}/pomodoro/focus/";
+      restImage = "${config.xdg.userDirs.pictures}/pomodoro/chill/";
+      imageDisplayDuration = 10;
+      defaultActivityName = "Focus";
     };
 
     waybar = {
@@ -59,7 +71,7 @@ in
             "pulseaudio"
             "backlight"
             "custom/wdisplays"
-            "battery"
+						"battery"
           ];
 
           "custom/snowflake" = {
@@ -85,7 +97,7 @@ in
             format = "{}";
             return-type = "json";
             interval = 1;
-						restart-interval = 1;
+            restart-interval = 1;
             exec = "pomodoro ticker";
             on-click = "pomodoro-config";
             on-click-right = lib.getExe waybarScripts.calendarToggle;
