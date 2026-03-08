@@ -186,13 +186,14 @@
   # System wide packages
   environment.systemPackages = with pkgs; [
     # System utils
+    amdgpu_top
     clinfo
     hyprcursor
-    vulkan-tools
     mesa-demos
-    amdgpu_top
+		ragenix
     rocmPackages.rocm-smi
     rocmPackages.rocminfo
+    vulkan-tools
   ];
 
   # This value determines the NixOS release from which the default
