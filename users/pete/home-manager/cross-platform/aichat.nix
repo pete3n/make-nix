@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   ...
@@ -17,6 +18,10 @@ let
         DISPLAY="''${DISPLAY:-}"
         TMUX="''${TMUX:-}"
         TERM_PROGRAM="''${TERM_PROGRAM:-}"
+
+        if [ ! -d "''${AICHAT_SESSIONS_DIR}" ]; then
+        	mkdir -p "''${AICHAT_SESSIONS_DIR}" >&2
+        fi
 
         _session_prefix="''${1:-nix_env}"
         shift
@@ -213,10 +218,25 @@ in
       model = "claude:claude-sonnet-4-6";
       save_session = true;
       clients = [
-        { type = "claude"; }
+        {
+          type = "claude";
+        }
       ];
     };
   };
+
+  # Sync model list for updates if a configured model is missing
+  home.activation.aichatSyncModels =
+    lib.hm.dag.entryAfter [ "writeBoundary" ] # sh
+      ''
+        _aichat="${pkgs.aichat}/bin/aichat"
+        _model="${config.programs.aichat.settings.model}"
+
+        if ! "$_aichat" --list-models 2>/dev/null | grep -qF "''${_model}"; then
+        printf "aichat: model %s not found in local model list, syncing..." "''${_model}"
+        "$_aichat" --sync-models || true
+        fi
+      '';
 
   home.file.".config/aichat/roles/nix-env.md".text = # markdown
     ''
