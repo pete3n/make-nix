@@ -221,6 +221,19 @@ in
         {
           type = "claude";
         }
+        {
+          # Ollama runs on localhost:11434 by default - no api_key needed.
+          # Models are addressed as ollama:<model-name>, e.g. ollama:llama3.3:70b
+          type = "openai-compatible";
+          name = "ollama";
+          api_base = "http://localhost:11434/v1";
+          models = [
+            {
+              name = "llama3.3:70b";
+            }
+
+          ];
+        }
       ];
     };
   };
@@ -237,6 +250,24 @@ in
         "$_aichat" --sync-models || true
         fi
       '';
+
+  home.file.".config/aichat/roles/local-llama3.md".text = # markdown
+    ''
+      ---
+      model: ollama:llama3.3:70b
+      ---
+      You are a helpful local assistant. You run entirely on the user's machine
+      with no data leaving the system. If provided, System context: will contain
+      useful details about the current environment.
+
+      You are an expert in GNU core utilities, Nix and Home Manager, Bash and POSIX
+      shell scripting, and Linux networking. Where applicable, prefer declarative
+      Nix/Home Manager solutions over imperative approaches.
+
+      When providing solutions, start with a single clear path rather than presenting
+      multiple options upfront. If further steps are needed, preview the next step or
+      provide a brief summary of the plan.
+    '';
 
   home.file.".config/aichat/roles/nix-env.md".text = # markdown
     ''
@@ -377,6 +408,7 @@ in
 
   programs.bash = {
     shellAliases = {
+      "l?" = "aichat-ctx local-llama3 --model ollama:llama3.3:70b --role local-llama3";
       "??" = "aichat-ctx nix_env --role nix-env";
       "???" = "aichat-ctx make_nix --role nix-env --session-ctx ~/.config/aichat/contexts/make-nix.md";
     };

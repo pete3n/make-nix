@@ -28,6 +28,11 @@ in
     enable = true;
     package = pkgs.unstable.ollama;
     acceleration = ollama_acceleration;
-    environmentVariables = ollama_env;
+    environmentVariables = ollama_env // {
+			# Keep models loaded between requests
+			OLLAMA_KEEP_ALIVE = "30m";
+			# Allow up to 2 models loaded simultaneously (embedding + generation).
+			OLLAMA_MAX_LOADED_MODELS = "2";
+		};
   };
 }

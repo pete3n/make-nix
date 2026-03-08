@@ -46,6 +46,7 @@ in
     ../cross-platform/alacritty-config.nix
     ../cross-platform/git-config.nix
     ../cross-platform/cli-programs.nix
+		../cross-platform/ollama.nix
     ./xdg-config.nix
     ./awesome-config.nix
     ./bash-config.nix
@@ -169,7 +170,6 @@ in
         bettercap
         bingrep # Binary analysis search
         binwalk # Binary file analysis
-        chisel
         ffmpeg # Video encoding/transcoding
         file # Magic bit reader
         gnuradio

@@ -33,7 +33,6 @@
     # Ensure u2f keys are present in ~/.config/Yubico/u2f_keys before enabling
     ../shared-imports/pam-u2f-common.nix
     ../shared-imports/pam-fprint-yubikey.nix
-    ../shared-imports/ollama-services.nix
     ../shared-imports/crypto-services.nix
     ../shared-imports/linux/linux-packages.nix
     ../shared-imports/usrp-sdr.nix
