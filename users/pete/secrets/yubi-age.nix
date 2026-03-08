@@ -5,9 +5,10 @@ in
 {
   environment.etc."age/${user}/age-plugin-yubikeys".source = ./age-plugin-yubikeys;
 
+	# Place ssh keys before yubikey to prevent non-interactive failures
   age.identityPaths = lib.mkAfter [
-    "/etc/static/age/${user}/age-plugin-yubikeys"
 		"/etc/ssh/ssh_host_ed25519_key"
+    "/etc/static/age/${user}/age-plugin-yubikeys"
   ];
 
   age.secrets."anthropic-api-key" = {
