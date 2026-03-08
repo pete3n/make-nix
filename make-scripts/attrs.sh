@@ -137,7 +137,7 @@ _update_env() {
 		[ -n "${is_home_alone:-}" ] && printf "HOME_ALONE=%s\n" "${is_home_alone}"
 		[ -n "${tags:-}" ] && printf "CFG_TAGS=%s\n" "${tags}"
 		[ -n "${specs:-}" ] && printf "SPECS=%s\n" "${specs}"
-		[ -n "${ssh_pub_keys:-}" ] && printf "SSH_PUB_KEYS=%s\n" "${ssh_pub_keys}"
+		[ -n "${ssh_pub_keys:-}" ] && printf "SSH_PUB_KEYS='%s'\n" "${ssh_pub_keys}"
 		[ -n "${use_homebrew:-}" ] && printf "USE_HOMEBREW=%s\n" "${use_homebrew}"
 		[ -n "${use_cache:-}" ] && printf "USE_CACHE=%s\n" "${use_cache}"
 		[ -n "${use_keys:-}" ] && printf "USE_KEYS=%s\n" "${use_keys}"
