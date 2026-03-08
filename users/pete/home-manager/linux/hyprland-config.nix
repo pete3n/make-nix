@@ -1,6 +1,8 @@
 {
   config,
   lib,
+  makeNixLib,
+  makeNixAttrs,
   pkgs,
   ...
 }:
@@ -25,7 +27,7 @@
     swww.enable = true; # Wallpaper service
 
     hyprlidmon = {
-      enable = true;
+      enable = lib.mkDefault (makeNixLib.hasTag "laptop" makeNixAttrs.tags);
       # rules evaluated on lidClosed only; first match wins
       rules = [
         {
