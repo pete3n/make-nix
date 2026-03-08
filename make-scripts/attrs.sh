@@ -293,6 +293,7 @@ _eval_vars() {
 
   tags="$(_nix_eval "builtins.concatStringsSep \",\" (${_base_expr}.tags or [])")"
   specs="$(_nix_eval "builtins.concatStringsSep \",\" (${_base_expr}.specialisations or [])")"
+	ssh_pub_keys="$(_nix_eval "builtins.concatStringsSep \",\" (${_base_expr}.sshPubKeys or [])")"
 
 	_msg="\n${C_INFO}<<< Reading attributes:${C_RST}\n"
 	_msg="${_msg} user: %b%s%b\n host: %b%s%b\n system: %b%s%b\n"
@@ -490,6 +491,14 @@ write_attrs() {
 				IFS="${_old_ifs}"
 		fi
 		printf " ];\n"
+		printf "  sshPubKeys = ["
+		if [ -n "${ssh_pub_keys}" ]; then
+				_old_ifs=$IFS; IFS=','
+				for _key in $ssh_pub_keys; do printf '\n    "%s"' "${_key}"; done
+				IFS="${_old_ifs}"
+				printf "\n  "
+		fi
+		printf "];\n"
 		printf '}\n'
 	}
 
@@ -558,6 +567,14 @@ write_attrs() {
 			IFS="${_old_ifs}"
 		fi
 		logf " ]\n"
+		logf "  sshPubKeys        = ["
+		if [ -n "${ssh_pub_keys}" ]; then
+				_old_ifs=$IFS; IFS=','
+				for _key in $ssh_pub_keys; do logf '\n    "%s"' "${_key}"; done
+				IFS="${_old_ifs}"
+				logf "\n  "
+		fi
+		logf "]\n"
 		logf '}\n'
 
 		_print_new_attrs >"${_attr_path}"
