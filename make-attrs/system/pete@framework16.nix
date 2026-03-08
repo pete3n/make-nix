@@ -10,4 +10,5 @@
   useKeys = true;
   tags = [ "laptop" "hyprland" "poweruser" "yubi-age-user" ];
   specialisations = [ "wayland_dgpu" "kmscon" ];
+  sshPubKeys = [ ];
 }
