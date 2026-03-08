@@ -499,7 +499,7 @@ write_attrs() {
 				IFS="${_old_ifs}"
 				printf "\n  "
 		fi
-		printf "];\n"
+		printf " ];\n"
 		printf '}\n'
 	}
 
@@ -575,7 +575,7 @@ write_attrs() {
 				IFS="${_old_ifs}"
 				logf "\n  "
 		fi
-		logf "]\n"
+		logf " ]\n"
 		logf '}\n'
 
 		_print_new_attrs >"${_attr_path}"
