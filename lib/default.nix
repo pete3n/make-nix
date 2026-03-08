@@ -17,6 +17,7 @@ rec {
 		useHomebrew = makeAttrs.useHomebrew or false;
 		useKeys = makeAttrs.useKeys or false;
 		useCache = makeAttrs.useCache or false;
+    sshPubKeys = makeAttrs.sshPubKeys or [];
 	};
 
   hasTag = tag: tags: builtins.elem tag tags;
