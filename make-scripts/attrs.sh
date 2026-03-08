@@ -233,7 +233,7 @@ _set_vars() {
 	esac
 }
 
-# (Private): Assign global configuration values be evaluating an attribute file using Nix
+# (Private): Assign global configuration values by evaluating an attribute file using Nix
 # Requires: nix, nix-instantiate
 # $1: Nix attribute filepath to evaluate
 # Succes:
@@ -260,7 +260,7 @@ _eval_vars() {
 		_expr="${1}"
 		if ! _out=$(
 			NIX_CONFIG='extra-experimental-features = nix-command flakes' \
-			command nix eval --raw --impure --expr "${_expr}" 2>&1
+			command nix eval --refresh --raw --impure --expr "${_expr}" 2>&1
 		); then
 			err 1 "nix eval failed while reading attrs file\ 
 				${C_PATH}${_attrs_path}${C_RST}:\n${_out}\nexpr:\n${_expr}"
@@ -299,14 +299,15 @@ _eval_vars() {
 	_msg="${_msg} user: %b%s%b\n host: %b%s%b\n system: %b%s%b\n"
 	_msg="${_msg} is_linux: %b%s%b\n is_home_alone: %b%s%b\n use_homebrew: %b%s%b\n"
 	_msg="${_msg} use_keys: %b%s%b\n use_cache: %b%s%b\n"
-	_msg="${_msg} tags: %b%s%b\n specs: %b%s%b\n"
+	_msg="${_msg} tags: %b%s%b\n specs: %b%s%b\n ssh_pub_keys: %b%s%b\n"
 
 	logf "$_msg" \
 		"${C_CFG}" "${user}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"\
 		"${C_CFG}" "${system}" "${C_RST}" "${C_CFG}" "${is_linux}" "${C_RST}"\
 		"${C_CFG}" "${is_home_alone}" "${C_RST}" "${C_CFG}" "${use_homebrew}" "${C_RST}"\
 		"${C_CFG}" "${use_keys}" "${C_RST}" "${C_CFG}" "${use_cache}" "${C_RST}"\
-		"${C_CFG}" "${tags}" "${C_RST}" "${C_CFG}" "${specs}" "${C_RST}"
+		"${C_CFG}" "${tags}" "${C_RST}" "${C_CFG}" "${specs}" "${C_RST}" \
+    "${C_CFG}" "${ssh_pub_keys}" "${C_RST}"
 }
 
 # Read the Nix attribute file and update the env vars
@@ -353,7 +354,7 @@ check_attrs() {
 
 		if ! _out="$(
 			NIX_CONFIG='extra-experimental-features = nix-command flakes' \
-			command nix eval --impure --json \
+			command nix eval --refresh --impure --json \
 				"${_flake_path}#${_output}" \
 				--apply "config: builtins.hasAttr \"${_attrset}\" config"
 		)"; then
@@ -368,14 +369,14 @@ check_attrs() {
 
 	_eval_drv() {
 		_expr="${1}"
-		_eval_cmd="nix eval --extra-experimental-features nix-command --extra-experimental-features flakes --no-warn-dirty --impure --raw ${_expr}"
+		_eval_cmd="nix eval --refresh --extra-experimental-features nix-command --extra-experimental-features flakes --no-warn-dirty --impure --raw ${_expr}"
 		_rcfile="${MAKE_NIX_TMPDIR:-/tmp}/nix-eval.$$.rc"
 		_outfile="${MAKE_NIX_TMPDIR:-/tmp}/nix-eval.$$.out"
 		_use_script="$(normalize_bool "${USE_SCRIPT:-}")"
 
 		# Print command to stderr so it shows up immediately
 		# shellcheck disable=SC2086
-		print_cmd nix eval --extra-experimental-features nix-command --extra-experimental-features flakes --no-warn-dirty --impure --raw "$_expr" >&2
+		print_cmd nix eval --refresh --extra-experimental-features nix-command --extra-experimental-features flakes --no-warn-dirty --impure --raw "$_expr" >&2
 
 		if [ "${_use_script}" = "true" ]; then
 				# Force script to run without buffering issues
@@ -385,7 +386,7 @@ check_attrs() {
 				_fmt_out="$(sed -e '1d' -e '$d' "${_outfile}" | tr -d '\r')"
 		else
 			(
-				nix eval --no-warn-dirty --impure --raw "$_expr"
+				nix eval --refresh --no-warn-dirty --impure --raw "$_expr"
 				printf "%s\n" "$?" >"$_rcfile"
 			) 2>&1 | tee "${_outfile}" >&2
 			_fmt_out="$(cat "${_outfile}")"
