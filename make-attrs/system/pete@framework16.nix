@@ -8,7 +8,7 @@
   useHomebrew = false;
   useCache = true;
   useKeys = true;
-  tags = [ "laptop" "hyprland" "poweruser" "yubi-age-user" ];
+  tags = [ "hyprland" "laptop" "local-ai" "poweruser" "yubi-age-user" ];
   specialisations = [ "wayland_dgpu" "kmscon" ];
   sshPubKeys = [ ];
 }
