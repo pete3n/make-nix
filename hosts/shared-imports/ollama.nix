@@ -8,7 +8,7 @@ in
 {
   services.ollama = {
     enable = true;
-    package = pkgs.unstable.ollama;
+    package = if cudaSupport then pkgs.unstable.ollama-cuda else pkgs.unstable.ollama;
     acceleration = lib.mkIf cudaSupport "cuda";
     environmentVariables = lib.mkMerge [
       {

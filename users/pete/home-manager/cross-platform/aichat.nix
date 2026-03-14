@@ -1,10 +1,25 @@
 {
   config,
   lib,
+  hasCuda,
+  makeNixAttrs,
+  makeNixLib,
   pkgs,
   ...
 }:
 let
+  hasLocalAi = makeNixLib.hasTag "local-ai" (makeNixAttrs.tags or [ ]);
+  piperModel = "${config.home.homeDirectory}/.local/share/piper/en_US-amy-medium.onnx";
+  whisperModel = "${config.home.homeDirectory}/.local/share/whisper/ggml-medium.en.bin";
+  whisperPackage =
+    if hasCuda then
+      pkgs.whisper-cpp.override {
+        cudaSupport = true;
+        cudaPackages = pkgs.cudaPackages;
+      }
+    else
+      pkgs.whisper-cpp;
+
   aichatWrapper =
     pkgs.writeShellScriptBin "aichat-ctx" # sh
       ''
@@ -210,6 +225,245 @@ let
         	| "$NIX_GLOW" --style=dark --pager -
         fi
       '';
+
+  aiSpeak =
+    pkgs.writeShellScriptBin "ai-speak" # sh
+      ''
+        set -u
+
+        NIX_PIPER="${pkgs.piper-tts}/bin/piper"
+        NIX_PAPLAY="${pkgs.pulseaudio}/bin/paplay"
+
+        PIPER_MODEL="''${PIPER_MODEL:-${piperModel}}"
+
+        if [ "$#" -gt 0 ]; then
+          printf '%s' "$*"
+        else
+          cat
+        fi \
+          | "$NIX_PIPER" --model "''${PIPER_MODEL}" --output-raw \
+          | "$NIX_PAPLAY" --raw --rate=22050 --format=s16le --channels=1
+      '';
+
+  aiRead =
+    pkgs.writeShellScriptBin "ai-read" # sh
+      ''
+        set -u
+
+        NIX_PIPER="${pkgs.piper-tts}/bin/piper"
+        NIX_PAPLAY="${pkgs.pulseaudio}/bin/paplay"
+        NIX_FILE="${pkgs.file}/bin/file"
+        NIX_AWK="${pkgs.gawk}/bin/awk"
+
+        PIPER_MODEL="''${PIPER_MODEL:-${piperModel}}"
+
+        _file="''${1:-}"
+        _offset="''${2:-0}"
+        _text_tmp=$(mktemp /tmp/piper-text-XXXXXX.txt)
+
+        cleanup() {
+        	if [ -f "$_text_tmp" ]; then
+        		rm "$_text_tmp"
+        	fi
+        }
+        trap cleanup EXIT INT TERM
+
+        if [ -z "''${_file}" ]; then
+        	printf "Usage: ai-read <file> [offset%%]\n" >&2
+        	rm -f "''${_text_tmp}"
+        	exit 1
+        fi
+
+        if [ ! -f "''${_file}" ]; then
+        	printf "ai-read: file not found: %s\n" "''${_file}" >&2
+        	rm -f "''${_text_tmp}"
+        	exit 1
+        fi
+
+        if [ "''${_offset}" -lt 0 ] || [ "''${_offset}" -gt 99 ]; then
+        	printf "ai-read: offset must be between 0 and 99\n" >&2
+        	rm -f "''${_text_tmp}"
+        	exit 1
+        fi
+
+        _mime="$("$NIX_FILE" --mime-type -b "''${_file}")"
+
+        case "''${_mime}" in
+        	application/pdf)
+        		${pkgs.poppler-utils}/bin/pdftotext "''${_file}" - > "''${_text_tmp}"
+        		;;
+        	application/vnd.openxmlformats-officedocument.wordprocessingml.document|\
+        	application/msword)
+        		${pkgs.pandoc}/bin/pandoc --to plain "''${_file}" > "''${_text_tmp}"
+        		;;
+        	text/*)
+        		cat "''${_file}" > "''${_text_tmp}"
+        		;;
+        	*)
+        		printf "ai-read: unsupported mime type: %s\n" "''${_mime}" >&2
+        		rm -f "''${_text_tmp}"
+        		exit 1
+        		;;
+        esac
+
+        _total=$(wc -c < "''${_text_tmp}")
+        _skip_bytes=$(( _total * _offset / 100 ))
+
+        # Advance to next word boundary to avoid reading mid-word
+        _start=$(
+        	"$NIX_AWK" \
+        		-v skip="''${_skip_bytes}" \
+        		'BEGIN { bytes=0 }
+        		{
+        			line_len = length($0) + 1
+        			if (bytes + line_len > skip) {
+        				# Find next space after offset within this line
+        				char_pos = skip - bytes
+        				space_pos = index(substr($0, char_pos), " ")
+        				if (space_pos > 0) {
+        					print substr($0, char_pos + space_pos)
+        				} else {
+        					print $0
+        				}
+        				found = 1
+        			} else {
+        				bytes += line_len
+        			}
+        			if (found) { print; next }
+        		}' \
+        		"''${_text_tmp}"
+        )
+
+        rm -f "''${_text_tmp}"
+
+        printf '%s' "''${_start}" \
+        	| "$NIX_PIPER" --model "''${PIPER_MODEL}" --output-raw \
+        	| "$NIX_PAPLAY" --raw --rate=22050 --format=s16le --channels=1
+      '';
+
+  aiTranscribe =
+    pkgs.writeShellScriptBin "ai-transcribe" # sh
+      ''
+        	set -u
+
+        	NIX_WHISPER="$(command -v whisper-cli)"
+        	WHISPER_MODEL="''${WHISPER_MODEL:-${whisperModel}}"
+
+        	_file=""
+        	_output=""
+        	_language="en"
+        	_translate=0
+        	_passthrough_args=""
+
+        	cleanup() {
+        		rm -f "''${_text_tmp:-}"
+        	}
+        	trap cleanup EXIT INT TERM
+
+        	_parse_args() {
+        		while [ "$#" -gt 0 ]; do
+        			case "''${1}" in
+        				-o)
+        					shift
+        					_output="''${1:-}"
+        					;;
+        				-o*)
+        					_output="''${1#-o}"
+        					;;
+        				-l)
+        					shift
+        					_language="''${1:-en}"
+        					;;
+        				-l*)
+        					_language="''${1#-l}"
+        					;;
+        				-t)
+        					_translate=1
+        					;;
+        				-*)
+        					_passthrough_args="''${_passthrough_args:+''${_passthrough_args}\n}''${1}"
+        					;;
+        				*)
+        					if [ -z "''${_file}" ]; then
+        						_file="''${1}"
+        					else
+        						printf "ai-transcribe: unexpected argument: %s\n" "''${1}" >&2
+        						exit 1
+        					fi
+        					;;
+        			esac
+        			shift
+        		done
+        	}
+
+        	_parse_args "$@"
+
+        	if [ -z "''${_file}" ]; then
+        		printf "Usage: ai-transcribe [options] <file>\n" >&2
+        		printf "  -o <path>   output file path (without extension)\n" >&2
+        		printf "  -oj         output JSON\n" >&2
+        		printf "  -otxt       output text file\n" >&2
+        		printf "  -l <lang>   language code (default: en, 'auto' to detect)\n" >&2
+        		printf "  -t          translate to english\n" >&2
+        		exit 1
+        	fi
+
+        	if [ ! -f "''${_file}" ]; then
+        		printf "ai-transcribe: file not found: %s\n" "''${_file}" >&2
+        		exit 1
+        	fi
+
+        	_cmd=("$NIX_WHISPER"
+        		--model "''${WHISPER_MODEL}"
+        		--language "''${_language}"
+        		--no-prints
+        		--no-timestamps
+        	)
+
+        	if [ "''${_translate}" = "1" ]; then
+        		_cmd+=(--translate)
+        	fi
+
+        	if [ -n "''${_output}" ]; then
+        		_cmd+=(--output-file "''${_output}")
+        	fi
+
+        	if [ -n "''${_passthrough_args:-}" ]; then
+        		while IFS= read -r _arg; do
+        			[ -n "''${_arg}" ] && _cmd+=("''${_arg}")
+        		done < <(printf '%b\n' "''${_passthrough_args}")
+        	fi
+
+        	_cmd+=(--file "''${_file}")
+
+        	if [ -z "''${_output}" ]; then
+        		"''${_cmd[@]}"
+        	else
+        		"''${_cmd[@]}" >/dev/null
+        	fi
+      '';
+
+  # Local AI client config - only included when local-ai tag is present
+  ollamaClient = {
+    name = "ollama";
+    type = "openai-compatible";
+    api_base = "http://localhost:11434/v1";
+    models = [
+      { name = "qwen3.5:9b"; }
+      { name = "qwen3-coder:latest"; }
+      { name = "jaahas/qwen3.5-uncensored:latest"; }
+      {
+        name = "nomic-embed-text";
+        type = "embedding";
+      }
+    ];
+  };
+
+  # Document loaders for RAG binary format support
+  documentLoaders = {
+    pdf = "${pkgs.poppler-utils}/bin/pdftotext $1 -";
+    docx = "${pkgs.pandoc}/bin/pandoc --to plain $1";
+  };
 in
 {
   programs.aichat = {
@@ -221,44 +475,87 @@ in
         {
           type = "claude";
         }
-        {
-          # Ollama runs on localhost:11434 by default - no api_key needed.
-          # Models are addressed as ollama:<model-name>, e.g. ollama:llama3.3:70b
-          type = "openai-compatible";
-          name = "ollama";
-          api_base = "http://localhost:11434/v1";
-          models = [
-            {
-              name = "llama3.3:70b";
-            }
-
-          ];
-        }
-      ];
+      ]
+      ++ lib.optional hasLocalAi ollamaClient;
+      document_loaders = lib.mkIf hasLocalAi documentLoaders;
+      rag_embedding_model = lib.mkIf hasLocalAi "ollama:nomic-embed-text";
     };
   };
 
   # Sync model list for updates if a configured model is missing
-  home.activation.aichatSyncModels =
-    lib.hm.dag.entryAfter [ "writeBoundary" ] # sh
-      ''
-        _aichat="${pkgs.aichat}/bin/aichat"
-        _model="${config.programs.aichat.settings.model}"
+  home.activation = {
+    aichatDirs =
+      lib.hm.dag.entryAfter [ "writeBoundary" ] # sh
+        ''
+          _rags_dir="${config.home.homeDirectory}/.config/aichat/rags"
+          _macros_dir="${config.home.homeDirectory}/.config/aichat/macros"
+          _functions_dir="${config.home.homeDirectory}/.config/aichat/functions"
 
-        if ! "$_aichat" --list-models 2>/dev/null | grep -qF "''${_model}"; then
-        printf "aichat: model %s not found in local model list, syncing..." "''${_model}"
-        "$_aichat" --sync-models || true
-        fi
-      '';
+          for _dir in "$_rags_dir" "$_macros_dir" "$_functions_dir"; do
+            if [ ! -d "$_dir" ]; then
+              printf "aichat: creating directory %s\n" "$_dir"
+              mkdir -p "$_dir"
+            fi
+          done
+        '';
+    aichatSyncModels = lib.mkIf hasLocalAi (
+      lib.hm.dag.entryAfter [ "writeBoundary" ] # sh
+        ''
+          _aichat="${pkgs.aichat}/bin/aichat"
+          _model="${config.programs.aichat.settings.model}"
 
-  home.file.".config/aichat/roles/local-llama3.md".text = # markdown
+          if ! "$_aichat" --list-models 2>/dev/null | grep -qF "''${_model}"; then
+          printf "aichat: model %s not found in local model list, syncing..." "''${_model}"
+          "$_aichat" --sync-models || true
+          fi
+        ''
+    );
+    aiTtsModel = lib.mkIf hasLocalAi (
+
+      lib.hm.dag.entryAfter [ "writeBoundary" ] # sh
+        ''
+          _model_dir="${config.home.homeDirectory}/.local/share/piper"
+          _model_onnx="''${_model_dir}/en_US-amy-medium.onnx"
+          _model_json="''${_model_dir}/en_US-amy-medium.onnx.json"
+          _base_url="https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/amy/medium"
+
+          if [ ! -f "''${_model_onnx}" ]; then
+            printf "piper: downloading en_US-amy-medium model...\n"
+            mkdir -p "''${_model_dir}"
+            ${pkgs.curl}/bin/curl -fsSL -o "''${_model_onnx}" "''${_base_url}/en_US-amy-medium.onnx"
+            ${pkgs.curl}/bin/curl -fsSL -o "''${_model_json}" "''${_base_url}/en_US-amy-medium.onnx.json"
+          fi
+        ''
+    );
+    aiTranscribeModel = lib.mkIf hasLocalAi (
+      lib.hm.dag.entryAfter [ "writeBoundary" ] # sh
+        ''
+          _model_dir="${config.home.homeDirectory}/.local/share/whisper"
+          _model_file="''${_model_dir}/ggml-medium.en.bin"
+          _url="https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.en.bin"
+
+          if [ ! -f "''${_model_file}" ]; then
+            printf "whisper: downloading ggml-medium.en model (1.5GB)...\n"
+            mkdir -p "''${_model_dir}"
+            ${pkgs.curl}/bin/curl -fsSL --progress-bar -o "''${_model_file}" "''${_url}"
+          fi
+        ''
+    );
+  };
+
+  home.file.".config/aichat/roles/local-env.md".text = # markdown
     ''
       ---
-      model: ollama:llama3.3:70b
       ---
       You are a helpful local assistant. You run entirely on the user's machine
       with no data leaving the system. If provided, System context: will contain
       useful details about the current environment.
+
+      You are most likely operating inside the Alacritty terminal emulator on
+      systems running NixOS, Nix-Darwin, or other Linux distributions using Nix Home
+      Manager. Sessions may run inside Tmux, within a Wayland/Hyprland graphical
+      environment on Linux, or on macOS with Nix-Darwin. If provided, System context:
+      will contain useful details about the current system environment.
 
       You are an expert in GNU core utilities, Nix and Home Manager, Bash and POSIX
       shell scripting, and Linux networking. Where applicable, prefer declarative
@@ -266,7 +563,11 @@ in
 
       When providing solutions, start with a single clear path rather than presenting
       multiple options upfront. If further steps are needed, preview the next step or
-      provide a brief summary of the plan.
+      provide a brief summary of the plan. When a decision point requires branching,
+      ask the user which path to take and include your recommended option.
+
+      Responses should facilitate learning — accompany solutions with explanations of
+      why they work, not just what to run.
     '';
 
   home.file.".config/aichat/roles/nix-env.md".text = # markdown
@@ -404,14 +705,31 @@ in
   home.packages = [
     aichatSearch
     aichatWrapper
+  ]
+  ++ lib.optionals hasLocalAi [
+    pkgs.poppler-utils # pdftotext for PDF RAG loading
+    pkgs.pandoc
+    # docx/doc RAG loading
+    pkgs.pulseaudio # For paplay tts
+    pkgs.piper-tts # tts
+    whisperPackage # Whisper CPP conditionally built with CUDA support
+    aiRead
+    aiSpeak
+    aiTranscribe
   ];
 
   programs.bash = {
     shellAliases = {
-      "l?" = "aichat-ctx local-llama3 --model ollama:llama3.3:70b --role local-llama3";
       "??" = "aichat-ctx nix_env --role nix-env";
       "???" = "aichat-ctx make_nix --role nix-env --session-ctx ~/.config/aichat/contexts/make-nix.md";
+    }
+    // lib.optionalAttrs hasLocalAi {
+      "?qc" = "aichat-ctx local_env --model ollama:qwen3-coder:latest --role local-env";
+      "?q9" = "aichat-ctx local_env --model ollama:qwen3.5:9b --role local-env";
+      "?qu" = "aichat-ctx local_env --model ollama:jaahas/qwen3.5-uncensored:latest --role local-env";
+      "?doc" = "aichat-ctx doc_search --rag documents --role local-env";
     };
+
     initExtra =
       lib.mkAfter # sh
         ''
