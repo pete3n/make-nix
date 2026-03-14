@@ -260,7 +260,7 @@ _eval_vars() {
 		_expr="${1}"
 		if ! _out=$(
 			NIX_CONFIG='extra-experimental-features = nix-command flakes' \
-			command nix eval --refresh --raw --impure --expr "${_expr}" 2>&1
+			command nix eval --raw --impure --option fallback true --expr "${_expr}" 2>&1
 		); then
 			err 1 "nix eval failed while reading attrs file\ 
 				${C_PATH}${_attrs_path}${C_RST}:\n${_out}\nexpr:\n${_expr}"
@@ -354,7 +354,7 @@ check_attrs() {
 
 		if ! _out="$(
 			NIX_CONFIG='extra-experimental-features = nix-command flakes' \
-			command nix eval --refresh --impure --json \
+			command nix eval --impure --json --option fallback true \
 				"${_flake_path}#${_output}" \
 				--apply "config: builtins.hasAttr \"${_attrset}\" config"
 		)"; then
@@ -369,14 +369,14 @@ check_attrs() {
 
 	_eval_drv() {
 		_expr="${1}"
-		_eval_cmd="nix eval --refresh --extra-experimental-features nix-command --extra-experimental-features flakes --no-warn-dirty --impure --raw ${_expr}"
+		_eval_cmd="nix eval --extra-experimental-features nix-command --extra-experimental-features flakes --no-warn-dirty --impure --option fallback true --raw ${_expr}"
 		_rcfile="${MAKE_NIX_TMPDIR:-/tmp}/nix-eval.$$.rc"
 		_outfile="${MAKE_NIX_TMPDIR:-/tmp}/nix-eval.$$.out"
 		_use_script="$(normalize_bool "${USE_SCRIPT:-}")"
 
 		# Print command to stderr so it shows up immediately
 		# shellcheck disable=SC2086
-		print_cmd nix eval --refresh --extra-experimental-features nix-command --extra-experimental-features flakes --no-warn-dirty --impure --raw "$_expr" >&2
+		print_cmd nix eval --extra-experimental-features nix-command --extra-experimental-features flakes --no-warn-dirty --impure --option fallback true --raw "$_expr" >&2
 
 		if [ "${_use_script}" = "true" ]; then
 				# Force script to run without buffering issues
@@ -386,7 +386,7 @@ check_attrs() {
 				_fmt_out="$(sed -e '1d' -e '$d' "${_outfile}" | tr -d '\r')"
 		else
 			(
-				nix eval --refresh --no-warn-dirty --impure --raw "$_expr"
+				nix eval --no-warn-dirty --impure --option fallback true --raw "$_expr"
 				printf "%s\n" "$?" >"$_rcfile"
 			) 2>&1 | tee "${_outfile}" >&2
 			_fmt_out="$(cat "${_outfile}")"
