@@ -323,22 +323,35 @@ in
           name = "framework-dt";
           paths = [
             "Documents"
-            "Music"
             "Downloads"
+            "Music"
+            "Nextcloud"
             "Pictures"
+            "Projects"
+            "Videos"
+          ];
+          excludePaths = [
+            "Downloads/Work"
           ];
         }
         {
           name = "macbook";
           paths = [
             "Documents"
-            "Music"
             "Downloads"
+            "Music"
+            "Nextcloud"
             "Pictures"
+            "Projects"
+            "Videos"
+          ];
+          excludePaths = [
+            "Downloads/Work"
           ];
         }
       ];
     };
+
     # Import resident keys from Yubikey if any are missing from ~/.ssh
     import-yubikey-ssh = {
       enable = true;
