@@ -235,12 +235,15 @@ in
       ns = "nix-search-tv print | fzf --preview 'nix-search-tv preview {}' --scheme history";
       screenshot = "grim";
     };
+    sessionVariables = {
+      SSH_AUTH_SOCK = "/run/user/1000/ssh-agent";
+    };
     initExtra = # sh
     ''
       set -o vi
-			bind 'set show-mode-in-prompt on'
-			bind 'set vi-ins-mode-string \1\e[32m\2[I]\1\e[0m\2 '
-			bind 'set vi-cmd-mode-string \1\e[34m\2[N]\1\e[0m\2 '
+      bind 'set show-mode-in-prompt on'
+      bind 'set vi-ins-mode-string \1\e[32m\2[I]\1\e[0m\2 '
+      bind 'set vi-cmd-mode-string \1\e[34m\2[N]\1\e[0m\2 '
       alias zf=zfile
     ''
     + tmux_preserve_path

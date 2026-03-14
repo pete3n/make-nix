@@ -284,6 +284,7 @@ in
           identitiesOnly = true;
           extraOptions = {
             IdentityAgent = "none";
+            ForwardAgent = "yes";
             ControlMaster = "auto";
             ControlPath = "~/.ssh/control-%r@%h:%p";
             ControlPersist = "10m";
