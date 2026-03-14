@@ -733,7 +733,11 @@ in
     initExtra =
       lib.mkAfter # sh
         ''
-          export CLAUDE_API_KEY=$(cat /run/agenix/anthropic-api-key)
+          # Load API key only when needed rather than exporting globally
+          aichat() {
+            CLAUDE_API_KEY=$(cat /run/agenix/anthropic-api-key) \
+              command aichat "$@"
+          }
         '';
   };
 }
