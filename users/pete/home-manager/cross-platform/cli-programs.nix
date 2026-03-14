@@ -1,9 +1,4 @@
-{
-  pkgs,
-  makeNixLib,
-  makeNixAttrs,
-  ...
-}:
+{ pkgs, makeNixLib, makeNixAttrs, ... }:
 let
   # Use Zsh integration for Darwin and Bash integration for Linux
   shellIntegration = {
@@ -12,9 +7,9 @@ let
   };
 in
 {
-  imports = [
-    (import ./yazi-config.nix { inherit pkgs shellIntegration; })
-  ];
+	imports = [
+		(import ./yazi-config.nix { inherit pkgs shellIntegration; })
+	];
 
   programs = {
     # Local wallpaper-scripts module for changing wallpapers
@@ -55,18 +50,11 @@ in
     # Fuzzy finder
     fzf = {
       enable = true;
-    }
-    // shellIntegration;
+    } // shellIntegration;
     keychain = {
       enable = true;
       keys = [ "pete3n" ];
-      extraFlags = [
-        "--quiet"
-        "--ssh-agent-socket"
-        "/run/user/1000/ssh-agent"
-      ];
-    }
-    // shellIntegration;
+    } // shellIntegration;
     # Starship cross-shell prompt config
     starship = {
       enable = true;
@@ -75,8 +63,7 @@ in
           truncation_length = 0; # Disable truncation to show the full path
         };
       };
-    }
-    // shellIntegration;
+    } // shellIntegration;
     # Recursive grep
     ripgrep = {
       enable = true;
@@ -88,7 +75,6 @@ in
     # Zoxide better cd replacement with memory
     zoxide = {
       enable = true;
-    }
-    // shellIntegration;
+    } // shellIntegration;
   };
 }
