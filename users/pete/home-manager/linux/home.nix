@@ -27,13 +27,11 @@ let
     makeNixLib.hasTag "cuda" (makeNixAttrs.tags or [ ])
     && makeNixLib.hasTag "wayland_dgpu" (makeNixAttrs.specialisations or [ ]);
   availableTags = builtins.filter (tag: builtins.elem tag linuxTags) makeNixAttrs.tags;
-
   tagImportMap = {
     hyprland = [
       ./hyprland-config.nix
     ];
   };
-
   tagImports = lib.flatten (builtins.map (tag: tagImportMap.${tag}) availableTags);
   blenderCuda = if hasCuda then pkgs.blender.override { cudaSupport = true; } else pkgs.blender;
 in
@@ -49,7 +47,6 @@ in
     ../cross-platform/alacritty-config.nix
     ../cross-platform/git-config.nix
     ../cross-platform/cli-programs.nix
-		../cross-platform/ollama.nix
     ./xdg-config.nix
     ./awesome-config.nix
     ./bash-config.nix
@@ -92,7 +89,7 @@ in
         kdePackages.dolphin # Dolphin file browser
         libreoffice
         litemdview # Simple markdown viewer
-				local.ipod-shuffle-4g
+        local.ipod-shuffle-4g
         nix-melt # Flake lock explorer
         mod._86Box
         mosh # Mobile-shell SSH replacement
@@ -156,6 +153,7 @@ in
         xxgdb # gdb TUI
 
         ### Media tools
+        audacity # Audio editor
         drawio # Open Visio replacement
         gimp-with-plugins # Image editing
         handbrake # DVD wripping
@@ -284,18 +282,27 @@ in
           user = "pete";
           identityFile = "/home/${makeNixAttrs.user}/.ssh/id_ed25519_sk_rk_p22";
           identitiesOnly = true;
+          extraOptions = {
+            IdentityAgent = "none";
+          };
         };
         "backupsvr" = {
           hostname = "backupsvr.p22";
           user = "root";
           identityFile = "/home/${makeNixAttrs.user}/.ssh/id_ed25519_sk_rk_p22";
           identitiesOnly = true;
+          extraOptions = {
+            IdentityAgent = "none";
+          };
         };
         "mediasvr" = {
           hostname = "media.p22";
           user = "root";
           identityFile = "/home/${makeNixAttrs.user}/.ssh/id_ed25519_sk_rk_p22";
           identitiesOnly = true;
+          extraOptions = {
+            IdentityAgent = "none";
+          };
         };
         "github" = {
           hostname = "github.com";
