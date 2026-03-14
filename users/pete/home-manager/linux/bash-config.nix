@@ -226,47 +226,74 @@ let
     '';
 in
 {
-  programs.bash = {
-    enableCompletion = true;
-    shellAliases = {
-      cd = "z";
-      home-manager-rollback = "home-manager generations | fzf | awk -F '-> ' '{print \$2 \"/activate\"}'";
-      lsc = "lsd --classic";
-      ns = "nix-search-tv print | fzf --preview 'nix-search-tv preview {}' --scheme history";
-      screenshot = "grim";
-    };
-    sessionVariables = {
-      SSH_AUTH_SOCK = "/run/user/1000/ssh-agent";
-    };
-    initExtra = # sh
-    ''
-      set -o vi
-      bind 'set show-mode-in-prompt on'
-      bind 'set vi-ins-mode-string \1\e[32m\2[I]\1\e[0m\2 '
-      bind 'set vi-cmd-mode-string \1\e[34m\2[N]\1\e[0m\2 '
-      alias zf=zfile
-    ''
-    + tmux_preserve_path
-    + sudo_wrapper
-    + nix_path
-    + smart_help
-    + zfile
-    + fds;
+  config = lib.mkMerge [
+    {
+      programs.bash.initExtra =
+        lib.mkBefore # sh
+          ''
+            # Preserve forwarded SSH agent before keychain overwrites SSH_AUTH_SOCK
+            if [ -n "''${SSH_CONNECTION:-}" ] && [ -S "''${SSH_AUTH_SOCK:-}" ]; then
+              _FORWARDED_SSH_AUTH_SOCK="''${SSH_AUTH_SOCK}"
+            fi
+          '';
+    }
 
-    profileExtra = # sh
-      ''
-        export EDITOR=nvim
-        if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
-        	command -v fastfetch &> /dev/null && fastfetch
-        	export FASTFETCH_EXECUTED=1
-        	printf "\n"	
-        	ip link
-        	printf "\n"
-        	ip -br a
-        	printf "\n"
-        fi
-        # Workaround for xdg.userDirs bug always being set to false
-        source "${config.home.homeDirectory}/.config/user-dirs.dirs"
-      '';
-  };
+    {
+      programs.bash = {
+        enableCompletion = true;
+        shellAliases = {
+          cd = "z";
+          home-manager-rollback = "home-manager generations | fzf | awk -F '-> ' '{print \$2 \"/activate\"}'";
+          lsc = "lsd --classic";
+          ns = "nix-search-tv print | fzf --preview 'nix-search-tv preview {}' --scheme history";
+          screenshot = "grim";
+        };
+        sessionVariables = {
+          SSH_AUTH_SOCK = "/run/user/1000/ssh-agent";
+        };
+        initExtra = # sh
+        ''
+          set -o vi
+          bind 'set show-mode-in-prompt on'
+          bind 'set vi-ins-mode-string \1\e[32m\2[I]\1\e[0m\2 '
+          bind 'set vi-cmd-mode-string \1\e[34m\2[N]\1\e[0m\2 '
+          alias zf=zfile
+        ''
+        + tmux_preserve_path
+        + sudo_wrapper
+        + nix_path
+        + smart_help
+        + zfile
+        + fds;
+
+        profileExtra = # sh
+          ''
+            export EDITOR=nvim
+            if [ -z "$FASTFETCH_EXECUTED" ] && [ -z "$TMUX" ]; then
+              command -v fastfetch &> /dev/null && fastfetch
+              export FASTFETCH_EXECUTED=1
+              printf "\n"
+              ip link
+              printf "\n"
+              ip -br a
+              printf "\n"
+            fi
+            source "${config.home.homeDirectory}/.config/user-dirs.dirs"
+          '';
+      };
+    }
+
+    {
+      programs.bash.initExtra =
+        lib.mkAfter # sh
+          ''
+            # Restore forwarded agent after keychain overwrites SSH_AUTH_SOCK
+            if [ -n "''${_FORWARDED_SSH_AUTH_SOCK:-}" ]; then
+              SSH_AUTH_SOCK="''${_FORWARDED_SSH_AUTH_SOCK}"
+              export SSH_AUTH_SOCK
+              unset _FORWARDED_SSH_AUTH_SOCK
+            fi
+          '';
+    }
+  ];
 }
