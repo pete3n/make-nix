@@ -18,6 +18,11 @@ let
         default = [ ];
         description = "List of paths relative to home directory to sync";
       };
+      excludePaths = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        description = "List of paths relative to home directory to exclude";
+      };
     };
   };
 
@@ -26,6 +31,7 @@ let
     root = ssh://${host.name}/${config.home.homeDirectory}
     ${lib.concatMapStringsSep "\n" (p: "path = ${p}") host.paths}
     ${lib.concatMapStringsSep "\n" (p: "ignore = ${p}") cfg.excludePatterns}
+    ${lib.concatMapStringsSep "\n" (p: "ignore = Path ${p}") host.excludePaths}
     servercmd = ${pkgs.unison}/bin/unison
     auto = true
     times = true
@@ -160,7 +166,7 @@ in
     excludePatterns = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [
-        "Path .git"
+        "Name .git"
         "Path .cache"
         "Path .local/share/Trash"
         "Path .local/share/recently-used.xbel"
