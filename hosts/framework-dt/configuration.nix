@@ -1,43 +1,49 @@
 {
+  lib,
+  inputs,
   pkgs,
   outputs,
+  makeNixLib,
+  makeNixAttrs,
   ...
 }:
 {
-  imports = [
-    # This is the hardware configuration created by the installer
-    # Most importantly it contains the UUIDs for your boot and root filesystems
-    # Do not use anyone other host's hardware-configuration.nix or you will be
-    # unable to boot
-    ./hardware-configuration.nix
+  imports =
+    lib.optional (makeNixLib.hasTag "local-ai" makeNixAttrs.tags) ../shared-imports/ollama.nix
+    ++ [
+      # This is the hardware configuration created by the installer
+      # Most importantly it contains the UUIDs for your boot and root filesystems
+      # Do not use anyone other host's hardware-configuration.nix or you will be
+      # unable to boot
+      ./hardware-configuration.nix
 
-    # These provide different boot menu options for configurations that must
-    # but implemented prior to booting Linux, such as an external GPU
-    ./specialisations.nix
+      # These provide different boot menu options for configurations that must
+      # but implemented prior to booting Linux, such as an external GPU
+      ./specialisations.nix
 
-    # Infrastructure configuration for caching build systems.
-    ../infrax.nix
+      # Infrastructure configuration for caching build systems.
+      ../infrax.nix
 
-		# Remote build user configuration
-		../shared-imports/remote-builder.nix
+      # Remote build user configuration
+      ../shared-imports/remote-builder.nix
 
-    ./iptables-services.nix # Override NixOS firewall rules
-    # and use custom iptables based ruleset
+      ./iptables-services.nix # Override NixOS firewall rules
+      # and use custom iptables based ruleset
 
-    ../shared-imports/p22-pki.nix
-    ../shared-imports/p22-nfs.nix
-    ../shared-imports/p22-printers.nix
+      ../shared-imports/p22-pki.nix
+      ../shared-imports/p22-nfs.nix
+      ../shared-imports/p22-printers.nix
 
-    # Ensure u2f keys are present in ~/.config/Yubico/u2f_keys before enabling
-    ../shared-imports/pam-u2f-common.nix
-    ../shared-imports/pam-sshd.nix
-    ../shared-imports/crypto-services.nix
-    ../shared-imports/linux/system-packages.nix
-    ../shared-imports/usrp-sdr.nix
-  ];
+      # Ensure u2f keys are present in ~/.config/Yubico/u2f_keys before enabling
+      ../shared-imports/pam-u2f-common.nix
+      ../shared-imports/pam-sshd.nix
+      ../shared-imports/crypto-services.nix
+      ../shared-imports/linux/system-packages.nix
+      ../shared-imports/usrp-sdr.nix
+    ];
 
   boot = {
-    kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages_6_18;
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
     supportedFilesystems = [ "ntfs" ];
@@ -127,12 +133,12 @@
   services.openssh = {
     enable = true;
     ports = [ 22 ];
-      hostKeys = [
-        {
-          type = "ed25519";
-          path = "/etc/ssh/ssh_host_ed25519_key";
-        }
-      ];
+    hostKeys = [
+      {
+        type = "ed25519";
+        path = "/etc/ssh/ssh_host_ed25519_key";
+      }
+    ];
     settings = {
       PubkeyAuthentication = true;
       PasswordAuthentication = false;
@@ -155,10 +161,10 @@
   };
 
   services = {
-		# TODO: Check out flatpaks for home-manager with nix-flatpak
-		flatpak.enable = true;
-		fwupd.enable = true;
-		hardware.bolt.enable = true; # boltctl
+    # TODO: Check out flatpaks for home-manager with nix-flatpak
+    flatpak.enable = true;
+    fwupd.enable = true;
+    hardware.bolt.enable = true; # boltctl
     power-profiles-daemon.enable = true;
     thermald.enable = true;
   };
@@ -187,7 +193,7 @@
   };
 
   # Framework Desktop specific packages.
-	# Common Linux packages imported from ../shared-imports/linux/system-packages.nix
+  # Common Linux packages imported from ../shared-imports/linux/system-packages.nix
   environment.systemPackages = with pkgs; [
     # System utils
     amdgpu_top
