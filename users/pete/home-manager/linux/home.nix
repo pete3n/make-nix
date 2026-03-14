@@ -18,8 +18,14 @@
 # a declarative outcome: get a working Hyprland WM, regardless of
 # if we are using NixOS or a different Linux distribution.
 let
-  linuxTags = [ "hyprland" ];
+  linuxTags = [
+    "hyprland"
+  ];
 
+  # The system specialisation must support CUDA for the tag to apply
+  hasCuda =
+    makeNixLib.hasTag "cuda" (makeNixAttrs.tags or [ ])
+    && makeNixLib.hasTag "wayland_dgpu" (makeNixAttrs.specialisations or [ ]);
   availableTags = builtins.filter (tag: builtins.elem tag linuxTags) makeNixAttrs.tags;
 
   tagImportMap = {
@@ -29,14 +35,11 @@ let
   };
 
   tagImports = lib.flatten (builtins.map (tag: tagImportMap.${tag}) availableTags);
-
-  blenderCuda = pkgs.blender.override {
-    # Build Blender with CUDA support
-    cudaSupport = true;
-  };
-
+  blenderCuda = if hasCuda then pkgs.blender.override { cudaSupport = true; } else pkgs.blender;
 in
 {
+  _module.args.hasCuda = hasCuda;
+
   imports = [
     inputs.pete3n-mods.homeManagerModules.linux.default
   ]
