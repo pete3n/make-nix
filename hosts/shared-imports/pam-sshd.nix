@@ -13,7 +13,7 @@ let
   u2f = config.security.pam.u2f.settings;
 in
 {
-	security.pam.sshAgentAuth.enable = true;
+  security.pam.sshAgentAuth.enable = true;
 
   security.pam.services = {
     login.u2fAuth = lib.mkForce false;
@@ -23,9 +23,8 @@ in
       fprintAuth = lib.mkForce false;
       text = lib.mkForce ''
         # SSH session: authenticate via forwarded SSH agent key
-        auth sufficient ${pkgs.pam_ssh_agent_auth}/lib/security/pam_ssh_agent_auth.so \
+        auth sufficient ${pkgs.pam_ssh_agent_auth}/libexec/pam_ssh_agent_auth.so \
           file=${authorized_keys}
-
         # Local console sudo requires YubiKey
         auth required ${pkgs.pam_u2f}/lib/security/pam_u2f.so \
           cue \
@@ -34,7 +33,6 @@ in
           authfile=${u2f_keyfile} \
           openasuser \
           expand
-
         auth required ${pkgs.linux-pam}/lib/security/pam_unix.so try_first_pass
         account required ${pkgs.linux-pam}/lib/security/pam_unix.so
         session required ${pkgs.linux-pam}/lib/security/pam_unix.so
