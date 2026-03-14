@@ -995,6 +995,7 @@
   home.packages = with pkgs; [
     cliphist # Clipboard manager for wayland with text and image support
     grim # Screecap
+    hyprcursor # Cursor library
     hyprshot # Easy screenshot tool
     hyprsysteminfo
     slurp # Compositor screen selection tool
