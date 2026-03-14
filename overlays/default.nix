@@ -76,7 +76,9 @@ let
   unstable-packages = final: _prev: {
     unstable = import inputs.nixpkgs-unstable {
       localSystem = final.stdenv.hostPlatform;
-      config.allowUnfree = true;
+      config = {
+        allowUnfree = true;
+      };
     };
   };
 
