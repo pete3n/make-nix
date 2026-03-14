@@ -9,8 +9,8 @@
         protocol = "ssh-ng";
         sshUser = "remotebuild";
         sshKey = config.age.secrets.p22-build-key.path;
-        maxJobs = 8;
-        speedFactor = 2;
+        maxJobs = 28;
+        speedFactor = 4;
         supportedFeatures = [
           "nixos-test"
           "benchmark"

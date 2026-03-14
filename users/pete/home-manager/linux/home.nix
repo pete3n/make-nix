@@ -284,6 +284,9 @@ in
           identitiesOnly = true;
           extraOptions = {
             IdentityAgent = "none";
+            ControlMaster = "auto";
+            ControlPath = "~/.ssh/control-%r@%h:%p";
+            ControlPersist = "10m";
           };
         };
         "backupsvr" = {
@@ -313,6 +316,29 @@ in
       };
     };
 
+    p22Sync = {
+      enable = true;
+      syncHosts = [
+        {
+          name = "framework-dt";
+          paths = [
+            "Documents"
+            "Music"
+            "Downloads"
+            "Pictures"
+          ];
+        }
+        {
+          name = "macbook";
+          paths = [
+            "Documents"
+            "Music"
+            "Downloads"
+            "Pictures"
+          ];
+        }
+      ];
+    };
     # Import resident keys from Yubikey if any are missing from ~/.ssh
     import-yubikey-ssh = {
       enable = true;
