@@ -9,37 +9,41 @@
   ...
 }:
 {
-  imports = [
-    # This is the hardware configuration created by the installer
-    # Most importantly it contains the UUIDs for your boot and root filesystems
-    # Do not use anyone other host's hardware-configuration.nix or you will be
-    # unable to boot
-    ./hardware-configuration.nix
+  imports =
+    lib.optional (makeNixLib.hasTag "local-ai" makeNixAttrs.tags) ../shared-imports/ollama.nix
+    ++ [
+      # This is the hardware configuration created by the installer
+      # Most importantly it contains the UUIDs for your boot and root filesystems
+      # Do not use anyone other host's hardware-configuration.nix or you will be
+      # unable to boot
+      ./hardware-configuration.nix
 
-    # These provide different boot menu options for configurations that must
-    # but implemented prior to booting Linux, such as an external GPU
-    ./specialisations.nix
+      # These provide different boot menu options for configurations that must
+      # but implemented prior to booting Linux, such as an external GPU
+      ./specialisations.nix
 
-    # Infrastructure configuration for caching build systems.
-    ../infrax.nix
+      # Infrastructure configuration for remote building and caches
+      ../infrax.nix
+			../shared-imports/p22-build-client.nix
 
-    ../shared-imports/iptables-services.nix # Override NixOS firewall rules
-    # and use custom iptables based ruleset
 
-    ../shared-imports/p22-pki.nix
-    ../shared-imports/p22-nfs.nix
-    ../shared-imports/p22-printers.nix
+      ../shared-imports/iptables-services.nix # Override NixOS firewall rules
+      # and use custom iptables based ruleset
 
-    # Ensure u2f keys are present in ~/.config/Yubico/u2f_keys before enabling
-    ../shared-imports/pam-u2f-common.nix
-    ../shared-imports/pam-fprint-yubikey.nix
-    ../shared-imports/crypto-services.nix
-    ../shared-imports/linux/linux-packages.nix
-    ../shared-imports/usrp-sdr.nix
-  ]
-  ++ [ inputs.pete3n-mods.nixosModules.default ]
-  ++ [ inputs.pete3n-mods.nixosModules.hardware.framework16.fw16-kbd-alsd ]
-  ++ [ inputs.pete3n-mods.nixosModules.hardware.framework16.fw16-disable-wake-triggers ];
+      ../shared-imports/p22-pki.nix
+      ../shared-imports/p22-nfs.nix
+      ../shared-imports/p22-printers.nix
+
+      # Ensure u2f keys are present in ~/.config/Yubico/u2f_keys before enabling
+      ../shared-imports/pam-u2f-common.nix
+      ../shared-imports/pam-fprint-yubikey.nix
+      ../shared-imports/crypto-services.nix
+      ../shared-imports/linux/system-packages.nix
+      ../shared-imports/usrp-sdr.nix
+    ]
+    ++ [ inputs.pete3n-mods.nixosModules.default ]
+    ++ [ inputs.pete3n-mods.nixosModules.hardware.framework16.fw16-kbd-alsd ]
+    ++ [ inputs.pete3n-mods.nixosModules.hardware.framework16.fw16-disable-wake-triggers ];
 
   # Workaround for suspend then sleep issues.
   # Resolved amdgpu VPE queue reset failed / ib ring test failed (-110)
@@ -57,7 +61,9 @@
       "nvme_core.default_ps_max_latency_us=1000"
     ];
 
-    kernelPackages = pkgs.linuxPackages_latest;
+    # Kernel 6.19 build error
+    # kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages_6_18;
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
     supportedFilesystems = [ "ntfs" ];
@@ -115,6 +121,14 @@
     # Configure network proxy if necessary
     # proxy.default = "http://user:password@proxy:port/";
     # proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+  };
+
+  age.secrets.p22-build-key = {
+    file = ./secrets/p22-build-key.age;
+    path = "/etc/nix/p22-build-key";
+    owner = "root";
+    group = "root";
+    mode = "0400";
   };
 
   security.pam.services = {
@@ -218,15 +232,14 @@
     allowUnfree = true;
   };
 
+  # Framework16 specific system packages.
+  # Common packages imported from ../shared-imports/linux/system-packages.nix
   environment.systemPackages = with pkgs; [
     amdgpu_top
     framework-tool
     framework-tool-tui
-    clinfo
-    hyprcursor
     mesa-demos
-    qemu
-    ragenix
+    nvtopPackages.amd
     rocmPackages.rocm-smi
     rocmPackages.rocminfo
     vulkan-tools

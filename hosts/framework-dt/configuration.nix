@@ -32,7 +32,7 @@
     ../shared-imports/pam-u2f-common.nix
     ../shared-imports/pam-sshd.nix
     ../shared-imports/crypto-services.nix
-    ../shared-imports/linux/linux-packages.nix
+    ../shared-imports/linux/system-packages.nix
     ../shared-imports/usrp-sdr.nix
   ];
 
@@ -186,14 +186,13 @@
     allowUnfree = true;
   };
 
-  # System wide packages
+  # Framework Desktop specific packages.
+	# Common Linux packages imported from ../shared-imports/linux/system-packages.nix
   environment.systemPackages = with pkgs; [
     # System utils
     amdgpu_top
     clinfo
-    hyprcursor
     mesa-demos
-		ragenix
     rocmPackages.rocm-smi
     rocmPackages.rocminfo
     vulkan-tools
