@@ -1,10 +1,16 @@
-{ pkgs, lib, outputs, ... }:
+{
+  pkgs,
+  lib,
+  outputs,
+  ...
+}:
 {
   configuration = {
     system.nixos.tags = [
       "wayland"
       "eGPU"
       "nvidia"
+      "cuda"
       "RTX-3080"
     ];
     nixpkgs.config = {
@@ -16,7 +22,10 @@
       outputs.nixosModules.nvidia-scripts
     ];
 
-    environment.systemPackages = with pkgs; [ cudaPackages.cudatoolkit ];
+    environment.systemPackages = with pkgs; [
+      cudaPackages.cudatoolkit
+      nvtopPackages.nvidia
+    ];
 
     systemd.services.egpuLink = {
       description = "Create eGPU symbolic link";
