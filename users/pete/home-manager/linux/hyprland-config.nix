@@ -9,8 +9,6 @@
 {
   imports = [
     ./hypr-scripts.nix
-    ./rofi-theme.nix
-    ./rofi-help-menu.nix
     ./waybar-config.nix
   ];
 

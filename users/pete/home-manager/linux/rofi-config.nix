@@ -254,18 +254,18 @@ let
   inherit (config.lib.formats.rasi) mkLiteral;
 in
 {
-  home.packages = [
-    rofi-help-menu
-    rofi-help-hypr
-    rofi-help-tmux
-  ];
-
   options.rofi.theme = lib.mkOption {
     type = lib.types.attrsOf lib.types.anything;
     default = { };
     description = "Rofi theme configuration.";
   };
   config = {
+    home.packages = [
+      rofi-help-menu
+      rofi-help-hypr
+      rofi-help-tmux
+    ];
+
     rofi.theme = {
       "*" = {
         selected-normal-foreground = mkLiteral "#ffffff";

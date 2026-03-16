@@ -47,13 +47,14 @@ in
     ../cross-platform/alacritty-config.nix
     ../cross-platform/git-config.nix
     ../cross-platform/cli-programs.nix
-    ./xdg-config.nix
+    ../cross-platform/tmux-config.nix
     ./awesome-config.nix
     ./bash-config.nix
     ./firefox-config.nix
     ./media-tools.nix
+    ./rofi-config.nix
     ./theme-style.nix
-    ./tmux-config.nix
+    ./xdg-config.nix
     ./yubikey-u2f.nix
   ]
   ++ tagImports;
