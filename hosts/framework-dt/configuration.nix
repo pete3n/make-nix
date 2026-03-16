@@ -1,6 +1,5 @@
 {
   lib,
-  inputs,
   pkgs,
   outputs,
   makeNixLib,
@@ -40,6 +39,7 @@
       ../shared-imports/crypto-services.nix
       ../shared-imports/linux/system-packages.nix
       ../shared-imports/usrp-sdr.nix
+      outputs.nixosModules.yubikeyUsbipRemote
     ];
 
   boot = {
@@ -129,6 +129,11 @@
     ];
   };
 
+  # Allow remote Yubikeys to authenticate
+  services.yubikeyUsbipRemote = {
+    enable = true;
+  };
+
   # SSH
   services.openssh = {
     enable = true;
@@ -140,6 +145,7 @@
       }
     ];
     settings = {
+      AcceptEnv = "USBIP_YUBIKEY";
       PubkeyAuthentication = true;
       PasswordAuthentication = false;
       KbdInteractiveAuthentication = false;

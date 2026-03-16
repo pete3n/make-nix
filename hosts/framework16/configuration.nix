@@ -30,16 +30,15 @@
       ../shared-imports/iptables-services.nix # Override NixOS firewall rules
       # and use custom iptables based ruleset
 
-      ../shared-imports/p22-pki.nix
-      ../shared-imports/p22-nfs.nix
-      ../shared-imports/p22-printers.nix
-
-      # Ensure u2f keys are present in ~/.config/Yubico/u2f_keys before enabling
-      ../shared-imports/pam-u2f-common.nix
-      ../shared-imports/pam-fprint-yubikey.nix
       ../shared-imports/crypto-services.nix
       ../shared-imports/linux/system-packages.nix
+      ../shared-imports/p22-nfs.nix
+      ../shared-imports/p22-pki.nix
+      ../shared-imports/p22-printers.nix
+      ../shared-imports/pam-fprint-yubikey.nix
+      ../shared-imports/pam-u2f-common.nix
       ../shared-imports/usrp-sdr.nix
+			outputs.nixosModules.yubikeyUsbipServer
     ]
     ++ [ inputs.pete3n-mods.nixosModules.default ]
     ++ [ inputs.pete3n-mods.nixosModules.hardware.framework16.fw16-kbd-alsd ]
@@ -157,6 +156,11 @@
       enable = true;
       accessGroup = "wheel";
     };
+
+		# Allow remotely connecting Yubikey
+		yubikeyUsbipServer = {
+			enable = true;
+		};
 
     resolved = {
       enable = true;
