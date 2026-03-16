@@ -26,8 +26,7 @@ let
         set -u
 
         NIX_GREP="${pkgs.gnugrep}/bin/grep"
-        NIX_AICHAT="${pkgs.aichat}/bin/aichat"
-
+        NIX_AICHAT= "${pkgs.aichat}/bin/aichat"
         AICHAT_SESSIONS_DIR="''${AICHAT_SESSIONS_DIR:-''${HOME}/.config/aichat/sessions}"
         WAYLAND_DISPLAY="''${WAYLAND_DISPLAY:-}"
         DISPLAY="''${DISPLAY:-}"
@@ -733,11 +732,16 @@ in
     initExtra =
       lib.mkAfter # sh
         ''
-          # Load API key only when needed rather than exporting globally
-          aichat() {
-            CLAUDE_API_KEY=$(cat /run/agenix/anthropic-api-key) \
-              command aichat "$@"
-          }
+          	# Load API key only when needed rather than exporting globally
+          	aichat() {
+          		CLAUDE_API_KEY=$(cat /run/agenix/anthropic-api-key) \
+          			command aichat "$@"
+          	}
+
+          	aichat-ctx() {
+          		CLAUDE_API_KEY=$(cat /run/agenix/anthropic-api-key) \
+          			command aichat-ctx "$@"
+          	}
         '';
   };
 }
