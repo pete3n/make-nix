@@ -227,6 +227,7 @@ let
 in
 {
   programs.bash = {
+    enable = true;
     enableCompletion = true;
     shellAliases = {
       cd = "z";
@@ -238,9 +239,9 @@ in
     initExtra = # sh
     ''
       set -o vi
-			bind 'set show-mode-in-prompt on'
-			bind 'set vi-ins-mode-string \1\e[32m\2[I]\1\e[0m\2 '
-			bind 'set vi-cmd-mode-string \1\e[34m\2[N]\1\e[0m\2 '
+      bind 'set show-mode-in-prompt on'
+      bind 'set vi-ins-mode-string \1\e[32m\2[I]\1\e[0m\2 '
+      bind 'set vi-cmd-mode-string \1\e[34m\2[N]\1\e[0m\2 '
       alias zf=zfile
     ''
     + tmux_preserve_path
