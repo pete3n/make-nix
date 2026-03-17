@@ -24,7 +24,7 @@
       ../infrax.nix
 
       # Remote build user configuration
-      ../shared-imports/remote-builder.nix
+      ../shared-imports/p22-remote-builder.nix
 
       ./iptables-services.nix # Override NixOS firewall rules
       # and use custom iptables based ruleset
