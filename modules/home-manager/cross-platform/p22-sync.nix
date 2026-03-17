@@ -170,7 +170,6 @@ in
         "Path .cache"
         "Path .local/share/Trash"
         "Path .local/share/recently-used.xbel"
-        "Name *.cryptomator"
         "Name node_modules"
         "Name .DS_Store"
         "Name Thumbs.db"
