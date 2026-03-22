@@ -26,7 +26,7 @@ let
         set -u
 
         NIX_GREP="${pkgs.gnugrep}/bin/grep"
-        NIX_AICHAT= "${pkgs.aichat}/bin/aichat"
+        NIX_AICHAT="${pkgs.aichat}/bin/aichat"
         AICHAT_SESSIONS_DIR="''${AICHAT_SESSIONS_DIR:-''${HOME}/.config/aichat/sessions}"
         WAYLAND_DISPLAY="''${WAYLAND_DISPLAY:-}"
         DISPLAY="''${DISPLAY:-}"
