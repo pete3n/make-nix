@@ -9,4 +9,10 @@ in
     pete_yk_pri
     pete_yk_bak
   ];
+
+  "bitcoind-rpc-hmac.age".publicKeys = [
+    framework16
+    pete_yk_pri
+    pete_yk_bak
+  ];
 }
