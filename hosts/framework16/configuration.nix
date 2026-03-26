@@ -18,15 +18,13 @@ in
     optionalImport "local-ai" ../shared-imports/linux/ollama.nix
     ++ optionalImport "crypto" ../shared-imports/linux/crypto-services.nix
     ++ optionalImport "sdr" ../shared-imports/linux/usrp-sdr.nix
-    ++ optionalImport "p22" [
-      # P22 LAN configs
+    ++ lib.optionals (hasTag "p22" makeTags) [
       ../shared-imports/p22-build-client.nix # Remote client builds
       ../shared-imports/p22-nfs.nix # File share
       ../shared-imports/p22-pki.nix # Trusted root cert
       ../shared-imports/p22-printers.nix # Local printer config
-		]
-		++
-		[
+    ]
+    ++ [
       # This is the hardware configuration created by the installer
       # Most importantly it contains the UUIDs for your boot and root filesystems
       # Do not use anyone other host's hardware-configuration.nix or you will be
@@ -60,9 +58,9 @@ in
   };
 
   boot = {
-		# Workaround for suspend then sleep issues.
-		# Resolved amdgpu VPE queue reset failed / ib ring test failed (-110)
-		# Resolved nvme drive sleep issues.
+    # Workaround for suspend then sleep issues.
+    # Resolved amdgpu VPE queue reset failed / ib ring test failed (-110)
+    # Resolved nvme drive sleep issues.
     kernelParams = [
       "rtc_cmos.use_acpi_alarm=1"
       "amdgpu.ip_block_mask=0x7FF"

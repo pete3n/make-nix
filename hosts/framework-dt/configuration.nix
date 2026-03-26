@@ -6,22 +6,21 @@
   makeNixAttrs,
   ...
 }:
-	let
+let
   makeTags = makeNixAttrs.tags;
   hasTag = makeNixLib.hasTag;
   optionalImport = tag: path: lib.optional (hasTag tag makeTags) path;
-	in
+in
 {
   imports =
     optionalImport "local-ai" ../shared-imports/linux/ollama.nix
     ++ optionalImport "crypto" ../shared-imports/linux/crypto-services.nix
-    ++ optionalImport "p22" [
-      # P22 LAN configs
-      ../shared-imports/p22-nfs.nix
-      ../shared-imports/p22-pki.nix
-      ../shared-imports/p22-printers.nix
+    ++ lib.optionals (hasTag "p22" makeTags) [
+      ../shared-imports/p22-nfs.nix # File share
+      ../shared-imports/p22-pki.nix # Trusted root cert
+      ../shared-imports/p22-printers.nix # Local printer config
       ../shared-imports/p22-remote-builder.nix # System is a build host for remote builds
-		]
+    ]
     ++ [
       # This is the hardware configuration created by the installer
       # Most importantly it contains the UUIDs for your boot and root filesystems
@@ -36,7 +35,7 @@
       # Nix binary cache substituter config
       ../shared-imports/cache-config.nix
 
-			# Common Linux system packages
+      # Common Linux system packages
       ../shared-imports/linux/common-packages.nix
 
       ./iptables-services.nix # Allow ssh on LAN
