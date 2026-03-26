@@ -12,7 +12,7 @@
       # nix-community.cachix.org, see https://github.com/pete3n/nix-cache.git
       # for more information.
       substituters =
-        lib.optional makeNixLib.hasTag "p22" makeNixAttrs.tags [ "http://backupsvr.p22:8000/" ]
+        lib.optionals (makeNixLib.hasTag "p22" makeNixAttrs.tags) [ "http://backupsvr.p22:8000/" ]
         ++ [
           "https://nix-community.cachix.org/"
           "https://cache.nixos.org/"
