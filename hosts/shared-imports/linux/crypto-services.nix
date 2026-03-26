@@ -6,7 +6,7 @@
 }:
 {
   age.secrets.bitcoind-rpc-hmac = {
-    file = ../${makeNixAttrs.host}/secrets/bitcoind-rpc-hmac.age;
+    file = ../../${makeNixAttrs.host}/secrets/bitcoind-rpc-hmac.age;
     owner = "bitcoind-main";
   };
 
