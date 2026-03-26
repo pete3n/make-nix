@@ -6,9 +6,22 @@
   makeNixAttrs,
   ...
 }:
+	let
+  makeTags = makeNixAttrs.tags;
+  hasTag = makeNixLib.hasTag;
+  optionalImport = tag: path: lib.optional (hasTag tag makeTags) path;
+	in
 {
   imports =
-    lib.optional (makeNixLib.hasTag "local-ai" makeNixAttrs.tags) ../shared-imports/ollama.nix
+    optionalImport "local-ai" ../shared-imports/linux/ollama.nix
+    ++ optionalImport "crypto" ../shared-imports/linux/crypto-services.nix
+    ++ optionalImport "p22" [
+      # P22 LAN configs
+      ../shared-imports/p22-nfs.nix
+      ../shared-imports/p22-pki.nix
+      ../shared-imports/p22-printers.nix
+      ../shared-imports/p22-remote-builder.nix # System is a build host for remote builds
+		]
     ++ [
       # This is the hardware configuration created by the installer
       # Most importantly it contains the UUIDs for your boot and root filesystems
@@ -20,25 +33,17 @@
       # but implemented prior to booting Linux, such as an external GPU
       ./specialisations.nix
 
-      # Infrastructure configuration for caching build systems.
-      ../infrax.nix
+      # Nix binary cache substituter config
+      ../shared-imports/cache-config.nix
 
-      # Remote build user configuration
-      ../shared-imports/p22-remote-builder.nix
+			# Common Linux system packages
+      ../shared-imports/linux/common-packages.nix
 
-      ./iptables-services.nix # Override NixOS firewall rules
-      # and use custom iptables based ruleset
-
-      ../shared-imports/p22-pki.nix
-      ../shared-imports/p22-nfs.nix
-      ../shared-imports/p22-printers.nix
+      ./iptables-services.nix # Allow ssh on LAN
 
       # Ensure u2f keys are present in ~/.config/Yubico/u2f_keys before enabling
       ../shared-imports/pam-u2f-common.nix
       ../shared-imports/pam-sshd.nix
-      ../shared-imports/crypto-services.nix
-      ../shared-imports/linux/system-packages.nix
-      ../shared-imports/usrp-sdr.nix
       outputs.nixosModules.yubikeyUsbipRemote
     ];
 

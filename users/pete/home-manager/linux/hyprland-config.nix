@@ -147,29 +147,6 @@
       };
     };
 
-    rofi = {
-      enable = true;
-      package = pkgs.rofi;
-      cycle = true;
-      location = "center";
-      theme = config.rofi.theme;
-      plugins = (
-        with pkgs;
-        [
-          rofi-calc
-          rofi-emoji
-        ]
-      );
-      xoffset = 0;
-      yoffset = -20;
-      extraConfig = {
-        show-icons = true;
-        kb-cancel = "Escape,Super+space";
-        modi = "combi,window,run,calc";
-        sort = true;
-      };
-    };
-
     hyprWhichKey = {
       enable = true;
 
@@ -219,6 +196,11 @@
                 cmd = "hyprctl dispatch exit";
               }
               {
+                desc = "Recording";
+                key = "r";
+                fromGroup = "recording";
+              }
+              {
                 desc = "Screenshots";
                 key = "s";
                 fromGroup = "screenshots";
@@ -229,6 +211,10 @@
                 cmd = "waypaper";
               }
             ];
+          };
+          recording = {
+            key = "r";
+            desc = "Recording";
           };
           screenshots = {
             key = "s";
@@ -566,6 +552,19 @@
             };
           }
         ];
+
+				menu.entries.recording = [
+          {
+            desc = "Record";
+            menuKey = "r";
+            cmd = "wf-recorder -f ${config.xdg.userDirs.videos}/wfr-$(date +%Y-%m-%dT%H-%M-%S).mkv";
+          }
+          {
+            desc = "Stop Recording";
+            menuKey = "s";
+            cmd = "pkill wf-recorder";
+          }
+				];
 
         menu.entries.screenshots = [
           {

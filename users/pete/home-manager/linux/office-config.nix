@@ -12,10 +12,11 @@ let
 in
 {
   home.packages = with pkgs; [
+    drawio # Open Visio replacement
     hunspell # Dictionary
     hunspellDicts.en_US
     libreoffice
-		protonmail-bridge
+    protonmail-bridge
     thunderbird
   ];
 

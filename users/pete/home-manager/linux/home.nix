@@ -8,56 +8,49 @@
   homeModules,
   ...
 }:
-
-# "Tags" allow customizable user-based configuration at evaluation time similar
-# to specialisations for the system.
-# Simply add a tag string to the list of linuxTags, and then define and import
-# list for it in tagMap.
-# Even though we are building for users, we can still customize some
-# system based configuration and demonstrate the power of Nix to provide
-# a declarative outcome: get a working Hyprland WM, regardless of
-# if we are using NixOS or a different Linux distribution.
 let
-  linuxTags = [
-    "hyprland"
-  ];
-
   # The system specialisation must support CUDA for the tag to apply
   hasCuda =
-    makeNixLib.hasTag "cuda" (makeNixAttrs.tags or [ ])
+    makeNixLib.hasTag "cuda" makeNixAttrs.tags
     && makeNixLib.hasTag "wayland_dgpu" (makeNixAttrs.specialisations or [ ]);
-  availableTags = builtins.filter (tag: builtins.elem tag linuxTags) makeNixAttrs.tags;
-  tagImportMap = {
-    hyprland = [
-      ./hyprland-config.nix
-    ];
-  };
-  tagImports = lib.flatten (builtins.map (tag: tagImportMap.${tag}) availableTags);
-  blenderCuda = if hasCuda then pkgs.blender.override { cudaSupport = true; } else pkgs.blender;
+  blender' = if hasCuda then pkgs.blender.override { cudaSupport = true; } else pkgs.blender;
+
+  makeUser = makeNixAttrs.user;
+  makeHost = makeNixAttrs.host;
+  makeTags = makeNixAttrs.tags;
+  hasTag = makeNixLib.hasTag;
+  optionalImport = tag: path: lib.optional (hasTag tag makeTags) path;
+  optionalPkgs = tag: pkgList: lib.optionals (hasTag tag makeTags) pkgList;
 in
 {
   _module.args.hasCuda = hasCuda;
 
-  imports = [
-    inputs.pete3n-mods.homeManagerModules.linux.default
-  ]
-  ++ builtins.attrValues homeModules
-  ++ [
-    ../cross-platform/aichat.nix
-    ../cross-platform/alacritty-config.nix
-    ../cross-platform/git-config.nix
-    ../cross-platform/cli-programs.nix
-    ../cross-platform/tmux-config.nix
-    ./awesome-config.nix
-    ./bash-config.nix
-    ./firefox-config.nix
-    ./media-tools.nix
-    ./rofi-config.nix
-    ./theme-style.nix
-    ./xdg-config.nix
-    ./yubikey-u2f.nix
-  ]
-  ++ tagImports;
+  imports =
+    # Conditional imports based on configuration tags
+    lib.optional (hasTag "aichat" makeTags || hasTag "local-ai" makeTags) ../cross-platform/aichat.nix
+    ++ optionalImport "awesome" ./awesome-config.nix
+    ++ optionalImport "gaming" ./gaming-config.nix
+    ++ optionalImport "hyprland" ./hyprland-config.nix
+    ++ optionalImport "mpd" ./mpd-config.nix
+    ++ optionalImport "office" ./office-config.nix
+    # Local home modules
+    ++ builtins.attrValues homeModules
+    ++ [
+      ../cross-platform/alacritty-config.nix
+      ../cross-platform/git-config.nix
+      ../cross-platform/cli-programs.nix
+      ../cross-platform/tmux-config.nix
+      ./bash-config.nix
+      ./firefox-config.nix
+      ./rofi-config.nix
+      ./theme-style.nix
+      ./xdg-config.nix
+      ./yubikey-u2f.nix
+    ]
+    # Home modules from pete3n repo
+    ++ [
+      inputs.pete3n-mods.homeManagerModules.linux.default
+    ];
 
   nixpkgs = {
     config = {
@@ -68,13 +61,56 @@ in
   home = {
     # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
     stateVersion = "24.05";
-    username = "${makeNixAttrs.user}";
-    homeDirectory = "/home/${makeNixAttrs.user}";
+    username = "${makeUser}";
+    homeDirectory = "/home/${makeUser}";
 
     packages =
       # Build the default Nixvim package for the system architecture
-      [ inputs.nixvim.packages.${makeNixAttrs.system}.default ]
+      optionalPkgs "nixvim" [ inputs.nixvim.packages.${makeNixAttrs.system}.default ]
+      ++
+        # Multimedia creation and editing tools for 3d, audio, images, music, and video
+        optionalPkgs "media-creation" (
+          with pkgs;
+          [
+            audacity # Audio editor
+            blender' # 3D editor
+            bitwig-studio # DAW
+            gimp-with-plugins # Image editing
+            handbrake # DVD wripping
+            inkscape-with-extensions # Vector graphics
+            kdePackages.kdenlive # Video editing
+          ]
+        )
+      ++
+        # Crypto currency tools
+        optionalPkgs "crypto" (
+          with pkgs;
+          [
+            unstable.bisq2
+            unstable.monero-cli
+            unstable.monero-gui
+            unstable.sparrow
+          ]
+        )
+      ++
+        # Messaging apps
+        optionalPkgs "messaging" (
+          with pkgs;
+          [
+            mod.no-gpu-signal-desktop
+            unstable.element-desktop
+            unstable.teams-for-linux
+          ]
+        )
+
       ++ (with pkgs; [
+
+				# Nix tools
+        nix-inspect # Awesome Nix flake explorer
+        nix-melt # Flake lock explorer
+        nix-search-tv # Awesome Nix package fuzzy finder
+        nix-tree # Interactively browse Nix store dependencies
+
 
         # Misc
         bottles # Wine container manager
@@ -83,34 +119,21 @@ in
         ddgr # Search duckduckgo from the terminal
         unstable.cryptomator # Encrypted container GUI
         fdupes # Duplicate file finder
-        heroic # Heroic game launcher
-        hunspell # Dictionary
-        hunspellDicts.en_US
         kdePackages.okular # Okular PDF viewer
         kdePackages.dolphin # Dolphin file browser
-        libreoffice
         litemdview # Simple markdown viewer
         local.ipod-shuffle-4g
-        nix-melt # Flake lock explorer
-        mod._86Box
         mosh # Mobile-shell SSH replacement
         nextcloud-client
-        protonmail-bridge
         remmina
+        rustdesk-flutter
         unstable.standardnotes
-        thunderbird
-        unstable.monero-cli
-        unstable.bisq2
-        unstable.monero-gui
+        unstable.yt-dlp # Youtube download Python version
         unzip
+        vlc
+        wf-recorder # Wayland screen recorder
         xdg-user-dirs
         zip
-
-        ## Messaging apps
-        mod.no-gpu-signal-desktop
-        rustdesk-flutter
-        unstable.element-desktop
-        unstable.teams-for-linux
 
         ## CLI utilities
         age # Age encryption utilties
@@ -136,9 +159,6 @@ in
         mutt # Terminal email
         navi # Cheat-sheets
         nb # CLI note-taking
-        nix-search-tv # Awesome Nix package fuzzy finder
-        nix-inspect # Awesome Nix flake explorer
-        nix-tree # Interactively browse Nix store dependencies
         procs # Better process viewer
         python311Packages.base58
         repgrep # ripgrep replace
@@ -152,19 +172,6 @@ in
         unstable.cryptomator-cli # Encrypted container CLI
         vim
         xxgdb # gdb TUI
-
-        ### Media tools
-        audacity # Audio editor
-        drawio # Open Visio replacement
-        gimp-with-plugins # Image editing
-        handbrake # DVD wripping
-        inkscape-with-extensions # Vector graphics
-        rhythmbox # Music player
-        kdePackages.kdenlive # Video editing
-        vlc # Media player
-        unstable.yt-dlp # Youtube download Python version
-        wf-recorder # Wayland screen recorder
-        ytfzf # Youtbue fuzzy finder and console viewer
 
         ## Pen testing, network recon, binary analysis tools
         angryoxide
@@ -188,22 +195,18 @@ in
         socat
         termshark
         wireshark
-      ])
-      ++ lib.optionals pkgs.stdenv.isLinux [
-        blenderCuda
-      ];
+      ]);
   };
 
   # systemd --user services
   services = {
     backup = {
-      enable = true;
-      # TODO: Configure dynamically
-      local.destination = "/mnt/nfs/share/backups/fw16-pete";
+      enable = (hasTag "p22" makeTags);
+      local.destination = "/mnt/nfs/share/backups/${makeHost}-${makeUser}";
       patterns = [
-        "R /home/${makeNixAttrs.user}"
-        "- /home/${makeNixAttrs.user}/.cache"
-        "- /home/${makeNixAttrs.user}/Downloads"
+        "R /home/${makeUser}"
+        "- /home/${makeUser}/.cache"
+        "- /home/${makeUser}/Downloads"
       ];
     };
 
@@ -212,7 +215,7 @@ in
     };
 
     batmond = {
-      enable = lib.mkDefault (makeNixLib.hasTag "laptop" makeNixAttrs.tags);
+      enable = lib.mkDefault (makeNixLib.hasTag "laptop" makeTags);
     };
 
     khalNotify.enable = true;
@@ -266,22 +269,22 @@ in
       enable = true;
     };
 
-    onlyoffice = {
-      enable = true;
-      settings = {
-        UITheme = "theme-night"; # the internal ID for Modern Dark
-        UserName = "makeNixAttrs.user";
-      };
-    };
-
     ssh = {
       enable = true;
       enableDefaultConfig = false;
       matchBlocks = {
+        "github" = {
+          hostname = "github.com";
+          user = "git";
+          identityFile = "/home/${makeUser}/.ssh/id_ed25519_sk_rk_github";
+          identitiesOnly = true;
+        };
+      }
+      // lib.optionalAttrs (hasTag "p22" makeTags) {
         "framework-dt" = {
           hostname = "framework-dt.p22";
           user = "pete";
-          identityFile = "/home/${makeNixAttrs.user}/.ssh/id_ed25519_sk_rk_p22";
+          identityFile = "/home/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
           identitiesOnly = true;
           extraOptions = {
             IdentityAgent = "none";
@@ -293,33 +296,38 @@ in
         "backupsvr" = {
           hostname = "backupsvr.p22";
           user = "root";
-          identityFile = "/home/${makeNixAttrs.user}/.ssh/id_ed25519_sk_rk_p22";
+          identityFile = "/home/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
           identitiesOnly = true;
-          extraOptions = {
-            IdentityAgent = "none";
-          };
+          extraOptions.IdentityAgent = "none";
         };
         "mediasvr" = {
           hostname = "media.p22";
           user = "root";
-          identityFile = "/home/${makeNixAttrs.user}/.ssh/id_ed25519_sk_rk_p22";
+          identityFile = "/home/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
           identitiesOnly = true;
-          extraOptions = {
-            IdentityAgent = "none";
-          };
-        };
-        "github" = {
-          hostname = "github.com";
-          user = "git";
-          identityFile = "/home/${makeNixAttrs.user}/.ssh/id_ed25519_sk_rk_github";
-          identitiesOnly = true;
+          extraOptions.IdentityAgent = "none";
         };
       };
     };
 
     p22Sync = {
-      enable = true;
+      enable = (hasTag "p22" makeTags);
       syncHosts = [
+        {
+          name = "framework-16";
+          paths = [
+            "Documents"
+            "Downloads"
+            "Music"
+            "Nextcloud"
+            "Pictures"
+            "Projects"
+            "Videos"
+          ];
+          excludePaths = [
+            "Downloads/Work"
+          ];
+        }
         {
           name = "framework-dt";
           paths = [
@@ -350,12 +358,27 @@ in
             "Downloads/Work"
           ];
         }
+        {
+          name = "macmini";
+          paths = [
+            "Documents"
+            "Downloads"
+            "Music"
+            "Nextcloud"
+            "Pictures"
+            "Projects"
+            "Videos"
+          ];
+          excludePaths = [
+            "Downloads/Work"
+          ];
+        }
       ];
     };
 
     # Import resident keys from Yubikey if any are missing from ~/.ssh
     import-yubikey-ssh = {
-      enable = true;
+      enable = (hasTag "yubi-age-user" makeTags);
       userKeys = [
         "id_ed25519_sk_rk_aws"
         "id_ed25519_sk_rk_github"
@@ -393,7 +416,6 @@ in
       };
     };
 
-    # TODO: Config
     lazygit = {
       enable = true;
     };

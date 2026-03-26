@@ -1,16 +1,22 @@
 # Nix settings for build/cache infrastructure
-{ lib, makeNixAttrs, ... }:
+{
+  lib,
+  makeNixAttrs,
+  makeNixLib,
+  ...
+}:
 {
   nix.settings = lib.mkMerge [
     (lib.mkIf makeNixAttrs.useCache {
       # This is a local Nginx cache for cache.nixos and
       # nix-community.cachix.org, see https://github.com/pete3n/nix-cache.git
       # for more information.
-      substituters = [
-        "http://backupsvr.p22:8000/"
-        "https://nix-community.cachix.org/"
-        "https://cache.nixos.org/"
-      ];
+      substituters =
+        lib.optional makeNixLib.hasTag "p22" makeNixAttrs.tags [ "http://backupsvr.p22:8000/" ]
+        ++ [
+          "https://nix-community.cachix.org/"
+          "https://cache.nixos.org/"
+        ];
 
       connect-timeout = 2; # seconds (fast fail local cache is unavailable)
       stalled-download-timeout = 15;

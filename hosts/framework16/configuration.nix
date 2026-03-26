@@ -8,10 +8,25 @@
   makeNixAttrs,
   ...
 }:
+let
+  makeTags = makeNixAttrs.tags;
+  hasTag = makeNixLib.hasTag;
+  optionalImport = tag: path: lib.optional (hasTag tag makeTags) path;
+in
 {
   imports =
-    lib.optional (makeNixLib.hasTag "local-ai" makeNixAttrs.tags) ../shared-imports/ollama.nix
-    ++ [
+    optionalImport "local-ai" ../shared-imports/linux/ollama.nix
+    ++ optionalImport "crypto" ../shared-imports/linux/crypto-services.nix
+    ++ optionalImport "sdr" ../shared-imports/linux/usrp-sdr.nix
+    ++ optionalImport "p22" [
+      # P22 LAN configs
+      ../shared-imports/p22-build-client.nix # Remote client builds
+      ../shared-imports/p22-nfs.nix # File share
+      ../shared-imports/p22-pki.nix # Trusted root cert
+      ../shared-imports/p22-printers.nix # Local printer config
+		]
+		++
+		[
       # This is the hardware configuration created by the installer
       # Most importantly it contains the UUIDs for your boot and root filesystems
       # Do not use anyone other host's hardware-configuration.nix or you will be
@@ -22,31 +37,22 @@
       # but implemented prior to booting Linux, such as an external GPU
       ./specialisations.nix
 
-      # Infrastructure configuration for remote building and caches
-      ../infrax.nix
-			../shared-imports/p22-build-client.nix
+      # Nix binary cache substituter config
+      ../shared-imports/cache-config.nix
 
+      # Common Linux packages
+      ../shared-imports/linux/common-packages.nix
 
-      ../shared-imports/iptables-services.nix # Override NixOS firewall rules
-      # and use custom iptables based ruleset
+      # Override NixOS firewall rules and use custom iptables based ruleset
+      ../shared-imports/linux/iptables-services.nix
 
-      ../shared-imports/crypto-services.nix
-      ../shared-imports/linux/system-packages.nix
-      ../shared-imports/p22-nfs.nix
-      ../shared-imports/p22-pki.nix
-      ../shared-imports/p22-printers.nix
       ../shared-imports/pam-fprint-yubikey.nix
       ../shared-imports/pam-u2f-common.nix
-      ../shared-imports/usrp-sdr.nix
-			outputs.nixosModules.yubikeyUsbipServer
+      outputs.nixosModules.yubikeyUsbipServer # Use Yubikey on remote systems
     ]
     ++ [ inputs.pete3n-mods.nixosModules.default ]
     ++ [ inputs.pete3n-mods.nixosModules.hardware.framework16.fw16-kbd-alsd ]
     ++ [ inputs.pete3n-mods.nixosModules.hardware.framework16.fw16-disable-wake-triggers ];
-
-  # Workaround for suspend then sleep issues.
-  # Resolved amdgpu VPE queue reset failed / ib ring test failed (-110)
-  # Resolved nvme drive sleep issues.
 
   documentation = {
     man.enable = true;
@@ -54,6 +60,9 @@
   };
 
   boot = {
+		# Workaround for suspend then sleep issues.
+		# Resolved amdgpu VPE queue reset failed / ib ring test failed (-110)
+		# Resolved nvme drive sleep issues.
     kernelParams = [
       "rtc_cmos.use_acpi_alarm=1"
       "amdgpu.ip_block_mask=0x7FF"
@@ -157,10 +166,10 @@
       accessGroup = "wheel";
     };
 
-		# Allow remotely connecting Yubikey
-		yubikeyUsbipServer = {
-			enable = true;
-		};
+    # Allow remotely connecting Yubikey
+    yubikeyUsbipServer = {
+      enable = true;
+    };
 
     resolved = {
       enable = true;

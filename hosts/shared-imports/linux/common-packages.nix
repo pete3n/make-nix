@@ -1,11 +1,12 @@
 { pkgs, ... }:
 {
   programs.steam.enable = true;
-  environment.systemPackages =
-    (with pkgs; [
+  environment.systemPackages = (
+    with pkgs;
+    [
       acpi
       auto-cpufreq
-			clinfo
+      clinfo
       cryptsetup
       dhcpcd
       dig
@@ -26,19 +27,12 @@
       pipewire
       qemu
       qemu-utils
-			ragenix
+      ragenix
       tcpdump
       thermald
       traceroute
       usbutils
       wpa_supplicant
-    ])
-    ++ [
-      (pkgs.unstable.lutris.override {
-        extraPkgs = p: [
-          p.wineWow64Packages.waylandFull
-          p.winetricks
-        ];
-      })
-    ];
+    ]
+  );
 }
