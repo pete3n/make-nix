@@ -7,18 +7,18 @@ rec {
   getHomeAttrs = import ./home-attrs.nix { inherit lib validTags; };
   getHomePath = import ./home-path.nix { inherit lib; };
 
-	makeAttrsCtx = makeAttrs: {
-		system = makeAttrs.system;
-		user = makeAttrs.user;
-		host = makeAttrs.host;
-		tags = makeAttrs.tags or [];
-		specialisations = makeAttrs.specialisations or [];
-		isHomeAlone = makeAttrs.isHomeAlone or false;
-		useHomebrew = makeAttrs.useHomebrew or false;
-		useKeys = makeAttrs.useKeys or false;
-		useCache = makeAttrs.useCache or false;
-    sshPubKeys = makeAttrs.sshPubKeys or [];
-	};
+  makeAttrsCtx = makeAttrs: {
+    system = makeAttrs.system;
+    user = makeAttrs.user;
+    host = makeAttrs.host;
+    tags = makeAttrs.tags or [ ];
+    specialisations = makeAttrs.specialisations or [ ];
+    isHomeAlone = makeAttrs.isHomeAlone or false;
+    useHomebrew = makeAttrs.useHomebrew or false;
+    useKeys = makeAttrs.useKeys or false;
+    useCache = makeAttrs.useCache or false;
+    sshPubKeys = makeAttrs.sshPubKeys or [ ];
+  };
 
   hasTag = tag: tags: builtins.elem tag tags;
 
@@ -32,7 +32,7 @@ rec {
   ];
 
   validConfigTags = [
-		"aichat"
+    "aichat"
     "crypto"
     "cuda"
     "gaming"
@@ -45,7 +45,8 @@ rec {
     "nixvim"
     "office"
     "p22"
-		"sdr"
+    "sdr"
+    "yubi-import-ssh"
   ];
 
   validTags = validUserTags ++ validConfigTags;
