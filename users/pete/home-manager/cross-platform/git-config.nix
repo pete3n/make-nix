@@ -45,6 +45,7 @@ in
       _ssh_dir="${config.home.homeDirectory}/.ssh"
       _key_path="$_ssh_dir/pete3n"
       _age_file="${../../secrets/pete3n.age}"
+      _identity="${../../secrets/age-plugin-yubikeys}"
 
       mkdir -p "$_ssh_dir"
       chmod 700 "$_ssh_dir"
@@ -52,7 +53,7 @@ in
       if [ ! -f "$_key_path" ]; then
         $DRY_RUN_CMD ${pkgs.age}/bin/age \
           --decrypt \
-          --identity ${pkgs.age-plugin-yubikey}/bin/age-plugin-yubikey \
+          --identity "$_identity" \
           --output "$_key_path" \
           "$_age_file"
         $DRY_RUN_CMD chmod 600 "$_key_path"
