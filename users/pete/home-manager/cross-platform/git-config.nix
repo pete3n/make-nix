@@ -1,11 +1,22 @@
-{ config, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  makeNixLib,
+  makeNixAttrs,
+  ...
+}:
+let
+  hasGitUser = makeNixLib.hasTag "git-user" makeNixAttrs.tags;
+  needsHomeActivation = hasGitUser && makeNixAttrs.isHomeAlone;
+in
 {
   programs.git = {
     enable = true;
     settings = {
       core.editor = "nvim";
       init = {
-        defaultBranch = "main"; # Github default
+        defaultBranch = "main";
         templateDir = "${config.home.homeDirectory}/.git-templates";
       };
       user = {
@@ -17,13 +28,8 @@
 
   home.file.".git-templates/gitlint".text = ''
     [general]
-    # Ignore rules, reference them by id or name (comma-separated)
     ignore=title-trailing-punctuation, T3
-
-    # Enable specific community contributed rules
     contrib=contrib-title-conventional-commits,CC1
-
-    # Set the extra-path where gitlint will search for user defined rules
     #extra-path=./gitlint_rules/my_rules.py
 
     ### Configuring rules ###
@@ -33,4 +39,24 @@
     [title-min-length]
     min-length=5
   '';
+
+  home.activation = lib.mkIf needsHomeActivation {
+    decryptGitSshKey = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      _ssh_dir="${config.home.homeDirectory}/.ssh"
+      _key_path="$_ssh_dir/pete3n"
+      _age_file="${./secrets/pete3n.age}"
+
+      mkdir -p "$_ssh_dir"
+      chmod 700 "$_ssh_dir"
+
+      if [ ! -f "$_key_path" ]; then
+        $DRY_RUN_CMD ${pkgs.age}/bin/age \
+          --decrypt \
+          --identity ${pkgs.age-plugin-yubikey}/bin/age-plugin-yubikey \
+          --output "$_key_path" \
+          "$_age_file"
+        $DRY_RUN_CMD chmod 600 "$_key_path"
+      fi
+    '';
+  };
 }
