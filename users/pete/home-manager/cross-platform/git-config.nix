@@ -56,8 +56,7 @@ in
 
           	if [ ! -f "$_key_path" ]; then
           		if ! ${pkgs.procps}/bin/pgrep -x pcscd > /dev/null; then
-								printf "\033[0;35mwarning: \033[0mpcscd is not running. Install and start it, \
-								then re-run home-manager switch to decrypt git SSH key."  >&2
+								printf "\033[0;35mwarning: \033[0mpcscd is not running. Install and start it, then re-run home-manager switch to decrypt git SSH key."  >&2
           		else
           			$DRY_RUN_CMD ${pkgs.age}/bin/age \
           				--decrypt \
