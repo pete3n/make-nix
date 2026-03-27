@@ -44,29 +44,29 @@ in
     decryptGitSshKey =
       lib.hm.dag.entryAfter [ "writeBoundary" ] # sh
         ''
-          export PATH="${pkgs.age-plugin-yubikey}/bin:${pkgs.age}/bin:${pkgs.pcsclite}/bin:$PATH"
+          	export PATH="${pkgs.age-plugin-yubikey}/bin:${pkgs.age}/bin:${pkgs.pcsclite}/bin:$PATH"
 
-          _ssh_dir="${config.home.homeDirectory}/.ssh"
-          _key_path="$_ssh_dir/pete3n"
-          _age_file="${../../secrets/pete3n.age}"
-          _identity="${../../secrets/age-plugin-yubikeys}"
+          	_ssh_dir="${config.home.homeDirectory}/.ssh"
+          	_key_path="$_ssh_dir/pete3n"
+          	_age_file="${../../secrets/pete3n.age}"
+          	_identity="${../../secrets/age-plugin-yubikeys}"
 
-          mkdir -p "$_ssh_dir"
-          chmod 700 "$_ssh_dir"
+          	mkdir -p "$_ssh_dir"
+          	chmod 700 "$_ssh_dir"
 
-          if [ ! -f "$_key_path" ]; then
-          	if ! pgrep -x pcscd > /dev/null; then
-          		echo "WARNING: pcscd is not running. Install and start it, then re-run home-manager switch to decrypt git SSH key." >&2
-          	else
-          		$DRY_RUN_CMD ${pkgs.age}/bin/age \
-          			--decrypt \
-          			--identity "$_identity" \
-          			--output "$_key_path" \
-          			"$_age_file" \
-          			</dev/tty >/dev/tty 2>/dev/tty
-          		$DRY_RUN_CMD chmod 600 "$_key_path"
+          	if [ ! -f "$_key_path" ]; then
+          		if ! ${pkgs.procps}/bin/pgrep -x pcscd > /dev/null; then
+          			echo "WARNING: pcscd is not running. Install and start it, then re-run home-manager switch to decrypt git SSH key." >&2
+          		else
+          			$DRY_RUN_CMD ${pkgs.age}/bin/age \
+          				--decrypt \
+          				--identity "$_identity" \
+          				--output "$_key_path" \
+          				"$_age_file" \
+          				</dev/tty >/dev/tty 2>/dev/tty
+          			$DRY_RUN_CMD chmod 600 "$_key_path"
+          		fi
           	fi
-          fi
         '';
   };
 }
