@@ -44,7 +44,7 @@ in
     decryptGitSshKey = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       _ssh_dir="${config.home.homeDirectory}/.ssh"
       _key_path="$_ssh_dir/pete3n"
-      _age_file="${./secrets/pete3n.age}"
+      _age_file="${../../secrets/pete3n.age}"
 
       mkdir -p "$_ssh_dir"
       chmod 700 "$_ssh_dir"
