@@ -13,6 +13,8 @@ Make targets:
   help    - You are here.
   install - Install Nix and/or Nix-Darwin on a bare MacOS or Linux system.
            Will not execute on NixOS or Nix-Darwin managed systems.
+  uninstall - Uninstall Nix and/or Nix-Darwin on a bare MacOS or Linux system.
+           Will not execute on NixOS or Nix-Darwin managed systems.
   check   - Validate flake configurations for the target user and host.
            Sub-targets: check-home, check-system
   build   - Build Nix closures for home and system configurations.
