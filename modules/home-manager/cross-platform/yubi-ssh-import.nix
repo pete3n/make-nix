@@ -5,10 +5,10 @@
   ...
 }:
 let
-  cfg = config.programs.import-yubikey-ssh;
+  cfg = config.programs.yubi-ssh-import;
   userKeysArgv = lib.escapeShellArgs cfg.userKeys;
 
-  import-yubikey-ssh = pkgs.writeShellScriptBin "import-yubikey-ssh" # sh
+  yubi-ssh-import = pkgs.writeShellScriptBin "yubi-ssh-import" # sh
 		''
       set -eu
 			set -- ${userKeysArgv}
@@ -39,7 +39,7 @@ let
       if [ "$need_import" -eq 1 ]; then
 				# Avoid hanging non-interactive activation runs
 				if [ ! -t 0 ]; then
-					printf "\nimport-yubikey-ssh: not a TTY; skipping Yubikey ssh import\n" >&2
+					printf "\nyubi-ssh-import: not a TTY; skipping Yubikey ssh import\n" >&2
 					exit 0
 				fi
 
@@ -48,16 +48,16 @@ let
 
         rc=$?
 				if [ $rc -eq 0 ]; then
-					printf "import-yubikey-ssh: success\n\n"
+					printf "yubi-ssh-import: success\n\n"
 				else 
-					printf "import-yubikey-ssh: failed\n\n"
+					printf "yubi-ssh-import: failed\n\n"
 				fi
         exit "$rc"
       fi
     '';
 in
 {
-  options.programs.import-yubikey-ssh = {
+  options.programs.yubi-ssh-import = {
     enable = lib.mkEnableOption "Import SSH keys and set config.";
 		userKeys = lib.mkOption {
 			type = lib.types.listOf lib.types.str;
@@ -72,10 +72,10 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ import-yubikey-ssh ];
+    home.packages = [ yubi-ssh-import ];
     home.activation.bootstrapSsh = lib.hm.dag.entryAfter [ "writeBoundary" ] #sh 
 		''
-			$DRY_RUN_CMD ${import-yubikey-ssh}/bin/import-yubikey-ssh || true
+			$DRY_RUN_CMD ${yubi-ssh-import}/bin/yubi-ssh-import || true
     '';
   };
 }
