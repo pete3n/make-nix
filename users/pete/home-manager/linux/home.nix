@@ -193,7 +193,7 @@ in
           unstable.teams-for-linux
         ]
       )
-      ++ optionalPkgs "sdr" pkgs.gnuradio; # Software defined radio
+      ++ optionalPkgs "sdr" [ pkgs.gnuradio ]; # Software defined radio
   };
 
   # systemd --user services
