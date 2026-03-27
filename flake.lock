@@ -974,11 +974,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1773343661,
-        "narHash": "sha256-EHOipcDRc3JqSKygT52kVAPenbj+4cwcbUfk4sskcow=",
+        "lastModified": 1774443375,
+        "narHash": "sha256-zl7RJNppLYEvuyT5je0pKLsSfPWxHfoa3EoiJ7wZelc=",
         "owner": "pete3n",
         "repo": "nix-modules",
-        "rev": "fff03cc9d5ed38f921756a0ed05436efaadd5d01",
+        "rev": "73cb845b52891cf634fdffbe9458b213131692b7",
         "type": "github"
       },
       "original": {
