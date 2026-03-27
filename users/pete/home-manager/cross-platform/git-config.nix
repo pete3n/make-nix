@@ -59,6 +59,8 @@ in
           if [ ! -f "$_key_path" ]; then
           	if ! [ -S /run/pcscd/pcscd.comm ]; then
           		printf "\033[0;35mwarning: \033[0mpcscd socket not found at /run/pcscd/pcscd.comm. Install and start pcscd, then re-run home-manager switch to decrypt git SSH key."  >&2
+          	elif [ ! -t 0 ]; then
+          		printf "\ndecryptGitSshKey: not a TTY; skipping git SSH key decryption. Re-run home-manager switch with a TTY to decrypt.\n" >&2
           	else
           		$DRY_RUN_CMD ${pkgs.age}/bin/age \
           			--decrypt \
