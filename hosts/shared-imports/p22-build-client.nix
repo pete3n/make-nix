@@ -1,3 +1,4 @@
+# Configure client to connect to remote build machines
 { config, ... }:
 {
   nix = {
