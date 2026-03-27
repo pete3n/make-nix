@@ -379,8 +379,8 @@ in
     };
 
     # Import resident keys from Yubikey if any are missing from ~/.ssh
-    import-yubikey-ssh = {
-      enable = (hasTag "yubi-import-ssh" makeTags);
+    yubi-ssh-import = {
+      enable = (hasTag "yubi-ssh-import" makeTags);
       userKeys = [
         "id_ed25519_sk_rk_aws"
         "id_ed25519_sk_rk_github"
