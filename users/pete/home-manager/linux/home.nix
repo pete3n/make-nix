@@ -159,6 +159,7 @@ in
         socat
         termshark
         wireshark
+        whois
       ])
       ++ optionalPkgs "nixvim" nixvim'
       ++ optionalPkgs "media-creation" (
