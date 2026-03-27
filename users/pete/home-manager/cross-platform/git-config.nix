@@ -44,6 +44,7 @@ in
     decryptGitSshKey =
       lib.hm.dag.entryAfter [ "writeBoundary" ] # sh
         ''
+					export PATH="${pkgs.age-plugin-yubikey}/bin:${pkgs.age}/bin:$PATH"
           _ssh_dir="${config.home.homeDirectory}/.ssh"
           _key_path="$_ssh_dir/pete3n"
           _age_file="${../../secrets/pete3n.age}"
