@@ -44,29 +44,31 @@ in
     decryptGitSshKey =
       lib.hm.dag.entryAfter [ "writeBoundary" ] # sh
         ''
-          	export PATH="${pkgs.age-plugin-yubikey}/bin:${pkgs.age}/bin:${pkgs.pcsclite}/bin:$PATH"
+          export PATH="${pkgs.age-plugin-yubikey}/bin:${pkgs.age}/bin:${pkgs.pcsclite}/bin:$PATH"
+          export PCSCLITE_CSOCK_NAME="/run/pcscd/pcscd.comm"
+          export LD_LIBRARY_PATH="${pkgs.pcsclite}/lib:$LD_LIBRARY_PATH"
 
-          	_ssh_dir="${config.home.homeDirectory}/.ssh"
-          	_key_path="$_ssh_dir/pete3n"
-          	_age_file="${../../secrets/pete3n.age}"
-          	_identity="${../../secrets/age-plugin-yubikeys}"
+          _ssh_dir="${config.home.homeDirectory}/.ssh"
+          _key_path="$_ssh_dir/pete3n"
+          _age_file="${../../secrets/pete3n.age}"
+          _identity="${../../secrets/age-plugin-yubikeys}"
 
-          	mkdir -p "$_ssh_dir"
-          	chmod 700 "$_ssh_dir"
+          mkdir -p "$_ssh_dir"
+          chmod 700 "$_ssh_dir"
 
-          	if [ ! -f "$_key_path" ]; then
-							if ! [ -S /run/pcscd/pcscd.comm ]; then
-								printf "\033[0;35mwarning: \033[0mpcscd socket not found at /run/pcscd/pcscd.comm. Install and start pcscd, then re-run home-manager switch to decrypt git SSH key."  >&2
-          		else
-          			$DRY_RUN_CMD ${pkgs.age}/bin/age \
-          				--decrypt \
-          				--identity "$_identity" \
-          				--output "$_key_path" \
-          				"$_age_file" \
-          				</dev/tty >/dev/tty 2>/dev/tty
-          			$DRY_RUN_CMD chmod 600 "$_key_path"
-          		fi
+          if [ ! -f "$_key_path" ]; then
+          	if ! [ -S /run/pcscd/pcscd.comm ]; then
+          		printf "\033[0;35mwarning: \033[0mpcscd socket not found at /run/pcscd/pcscd.comm. Install and start pcscd, then re-run home-manager switch to decrypt git SSH key."  >&2
+          	else
+          		$DRY_RUN_CMD ${pkgs.age}/bin/age \
+          			--decrypt \
+          			--identity "$_identity" \
+          			--output "$_key_path" \
+          			"$_age_file" \
+          			</dev/tty >/dev/tty 2>/dev/tty
+          		$DRY_RUN_CMD chmod 600 "$_key_path"
           	fi
+          fi
         '';
   };
 }
