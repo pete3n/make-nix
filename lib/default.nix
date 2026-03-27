@@ -46,7 +46,7 @@ rec {
     "office"
     "p22"
     "sdr"
-    "yubi-import-ssh"
+    "yubi-ssh-import"
   ];
 
   validTags = validUserTags ++ validConfigTags;
