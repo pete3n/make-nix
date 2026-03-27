@@ -77,6 +77,7 @@ in
         nix-tree # Interactively browse Nix store dependencies
 
         # Misc
+				age-plugin-yubikey #TODO: Conditional package
         bottles # Wine container manager
         borgbackup
         browsh # Terminal browser
@@ -376,6 +377,7 @@ in
     };
 
     # Import resident keys from Yubikey if any are missing from ~/.ssh
+		# TODO: organize Yubikey options
     import-yubikey-ssh = {
       enable = (hasTag "yubi-age-user" makeTags);
       userKeys = [
