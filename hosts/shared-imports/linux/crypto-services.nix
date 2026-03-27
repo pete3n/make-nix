@@ -24,9 +24,6 @@
     dataDir = "/data/monero";
     prune = true;
     mining.enable = false;
-    extraConfig = ''
-      prune-blockchain-size=102400
-    '';
   };
   # Disable autostart
   systemd.services.monero.wantedBy = lib.mkForce [ ];
