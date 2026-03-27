@@ -55,8 +55,8 @@ in
           	chmod 700 "$_ssh_dir"
 
           	if [ ! -f "$_key_path" ]; then
-          		if ! ${pkgs.procps}/bin/pgrep -x pcscd > /dev/null; then
-								printf "\033[0;35mwarning: \033[0mpcscd is not running. Install and start it, then re-run home-manager switch to decrypt git SSH key."  >&2
+							if ! [ -S /run/pcscd/pcscd.comm ]; then
+								printf "\033[0;35mwarning: \033[0mpcscd socket not found at /run/pcscd/pcscd.comm. Install and start pcscd, then re-run home-manager switch to decrypt git SSH key."  >&2
           		else
           			$DRY_RUN_CMD ${pkgs.age}/bin/age \
           				--decrypt \
