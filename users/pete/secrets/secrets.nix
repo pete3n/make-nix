@@ -3,26 +3,17 @@ let
   pete_yk_bak = "age1yubikey1qdxcmeztxrax00vx5gnyteacgqn7jmdc3qnuvts82rkg2zwwmuccc85afcz";
   framework16 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA7/v1drJEFf3X22NwB9ygO5V5NaobiQfXYb4LIuFoMP root@framework16";
   framework-dt = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO70Au6FegohwKFygshDnN9TGll69m4cc1WXMqa8tXl/ root@framework-dt";
+
+  allKeys = [
+    pete_yk_pri
+    pete_yk_bak
+    framework16
+    framework-dt
+  ];
 in
 {
-  "api_keys/anthropic-aichat-api.age".publicKeys = [
-    pete_yk_pri
-    pete_yk_bak
-    framework16
-    framework-dt
-  ];
-
-  "wpa_supplicant/p22-lan-2g.conf.age".publicKeys = [
-    pete_yk_pri
-    pete_yk_bak
-    framework16
-    framework-dt
-  ];
-
-  "wpa_supplicant/p22-lan-5g.conf.age".publicKeys = [
-    pete_yk_pri
-    pete_yk_bak
-    framework16
-    framework-dt
-  ];
+  "api_keys/anthropic-aichat-api.age".publicKeys = allKeys;
+  "wpa_supplicant/p22-lan-2g.conf.age".publicKeys = allKeys;
+  "wpa_supplicant/p22-lan-5g.conf.age".publicKeys = allKeys;
+  "pete3n.age".publicKeys = allKeys;
 }
