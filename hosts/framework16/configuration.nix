@@ -67,6 +67,11 @@ in
       "nvme_core.default_ps_max_latency_us=1000"
     ];
 
+    # Removable CD-ROM support
+    kernelModules = [
+      "sg"
+    ];
+
     # Kernel 6.19 build error
     # kernelPackages = pkgs.linuxPackages_latest;
     kernelPackages = pkgs.linuxPackages_6_18;
