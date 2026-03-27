@@ -77,7 +77,6 @@ in
         nix-tree # Interactively browse Nix store dependencies
 
         # Misc
-				age-plugin-yubikey #TODO: Conditional package
         bottles # Wine container manager
         borgbackup
         browsh # Terminal browser
@@ -276,7 +275,10 @@ in
         "github" = {
           hostname = "github.com";
           user = "git";
-          identityFile = "/home/${makeUser}/.ssh/id_ed25519_sk_rk_github";
+          identityFile = [
+            "/home/${makeUser}/.ssh/id_ed25519_sk_rk_github"
+            "/home/${makeUser}/.ssh/pete3n"
+          ];
           identitiesOnly = true;
         };
       }
@@ -377,9 +379,8 @@ in
     };
 
     # Import resident keys from Yubikey if any are missing from ~/.ssh
-		# TODO: organize Yubikey options
     import-yubikey-ssh = {
-      enable = (hasTag "yubi-age-user" makeTags);
+      enable = (hasTag "yubi-import-ssh" makeTags);
       userKeys = [
         "id_ed25519_sk_rk_aws"
         "id_ed25519_sk_rk_github"
