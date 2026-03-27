@@ -1,40 +1,49 @@
 # System-level user configuration.
 # You can write this as a single file that evaluates or
 # As multiple files explicitly referenced.
-{ lib, makeNixAttrs, ... }:
+{
+  lib,
+  makeNixAttrs,
+  makeNixLib,
+  ...
+}:
 let
-  userTags = [
-    "poweruser"
-    "sshuser"
-    "sudoer"
-    "trusteduser"
-    "yubi-age-user"
-  ];
-
+  userTags = makeNixLib.validUserTags;
   availableTags = builtins.filter (tag: builtins.elem tag userTags) makeNixAttrs.tags;
 
   tagGroupMap = {
-    poweruser = [
-      "networkmanager"
-      "wheel"
-      "docker"
-      "adbusers"
+    git-user = [
+      "users"
     ];
-    sshuser = [ "users" ];
-    sudoer = [ "wheel" ];
-    trusteduser = [ "users" ];
-    yubi-age-user = [ "users" ];
+    power-user = [
+      "adbusers"
+      "cdrom"
+      "docker"
+      "networkmanager"
+      "users"
+      "wheel"
+    ];
+    ssh-user = [ "users" ];
+    sudo-user = [
+      "cdrom"
+      "docker"
+      "users"
+      "wheel"
+    ];
+    trusted-user = [ "users" ];
+    yubi-user = [ "users" ];
   };
 
   tagDescriptionMap = {
-    poweruser = "Trusted user and sudoer with netman, docker, and adbuser membership.";
-    trusteduser = "Add user to nix trusted users.";
-    sshuser = "User is authorized SSH access with the assigned ssh keys.";
-    sudoer = "User with sudo (wheel) access.";
-    yubi-age-user = "User that uses a hardware Yubikey to manage age secrets.";
+    git-user = "User with git configuration and git ssh key";
+    power-user = "Trusted user and sudoer with netman, docker, and adbuser membership.";
+    trusted-user = "Add user to nix trusted users.";
+    ssh-user = "User is authorized SSH access with the assigned ssh keys.";
+    sudo-user = "User with sudo (wheel) access.";
+    yubi-user = "User that uses a hardware Yubikey to manage age secrets.";
   };
 
-  tagRoleGroups = lib.flatten (builtins.map (tag: tagGroupMap.${tag}) availableTags);
+  tagRoleGroups = lib.unique (lib.flatten (builtins.map (tag: tagGroupMap.${tag}) availableTags));
   tagRoleDescription = lib.concatStringsSep "; " (
     builtins.map (tag: tagDescriptionMap.${tag}) availableTags
   );
@@ -42,18 +51,22 @@ let
   hasTag = tag: builtins.elem tag availableTags;
 in
 {
-  imports = lib.optionals (hasTag "yubi-age-user") [
-    ./${makeNixAttrs.user}/secrets/yubi-age.nix
-  ];
+  imports =
+    lib.optionals (hasTag "yubi-user") [
+      ./${makeNixAttrs.user}/secrets/yubi-age.nix
+    ]
+    ++ lib.optionals (hasTag "git-user") [
+      ./${makeNixAttrs.user}/secrets/git-ssh.nix
+    ];
 
   users.users.${makeNixAttrs.user} = {
     isNormalUser = true;
     description = tagRoleDescription;
     extraGroups = tagRoleGroups;
-    openssh.authorizedKeys.keys = lib.optionals (hasTag "sshuser") (makeNixAttrs.sshPubKeys or []);
+    openssh.authorizedKeys.keys = lib.optionals (hasTag "ssh-user") (makeNixAttrs.sshPubKeys or [ ]);
   };
 
-  nix.settings.trusted-users = lib.mkIf (hasTag "trusteduser" || hasTag "poweruser") (
+  nix.settings.trusted-users = lib.mkIf (hasTag "trusted-user" || hasTag "power-user") (
     lib.mkAfter [ makeNixAttrs.user ]
   );
 }
