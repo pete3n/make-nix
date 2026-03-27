@@ -4,7 +4,7 @@ rec {
   isLinux = system: isPlatform system "linux";
   isDarwin = system: isPlatform system "darwin";
 
-  getHomeAttrs = import ./home-attrs.nix { inherit lib; };
+  getHomeAttrs = import ./home-attrs.nix { inherit lib validTags; };
   getHomePath = import ./home-path.nix { inherit lib; };
 
 	makeAttrsCtx = makeAttrs: {
@@ -21,4 +21,32 @@ rec {
 	};
 
   hasTag = tag: tags: builtins.elem tag tags;
+
+  validUserTags = [
+    "git-user"
+    "power-user"
+    "ssh-user"
+    "sudo-user"
+    "trusted-user"
+    "yubi-user"
+  ];
+
+  validConfigTags = [
+		"aichat"
+    "crypto"
+    "cuda"
+    "gaming"
+    "hyprland"
+    "laptop"
+    "local-ai"
+    "media-creation"
+    "messaging"
+    "mpd"
+    "nixvim"
+    "office"
+    "p22"
+		"sdr"
+  ];
+
+  validTags = validUserTags ++ validConfigTags;
 }
