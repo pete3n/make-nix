@@ -1,4 +1,4 @@
-# Nix settings for build/cache infrastructure
+# Nix settings for binary cache servers
 {
   lib,
   makeNixAttrs,
