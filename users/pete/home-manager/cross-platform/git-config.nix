@@ -1,33 +1,43 @@
 {
+  lib,
   config,
   makeNixAttrs,
+  makeNixLib,
   ...
 }:
-{
-  programs.yubi-age-decrypt = {
-    enable = makeNixAttrs.isHomeAlone;
-    secrets = [
-      {
-        outputFile = "${config.home.homeDirectory}/.ssh/pete3n";
-        ageFile = "${../../secrets/pete3n.age}";
-        identityFile = "${../../secrets/age-plugin-yubikeys}";
-      }
-    ];
-  };
+let
+  gitKeys = lib.optionals (makeNixLib.hasTag "git-user" makeNixAttrs.tags) (
+    [ "pete3n" ] ++ lib.optionals (!makeNixAttrs.isHomeAlone) [ ]
+  );
 
-  programs.git = {
-    enable = true;
-    settings = {
-      core.editor = "nvim";
-      init = {
-        defaultBranch = "main";
-        templateDir = "${config.home.homeDirectory}/.git-templates";
-      };
-      user = {
-        name = "pete3n";
-        email = "pete3n@protonmail.com";
+  # Use Zsh integration for Darwin and Bash integration for Linux
+  shellIntegration = {
+    enableBashIntegration = makeNixLib.isLinux makeNixAttrs.system;
+    enableZshIntegration = makeNixLib.isDarwin makeNixAttrs.system;
+  };
+in
+{
+  programs = {
+    git = {
+      enable = true;
+      settings = {
+        core.editor = "nvim";
+        init = {
+          defaultBranch = "main";
+          templateDir = "${config.home.homeDirectory}/.git-templates";
+        };
+        user = {
+          name = "pete3n";
+          email = "pete3n@protonmail.com";
+        };
       };
     };
+
+    keychain = {
+      enable = true;
+      keys = gitKeys;
+    }
+    // shellIntegration;
   };
 
   home.file.".git-templates/gitlint".text = ''

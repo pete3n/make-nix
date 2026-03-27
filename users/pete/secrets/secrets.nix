@@ -3,6 +3,7 @@ let
   pete_yk_bak = "age1yubikey1qdxcmeztxrax00vx5gnyteacgqn7jmdc3qnuvts82rkg2zwwmuccc85afcz";
   framework16 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA7/v1drJEFf3X22NwB9ygO5V5NaobiQfXYb4LIuFoMP root@framework16";
   framework-dt = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO70Au6FegohwKFygshDnN9TGll69m4cc1WXMqa8tXl/ root@framework-dt";
+  pete3n_github_sk = "ssh-ed25519 AAAAGnNrLXNzaC1lZDI1NTE5QG9wZW5zc2guY29tAAAAILVmT1yM2vRzbBQ9sHtJj2K+bplinQF0Wh6LSGCsdUmAAAAACnNzaDpnaXRodWI=";
 
   allKeys = [
     pete_yk_pri
@@ -15,5 +16,5 @@ in
   "api_keys/anthropic-aichat-api.age".publicKeys = allKeys;
   "wpa_supplicant/p22-lan-2g.conf.age".publicKeys = allKeys;
   "wpa_supplicant/p22-lan-5g.conf.age".publicKeys = allKeys;
-  "pete3n.age".publicKeys = allKeys;
+  "pete3n.age".publicKeys = [ pete3n_github_sk ];
 }

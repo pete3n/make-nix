@@ -1,5 +1,4 @@
 {
-  lib,
   pkgs,
   makeNixLib,
   makeNixAttrs,
@@ -11,10 +10,6 @@ let
     enableBashIntegration = makeNixLib.isLinux makeNixAttrs.system;
     enableZshIntegration = makeNixLib.isDarwin makeNixAttrs.system;
   };
-
-  gitKeys = lib.optionals (makeNixLib.hasTag "git-user" makeNixAttrs.tags) [
-    "pete3n"
-  ];
 in
 {
   imports = [
@@ -60,11 +55,6 @@ in
     # Fuzzy finder
     fzf = {
       enable = true;
-    }
-    // shellIntegration;
-    keychain = {
-      enable = true;
-      keys = gitKeys;
     }
     // shellIntegration;
     # Starship cross-shell prompt config
