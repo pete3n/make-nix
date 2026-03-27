@@ -1,3 +1,4 @@
+# Configure user to handle remote builds
 { ... }:
 {
   users = {
