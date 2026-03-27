@@ -1,7 +1,7 @@
 # Load user@host home configs from a directory of .nix files.
 # Each file must evaluate to an attrset containing at least:
 # { user, host, system, ... }.
-{ lib }: # This implements two curried (linked) functions allowing
+{ lib, validTags }: # This implements two curried (linked) functions allowing
 { dir }: # lib to be bound once and dir multiple times.
 assert builtins.pathExists dir || throw "getHomeAttrs: directory not found: ${toString dir}";
 let
@@ -31,6 +31,7 @@ let
     let
       homePath = dir + "/${name}";
       homeAttrs = import homePath { };
+      invalidTags = builtins.filter (tag: !builtins.elem tag validTags) (homeAttrs.tags or [ ]);
     in
     assert
       lib.isAttrs homeAttrs
@@ -38,6 +39,10 @@ let
     assert (homeAttrs ? user) || throw "getHomeAttrs: missing 'user' in ${toString homePath}";
     assert (homeAttrs ? host) || throw "getHomeAttrs: missing 'host' in ${toString homePath}";
     assert (homeAttrs ? system) || throw "getHomeAttrs: missing 'system' in ${toString homePath}";
+    assert
+      invalidTags == [ ]
+      || throw "getHomeAttrs: invalid tags in ${toString homePath}: ${lib.concatStringsSep ", " invalidTags} 
+		\nTag must be listed in lib/default.nix to be used.";
     lib.nameValuePair "${homeAttrs.user}@${homeAttrs.host}" homeAttrs;
 in
 
