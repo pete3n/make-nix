@@ -1,4 +1,4 @@
-# Home-manager configuration
+# Home-manager configuration baseline for Linux systems
 {
   inputs,
   lib,
@@ -15,6 +15,9 @@ let
     && makeNixLib.hasTag "wayland_dgpu" (makeNixAttrs.specialisations or [ ]);
   blender' = if hasCuda then pkgs.blender.override { cudaSupport = true; } else pkgs.blender;
 
+  # Build the default Nixvim package for the system architecture
+  nixvim' = [ inputs.nixvim.packages.${makeNixAttrs.system}.default ];
+
   makeUser = makeNixAttrs.user;
   makeHost = makeNixAttrs.host;
   makeTags = makeNixAttrs.tags;
@@ -30,14 +33,15 @@ in
     lib.optional (hasTag "aichat" makeTags || hasTag "local-ai" makeTags) ../cross-platform/aichat.nix
     ++ optionalImport "awesome" ./awesome-config.nix
     ++ optionalImport "gaming" ./gaming-config.nix
+    ++ optionalImport "git-user" ../cross-platform/git-config.nix
     ++ optionalImport "hyprland" ./hyprland-config.nix
     ++ optionalImport "mpd" ./mpd-config.nix
     ++ optionalImport "office" ./office-config.nix
+    ++ optionalImport "yubi-user" ./yubikey-u2f.nix
     # Local home modules
     ++ builtins.attrValues homeModules
     ++ [
       ../cross-platform/alacritty-config.nix
-      ../cross-platform/git-config.nix
       ../cross-platform/cli-programs.nix
       ../cross-platform/tmux-config.nix
       ./bash-config.nix
@@ -45,7 +49,6 @@ in
       ./rofi-config.nix
       ./theme-style.nix
       ./xdg-config.nix
-      ./yubikey-u2f.nix
     ]
     # Home modules from pete3n repo
     ++ [
@@ -65,52 +68,13 @@ in
     homeDirectory = "/home/${makeUser}";
 
     packages =
-      # Build the default Nixvim package for the system architecture
-      optionalPkgs "nixvim" [ inputs.nixvim.packages.${makeNixAttrs.system}.default ]
-      ++
-        # Multimedia creation and editing tools for 3d, audio, images, music, and video
-        optionalPkgs "media-creation" (
-          with pkgs;
-          [
-            audacity # Audio editor
-            blender' # 3D editor
-            bitwig-studio # DAW
-            gimp-with-plugins # Image editing
-            handbrake # DVD wripping
-            inkscape-with-extensions # Vector graphics
-            kdePackages.kdenlive # Video editing
-          ]
-        )
-      ++
-        # Crypto currency tools
-        optionalPkgs "crypto" (
-          with pkgs;
-          [
-            unstable.bisq2
-            unstable.monero-cli
-            unstable.monero-gui
-            unstable.sparrow
-          ]
-        )
-      ++
-        # Messaging apps
-        optionalPkgs "messaging" (
-          with pkgs;
-          [
-            mod.no-gpu-signal-desktop
-            unstable.element-desktop
-            unstable.teams-for-linux
-          ]
-        )
+      (with pkgs; [
 
-      ++ (with pkgs; [
-
-				# Nix tools
+        # Nix tools
         nix-inspect # Awesome Nix flake explorer
         nix-melt # Flake lock explorer
         nix-search-tv # Awesome Nix package fuzzy finder
         nix-tree # Interactively browse Nix store dependencies
-
 
         # Misc
         bottles # Wine container manager
@@ -121,6 +85,7 @@ in
         fdupes # Duplicate file finder
         kdePackages.okular # Okular PDF viewer
         kdePackages.dolphin # Dolphin file browser
+        kdePackages.k3b # CD Burning GUI
         litemdview # Simple markdown viewer
         local.ipod-shuffle-4g
         mosh # Mobile-shell SSH replacement
@@ -139,7 +104,7 @@ in
         age # Age encryption utilties
         asciinema # Terminal recorder
         bandwhich # Network utilization monitor
-        cdrkit # CD writing tools
+        cdrtools # CD writing tools
         ctop # Container resource monitor
         diff-so-fancy # Better looking diffs
         duf # Better du/df
@@ -181,7 +146,6 @@ in
         binwalk # Binary file analysis
         ffmpeg # Video encoding/transcoding
         file # Magic bit reader
-        gnuradio
         gpsd
         hashcat
         hcxdumptool
@@ -195,7 +159,41 @@ in
         socat
         termshark
         wireshark
-      ]);
+      ])
+      ++ optionalPkgs "nixvim" nixvim'
+      ++ optionalPkgs "media-creation" (
+        # Multimedia creation and editing tools for 3d, audio, images, music, and video
+        with pkgs;
+        [
+          audacity # Audio editor
+          blender' # 3D editor
+          bitwig-studio # DAW
+          gimp-with-plugins # Image editing
+          handbrake # DVD wripping
+          inkscape-with-extensions # Vector graphics
+          kdePackages.kdenlive # Video editing
+        ]
+      )
+      ++ optionalPkgs "crypto" (
+        # Crypto currency tools
+        with pkgs;
+        [
+          unstable.bisq2
+          unstable.monero-cli
+          unstable.monero-gui
+          unstable.sparrow
+        ]
+      )
+      ++ optionalPkgs "messaging" (
+        # Messaging apps
+        with pkgs;
+        [
+          mod.no-gpu-signal-desktop
+          unstable.element-desktop
+          unstable.teams-for-linux
+        ]
+      )
+      ++ optionalPkgs "sdr" pkgs.gnuradio; # Software defined radio
   };
 
   # systemd --user services
