@@ -4,7 +4,7 @@ rec {
   isLinux = system: isPlatform system "linux";
   isDarwin = system: isPlatform system "darwin";
 
-  getHomeAttrs = import ./home-attrs.nix { inherit lib validTags; };
+  getHomeAttrs = import ./home-attrs.nix { inherit lib validTags systemOnlyTags; };
   getHomePath = import ./home-path.nix { inherit lib; };
 
   makeAttrsCtx = makeAttrs: {
@@ -22,23 +22,31 @@ rec {
 
   hasTag = tag: tags: builtins.elem tag tags;
 
+  # These tags are for system level user configuration
   validUserTags = [
-    "git-user"
+    "git-ssh-user"
     "power-user"
     "ssh-user"
     "sudo-user"
     "trusted-user"
-    "yubi-user"
+    "yubi-age-user"
   ];
 
+  # Additional tags that can only be applied to NixOS or Nix Darwin systems
+  systemOnlyTags = [
+    "local-ai"
+  ]
+  ++ validUserTags;
+
+  # Configuration tags that can be applied to both home and system
   validConfigTags = [
     "aichat"
     "crypto"
     "cuda"
     "gaming"
+    "git"
     "hyprland"
     "laptop"
-    "local-ai"
     "media-creation"
     "messaging"
     "mpd"
@@ -47,7 +55,8 @@ rec {
     "p22"
     "sdr"
     "yubi-ssh-import"
+    "yubi-u2f"
   ];
 
-  validTags = validUserTags ++ validConfigTags;
+  validTags = systemOnlyTags ++ validConfigTags;
 }
