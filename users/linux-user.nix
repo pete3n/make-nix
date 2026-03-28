@@ -12,7 +12,7 @@ let
   availableTags = builtins.filter (tag: builtins.elem tag userTags) makeNixAttrs.tags;
 
   tagGroupMap = {
-    git-user = [
+    git-ssh-user = [
       "users"
     ];
     power-user = [
@@ -31,16 +31,16 @@ let
       "wheel"
     ];
     trusted-user = [ "users" ];
-    yubi-user = [ "users" ];
+    yubi-age-user = [ "users" ];
   };
 
   tagDescriptionMap = {
-    git-user = "User with git configuration and git ssh key";
+    git-ssh-user = "User with git configuration and git ssh key";
     power-user = "Trusted user and sudoer with netman, docker, and adbuser membership.";
     trusted-user = "Add user to nix trusted users.";
     ssh-user = "User is authorized SSH access with the assigned ssh keys.";
     sudo-user = "User with sudo (wheel) access.";
-    yubi-user = "User that uses a hardware Yubikey to manage age secrets.";
+    yubi-age-user = "User that uses a hardware Yubikey to manage age secrets.";
   };
 
   tagRoleGroups = lib.unique (lib.flatten (builtins.map (tag: tagGroupMap.${tag}) availableTags));
@@ -52,10 +52,10 @@ let
 in
 {
   imports =
-    lib.optionals (hasTag "yubi-user") [
+    lib.optionals (hasTag "yubi-age-user") [
       ./${makeNixAttrs.user}/secrets/yubi-age.nix
     ]
-    ++ lib.optionals (hasTag "git-user") [
+    ++ lib.optionals (hasTag "git-ssh-user") [
       ./${makeNixAttrs.user}/secrets/git-ssh.nix
     ];
 
