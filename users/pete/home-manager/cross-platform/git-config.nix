@@ -7,7 +7,7 @@
 }:
 let
   gitKeys = lib.optionals (
-    makeNixLib.hasTag "git-user" makeNixAttrs.tags && !makeNixAttrs.isHomeAlone
+    makeNixLib.hasTag "git-ssh-user" makeNixAttrs.tags && !makeNixAttrs.isHomeAlone
   ) [ "pete3n" ];
 
   # Use Zsh integration for Darwin and Bash integration for Linux
