@@ -33,7 +33,9 @@ in
     lib.optional (hasTag "aichat" makeTags || hasTag "local-ai" makeTags) ../cross-platform/aichat.nix
     ++ optionalImport "awesome" ./awesome-config.nix
     ++ optionalImport "gaming" ./gaming-config.nix
-    ++ lib.optional (hasTag "git" makeTags || hasTag "git-ssh-user" makeTags) ../cross-platform/git-config.nix
+    ++ lib.optional (
+      hasTag "git" makeTags || hasTag "git-ssh-user" makeTags
+    ) ../cross-platform/git-config.nix
     ++ optionalImport "hyprland" ./hyprland-config.nix
     ++ optionalImport "mpd" ./mpd-config.nix
     ++ optionalImport "office" ./office-config.nix
@@ -423,11 +425,6 @@ in
         ];
       };
     };
-
-    lazygit = {
-      enable = true;
-    };
-
   };
 
   # Nicely reload system units when changing configs
