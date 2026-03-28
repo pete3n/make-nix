@@ -1,6 +1,26 @@
-{ pkgs, makeNixAttrs, ... }:
 {
-	imports = [ ../infrax.nix ];
+  lib,
+  pkgs,
+  makeNixAttrs,
+  makeNixLib,
+  ...
+}:
+let
+  makeTags = makeNixAttrs.tags;
+  hasTag = makeNixLib.hasTag;
+in
+{
+  imports =
+    lib.optionals (hasTag "p22" makeTags) [
+      ../shared-imports/darwin/p22-nfs.nix # File share
+      ../shared-imports/cross-platform/p22-build-client.nix # Remote client builds
+      ../shared-imports/cross-platform//p22-pki.nix # Trusted root cert
+    ]
+    ++
+
+      # Nix binary cache substituter config
+      ../shared-imports/cache-config.nix;
+
   system.primaryUser = makeNixAttrs.user;
   nix.settings = {
     # enable flakes globally
