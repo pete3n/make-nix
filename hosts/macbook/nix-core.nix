@@ -14,7 +14,7 @@ in
     lib.optionals (hasTag "p22" makeTags) [
       ../shared-imports/darwin/p22-nfs.nix # File share
       ../shared-imports/cross-platform/p22-build-client.nix # Remote client builds
-      ../shared-imports/cross-platform//p22-pki.nix # Trusted root cert
+      ../shared-imports/cross-platform/p22-pki.nix # Trusted root cert
     ]
     ++
 
