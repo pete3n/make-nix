@@ -16,7 +16,7 @@
       (
         commonMountOptions
         // {
-          what = "192.168.1.16:/mnt/user/share";
+          what = "backupsvr.p22:/mnt/user/share";
           where = "/mnt/nfs/share";
         }
       )
@@ -24,7 +24,7 @@
       (
         commonMountOptions
         // {
-          what = "192.168.1.16:/mnt/user/open";
+          what = "backupsvr.p22:/mnt/user/open";
           where = "/mnt/nfs/open";
         }
       )
