@@ -1,4 +1,4 @@
-{ }:
+{ ... }:
 {
   environment.etc."auto_master".text = ''
     +auto_master            # Use directory service
