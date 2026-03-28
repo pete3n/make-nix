@@ -134,12 +134,14 @@ in
     # proxy.noProxy = "127.0.0.1,localhost,internal.domain";
   };
 
-  age.secrets.p22-build-key = {
-    file = ./secrets/p22-build-key.age;
-    path = "/etc/nix/p22-build-key";
-    owner = "root";
-    group = "root";
-    mode = "0400";
+  age.secrets = lib.optionalAttrs (makeNixLib.hasTag "p22" makeNixAttrs.tags) {
+    p22-build-key = {
+      file = ./p22-build-key.age;
+      path = "/etc/nix/p22-build-key";
+      owner = "root";
+      group = "root";
+      mode = "0400";
+    };
   };
 
   security.pam.services = {

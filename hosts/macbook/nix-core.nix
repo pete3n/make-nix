@@ -37,6 +37,16 @@ in
 
   nixpkgs.hostPlatform = "x86_64-darwin";
 
+  age.secrets = lib.optionalAttrs (makeNixLib.hasTag "p22" makeNixAttrs.tags) {
+    p22-build-key = {
+      file = ./p22-build-key.age;
+      path = "/etc/nix/p22-build-key";
+      owner = "root";
+      group = "root";
+      mode = "0400";
+    };
+  };
+
   # Auto upgrade nix package and the daemon service.
   nix.package = pkgs.nix;
 }
