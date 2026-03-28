@@ -3,39 +3,35 @@
   lib,
   pkgs,
   makeNixAttrs,
+  makeNixLib,
   homeModules,
   ...
 }:
-# "Tags" allow customizable user-based configuration at evaluation time similar
-# to specialisations for the system.
-# Simply add a tag string to the list of linuxTags, and then define and import
-# list for it in tagMap.
-# Even though we are building for users, we can still customize some
-# system based configuration and demonstrate the power of Nix to provide
-# a declarative outcome: get a working Hyprland WM, regardless of
-# if we are using NixOS or a different Linux distribution.
 let
-  darwinTags = [ ];
+  # Build the default Nixvim package for the system architecture
+  nixvim' = [ inputs.nixvim.packages.${makeNixAttrs.system}.default ];
 
-  availableTags = builtins.filter (tag: builtins.elem tag darwinTags) makeNixAttrs.tags;
+  makeUser = makeNixAttrs.user;
+  makeHost = makeNixAttrs.host;
+  makeTags = makeNixAttrs.tags;
+  hasTag = makeNixLib.hasTag;
+  optionalImport = tag: path: lib.optional (hasTag tag makeTags) path;
+  optionalPkgs = tag: pkgList: lib.optionals (hasTag tag makeTags) pkgList;
 
-  tagImportMap = {
-  };
-
-  tagImports = lib.flatten (builtins.map (tag: tagImportMap.${tag}) availableTags);
 in
 {
   imports =
-    builtins.attrValues homeModules
+    lib.optional (
+      hasTag "git" makeTags || hasTag "git-ssh-user" makeTags
+    ) ../cross-platform/git-config.nix
+    ++ builtins.attrValues homeModules
     ++ [
       ../cross-platform/alacritty-config.nix
-      ../cross-platform/git-config.nix
       ../cross-platform/cli-programs.nix
       ./firefox-config.nix
       ./tmux-config.nix
       ./zsh-config.nix
-    ]
-    ++ tagImports;
+    ];
 
   nixpkgs = {
     overlays = [
@@ -43,14 +39,145 @@ in
     ];
     config = {
       allowUnfree = true;
-      # Workaround for https://github.com/nix-community/home-manager/issues/2942
+      # Workaround for https://github.com/nix-communityUsers-manager/issues/2942
       allowUnfreePredicate = _: true;
+    };
+  };
+
+  # launchd services
+  services = {
+    backup = {
+      enable = (hasTag "p22" makeTags);
+      local.destination = "/Volumes/nfs/share/backups/${makeHost}-${makeUser}";
+      patterns = [
+        "R /Users/${makeUser}"
+        "- /Users/${makeUser}/.cache"
+        "- /Users/${makeUser}/Downloads"
+      ];
     };
   };
 
   programs = {
     home-manager.enable = true;
+
+    clip58.enable = true;
+
+    nix-search-tv = {
+      enable = true;
+      enableTelevisionIntegration = true;
+    };
+
+    ssh = {
+      enable = true;
+      enableDefaultConfig = false;
+      matchBlocks = {
+        "github" = {
+          hostname = "github.com";
+          user = "git";
+          identityFile = [
+            "Users/${makeUser}/.ssh/id_ed25519_sk_rk_github"
+            "Users/${makeUser}/.ssh/pete3n"
+          ];
+          identitiesOnly = true;
+        };
+      }
+      // lib.optionalAttrs (hasTag "p22" makeTags) {
+        "framework-dt" = {
+          hostname = "framework-dt.p22";
+          user = "pete";
+          identityFile = "Users/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
+          identitiesOnly = true;
+          extraOptions = {
+            IdentityAgent = "none";
+            ControlMaster = "auto";
+            ControlPath = "~/.ssh/control-%r@%h:%p";
+            ControlPersist = "10m";
+          };
+        };
+        "backupsvr" = {
+          hostname = "backupsvr.p22";
+          user = "root";
+          identityFile = "Users/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
+          identitiesOnly = true;
+          extraOptions.IdentityAgent = "none";
+        };
+        "mediasvr" = {
+          hostname = "media.p22";
+          user = "root";
+          identityFile = "Users/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
+          identitiesOnly = true;
+          extraOptions.IdentityAgent = "none";
+        };
+      };
+    };
+
+    p22Sync = {
+      enable = (hasTag "p22" makeTags);
+      syncHosts = [
+        {
+          name = "framework-16";
+          paths = [
+            "Documents"
+            "Downloads"
+            "Music"
+            "Nextcloud"
+            "Pictures"
+            "Projects"
+            "Videos"
+          ];
+          excludePaths = [
+            "Downloads/Work"
+          ];
+        }
+        {
+          name = "framework-dt";
+          paths = [
+            "Documents"
+            "Downloads"
+            "Music"
+            "Nextcloud"
+            "Pictures"
+            "Projects"
+            "Videos"
+          ];
+          excludePaths = [
+            "Downloads/Work"
+          ];
+        }
+        {
+          name = "macbook";
+          paths = [
+            "Documents"
+            "Downloads"
+            "Music"
+            "Nextcloud"
+            "Pictures"
+            "Projects"
+            "Videos"
+          ];
+          excludePaths = [
+            "Downloads/Work"
+          ];
+        }
+        {
+          name = "macmini";
+          paths = [
+            "Documents"
+            "Downloads"
+            "Music"
+            "Nextcloud"
+            "Pictures"
+            "Projects"
+            "Videos"
+          ];
+          excludePaths = [
+            "Downloads/Work"
+          ];
+        }
+      ];
+    };
   };
+
   fonts.fontconfig.enable = true;
 
   # Home Manager needs a bit of information about you and the
@@ -58,14 +185,16 @@ in
   home = {
     # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
     stateVersion = "24.05";
-    username = "pete";
-    homeDirectory = "/Users/pete";
+    username = "${makeUser}";
+    homeDirectory = "/Users/${makeUser}";
 
     packages =
-      [ inputs.nixvim.packages.${makeNixAttrs.system}.default ]
+      (with pkgs; [
+        python312Packages.base58
+      ])
+      ++ optionalPkgs "nixvim" nixvim'
       ++ (with pkgs; [
         local.yubioath-darwin
-        python312Packages.base58
       ]);
   };
 }
