@@ -16,10 +16,10 @@ in
       ../shared-imports/cross-platform/p22-build-client.nix # Remote client builds
       ../shared-imports/cross-platform/p22-pki.nix # Trusted root cert
     ]
-    ++
-
+    ++ [
       # Nix binary cache substituter config
-      ../shared-imports/cache-config.nix;
+      ../shared-imports/cross-platform/cache-config.nix
+    ];
 
   system.primaryUser = makeNixAttrs.user;
   nix.settings = {
