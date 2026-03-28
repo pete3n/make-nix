@@ -39,7 +39,7 @@ in
 
   age.secrets = lib.optionalAttrs (makeNixLib.hasTag "p22" makeNixAttrs.tags) {
     p22-build-key = {
-      file = ./p22-build-key.age;
+      file = ./secrets/p22-build-key.age;
       path = "/etc/nix/p22-build-key";
       owner = "root";
       group = "root";
