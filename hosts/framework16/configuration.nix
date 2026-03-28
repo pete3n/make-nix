@@ -36,7 +36,7 @@ in
       ./specialisations.nix
 
       # Nix binary cache substituter config
-      ../shared-imports/cache-config.nix
+      ../shared-imports/cross-platform/cache-config.nix
 
       # Common Linux packages
       ../shared-imports/linux/common-packages.nix
