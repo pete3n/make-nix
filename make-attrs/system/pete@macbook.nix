@@ -10,4 +10,5 @@
   useKeys = true;
   tags = [ "git" "power-user" "p22" ];
   specialisations = [ ];
+  sshPubKeys = [ ];
 }
