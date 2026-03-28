@@ -16,10 +16,10 @@ in
     optionalImport "local-ai" ../shared-imports/linux/ollama.nix
     ++ optionalImport "crypto" ../shared-imports/linux/crypto-services.nix
     ++ lib.optionals (hasTag "p22" makeTags) [
-      ../shared-imports/p22-nfs.nix # File share
-      ../shared-imports/p22-pki.nix # Trusted root cert
-      ../shared-imports/p22-printers.nix # Local printer config
-      ../shared-imports/p22-remote-builder.nix # System is a build host for remote builds
+      ../shared-imports/linux/p22-nfs.nix # File share
+      ../shared-imports/linux/p22-printers.nix # Local printer config
+      ../shared-imports/cross-platform//p22-pki.nix # Trusted root cert
+      ../shared-imports/cross-platform/p22-remote-builder.nix # System is a build host for remote builds
     ]
     ++ [
       # This is the hardware configuration created by the installer
