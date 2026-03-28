@@ -33,6 +33,10 @@ in
       };
     };
 
+    lazygit = {
+      enable = true;
+    };
+
     keychain = {
       enable = true;
       keys = gitKeys;
