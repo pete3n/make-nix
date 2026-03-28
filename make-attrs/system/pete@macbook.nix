@@ -8,7 +8,7 @@
   useHomebrew = true;
   useCache = true;
   useKeys = true;
-  tags = [ "git" "power-user" "p22" ];
+  tags = [ "git" "nixvim" "power-user" "p22" ];
   specialisations = [ ];
   sshPubKeys = [ ];
 }
