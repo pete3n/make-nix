@@ -19,10 +19,10 @@ in
     ++ optionalImport "crypto" ../shared-imports/linux/crypto-services.nix
     ++ optionalImport "sdr" ../shared-imports/linux/usrp-sdr.nix
     ++ lib.optionals (hasTag "p22" makeTags) [
-      ../shared-imports/p22-build-client.nix # Remote client builds
-      ../shared-imports/p22-nfs.nix # File share
-      ../shared-imports/p22-pki.nix # Trusted root cert
-      ../shared-imports/p22-printers.nix # Local printer config
+      ../shared-imports/cross-platform/p22-build-client.nix # Remote client builds
+      ../shared-imports/cross-platform/p22-pki.nix # Trusted root cert
+      ../shared-imports/linux/p22-nfs.nix # File share
+      ../shared-imports/linux/p22-printers.nix # Local printer config
     ]
     ++ [
       # This is the hardware configuration created by the installer
