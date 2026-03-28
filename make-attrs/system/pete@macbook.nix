@@ -8,6 +8,6 @@
   useHomebrew = true;
   useCache = true;
   useKeys = true;
-  tags = [ "power-user" ];
+  tags = [ "git" "power-user" "p22" ];
   specialisations = [ ];
 }
