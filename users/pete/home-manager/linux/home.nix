@@ -33,11 +33,10 @@ in
     lib.optional (hasTag "aichat" makeTags || hasTag "local-ai" makeTags) ../cross-platform/aichat.nix
     ++ optionalImport "awesome" ./awesome-config.nix
     ++ optionalImport "gaming" ./gaming-config.nix
-    ++ optionalImport "git-user" ../cross-platform/git-config.nix
+    ++ lib.optional (hasTag "git" makeTags || hasTag "git-ssh-user" makeTags) ../cross-platform/git-config.nix
     ++ optionalImport "hyprland" ./hyprland-config.nix
     ++ optionalImport "mpd" ./mpd-config.nix
     ++ optionalImport "office" ./office-config.nix
-    ++ optionalImport "yubi-user" ./yubikey-u2f.nix
     # Local home modules
     ++ builtins.attrValues homeModules
     ++ [
@@ -66,6 +65,12 @@ in
     stateVersion = "24.05";
     username = "${makeUser}";
     homeDirectory = "/home/${makeUser}";
+
+    file = lib.optionalAttrs (hasTag "yubi-u2f" makeTags) {
+      ".config/Yubico/u2f_keys" = {
+        text = "${makeNixAttrs.user}:jPXIHluUKJNDbiCSQ5+DRfMrG+ZNqMyQXTHSyByi5XHSXHNhZC2CduqlqNOIutx2NIc8Qhn2omlCFpcOoDjukw==,FQlfOdBDXUlixODcx+4gDsFIyLaX21KWqkEmbVx3ny7iwJpL43O2BRMAcArBJWJ/tEsz2/lxI/gZk7Dn9093vA==,es256,+presence:4a218pdZXDWigFWVcGDubvTbdAN9cAlp9+r0CPezvDojRPeou4j1m6vv4ZqW70jzNhAd9HD4gV0ykhC4Uoxi0A==,ftm749QLZ7sgH9ITIyb+f3Wn4BXDjK32+qIMlkfkOnMZ8On6GWBteaITzdCZ6PRzbTCQPZ6TC+ylGLw/rn0Ewg==,es256,+presence";
+      };
+    };
 
     packages =
       (with pkgs; [
@@ -119,6 +124,7 @@ in
         lsof # List open files
         lynx # Text-mode browser
         magic-wormhole # Easy remote file transfer - python
+        #TODO: Alias for --relay-url=wss://mailbox.mw.leastauthority.com/v1
         magic-wormhole-rs # Easy remote file transfer - rust
         most # Better more/less pager
         mutt # Terminal email
