@@ -21,10 +21,10 @@ let
 in
 {
   imports =
-		optionalImport "aerospace" ../darwin/aerospace-config.nix
     lib.optional (
       hasTag "git" makeTags || hasTag "git-ssh-user" makeTags
     ) ../cross-platform/git-config.nix
+		++ optionalImport "aerospace" ../darwin/aerospace-config.nix
     ++ builtins.attrValues homeModules
     ++ [
       ../cross-platform/alacritty-config.nix
