@@ -24,8 +24,8 @@ in
       ../shared-imports/darwin/common-packages.nix
       ./system.nix
       # Import other system packages and configuration options
-      ./yabai.nix
-      ./skhd.nix
+			#./yabai.nix
+			#./skhd.nix
     ];
 
   system.primaryUser = makeNixAttrs.user;
