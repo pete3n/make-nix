@@ -21,7 +21,7 @@ in
     ++ [
       # Nix binary cache substituter config
       ../shared-imports/cross-platform/cache-config.nix
-      ../shared-imports/darwin/common-packages.nix.nix
+      ../shared-imports/darwin/common-packages.nix
       ./system.nix
       # Import other system packages and configuration options
       ./yabai.nix
