@@ -21,8 +21,8 @@ in
     ++ [
       # Nix binary cache substituter config
       ../shared-imports/cross-platform/cache-config.nix
-			../shared-imports/darwin/common-packages.nix
-			./system.nix
+      ../shared-imports/darwin/common-packages.nix
+      ./system.nix
       # Import other system packages and configuration options
       ./yabai.nix
       ./skhd.nix
@@ -36,6 +36,15 @@ in
 
   # Add ability to used TouchID for sudo authentication
   security.pam.services.sudo_local.touchIdAuth = false;
+
+  services = {
+    aerospace = lib.mkIf (hasTag "aerospace" makeTags) {
+      enable = true;
+    };
+    sketchybar = lib.mkIf (hasTag "aerospace" makeTags) {
+      enable = true;
+    };
+  };
 
   nix.settings = {
     # enable flakes globally
@@ -81,6 +90,6 @@ in
   time.timeZone = "America/New_York";
 
   fonts.packages = [
-		pkgs.nerd-fonts.jetbrains-mono
+    pkgs.nerd-fonts.jetbrains-mono
   ];
 }
