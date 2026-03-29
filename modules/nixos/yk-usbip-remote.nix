@@ -1,3 +1,4 @@
+# Module to allow attaching to a remote Yubikey over USBIP
 {
   lib,
   pkgs,

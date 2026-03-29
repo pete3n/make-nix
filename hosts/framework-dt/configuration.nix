@@ -52,8 +52,6 @@ in
     supportedFilesystems = [ "ntfs" ];
   };
 
-  hardware.bolt.enable = true; # boltctl
-
   nix = {
     settings = {
       experimental-features = [
@@ -118,6 +116,7 @@ in
   };
 
   services = {
+    hardware.bolt.enable = true; # boltctl
     # Enable resolvctl for DNS changes
     resolved = {
       enable = true;
@@ -157,6 +156,9 @@ in
       };
     };
 
+		# Allow attaching to remote USB Yubikey over USBIP
+    yubikeyUsbipRemote.enable = true;
+
     pipewire = {
       enable = true;
       alsa.enable = true;
@@ -175,7 +177,6 @@ in
   // lib.optionalAttrs (hasTag "yubi-age-user" makeTags) {
     pcscd.enable = true;
     udev.packages = [ pkgs.yubikey-personalization ];
-    yubikeyUsbipServer.enable = true;
   };
 
   programs.gnupg.agent.enable = lib.mkIf (hasTag "yubi-age-user" makeTags) true;
