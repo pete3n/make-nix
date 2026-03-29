@@ -217,7 +217,6 @@ in
         borgbackup
         browsh # Terminal browser
         ddgr # Search duckduckgo from the terminal
-        unstable.cryptomator # Encrypted container GUI
         fdupes # Duplicate file finder
         litemdview # Simple markdown viewer
         local.ipod-shuffle-4g
