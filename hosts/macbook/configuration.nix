@@ -32,7 +32,7 @@ in
   networking.computerName = "${makeNixAttrs.host}";
 
   # Add ability to used TouchID for sudo authentication
-  pam.services.sudo_local.touchIdAuth = false;
+  security.pam.services.sudo_local.touchIdAuth = false;
 
   services = {
     aerospace = lib.mkIf (hasTag "aerospace" makeTags) {
