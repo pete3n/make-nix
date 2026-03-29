@@ -257,7 +257,6 @@ in
         sshs # SSH config manager TUI
         tldr # Better man pages
         vim
-        xxgdb # gdb TUI
       ])
       ++ optionalPkgs "messaging" (
         # Messaging apps
