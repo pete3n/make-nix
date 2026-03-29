@@ -219,8 +219,6 @@ in
         ddgr # Search duckduckgo from the terminal
         fdupes # Duplicate file finder
         local.ipod-shuffle-4g
-        nextcloud-client
-        remmina
         rustdesk-flutter
         unstable.standardnotes
         unstable.yt-dlp # Youtube download Python version
