@@ -45,7 +45,7 @@ in
       # Override NixOS firewall rules and use custom iptables based ruleset
       ../shared-imports/linux/iptables-services.nix
 
-      ../shared-imports/pam-fprint-yubikey.nix
+      ../shared-imports/linux/yubikey-pam-fprint.nix
       outputs.nixosModules.yubikeyUsbipServer # Use Yubikey on remote systems
     ]
     ++ [ inputs.pete3n-mods.nixosModules.default ]

@@ -41,7 +41,7 @@ in
 
       ./iptables-services.nix # Allow ssh on LAN
 
-      ../shared-imports/pam-sshd.nix
+      ../shared-imports/linux/yubikey-pam-sshd.nix
       outputs.nixosModules.yubikeyUsbipRemote
     ];
 
