@@ -41,8 +41,6 @@ in
 
       ./iptables-services.nix # Allow ssh on LAN
 
-      # Ensure u2f keys are present in ~/.config/Yubico/u2f_keys before enabling
-      ../shared-imports/pam-u2f-common.nix
       ../shared-imports/pam-sshd.nix
       outputs.nixosModules.yubikeyUsbipRemote
     ];

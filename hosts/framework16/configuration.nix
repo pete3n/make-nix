@@ -46,7 +46,6 @@ in
       ../shared-imports/linux/iptables-services.nix
 
       ../shared-imports/pam-fprint-yubikey.nix
-      ../shared-imports/pam-u2f-common.nix
       outputs.nixosModules.yubikeyUsbipServer # Use Yubikey on remote systems
     ]
     ++ [ inputs.pete3n-mods.nixosModules.default ]
