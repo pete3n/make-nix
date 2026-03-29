@@ -207,10 +207,65 @@ in
 
     packages =
       (with pkgs; [
-        tldr
-        magic-wormhole-rs
+        # Nix tools
+        nix-inspect # Awesome Nix flake explorer
+        nix-melt # Flake lock explorer
+        nix-search-tv # Awesome Nix package fuzzy finder
+        nix-tree # Interactively browse Nix store dependencies
+
+        # Misc
+        borgbackup
+        browsh # Terminal browser
+        ddgr # Search duckduckgo from the terminal
+        unstable.cryptomator # Encrypted container GUI
+        fdupes # Duplicate file finder
+        litemdview # Simple markdown viewer
+        local.ipod-shuffle-4g
+        nextcloud-client
+        remmina
+        rustdesk-flutter
+        unstable.standardnotes
+        unstable.yt-dlp # Youtube download Python version
+        unzip
+        vlc
+        xdg-user-dirs
+        zip
+
+        ## CLI utilities
+        age # Age encryption utilties
+        asciinema # Terminal recorder
+        bandwhich # Network utilization monitor
+        cdrtools # CD writing tools
+        ctop # Container resource monitor
+        diff-so-fancy # Better looking diffs
+        duf # Better du/df
+        entr # File watch event trigger
+        exiftool # Read/write photo metadata
+        fd # Find replacement
+        gdu # Graphical disk usage TUI
+        gron # Grep JSON
+        hyperfine # CLI benchmark tool
+        jc # JSON converter
+        jq # JSON processor
+        #TODO: Alias for --relay-url=wss://mailbox.mw.leastauthority.com/v1
         magic-wormhole
-        python312Packages.base58
+        magic-wormhole-rs # Easy remote file transfer - rust
+        most # Better more/less pager
+        mutt # Terminal email
+        navi # Cheat-sheets
+        nb # CLI note-taking
+        procs # Better process viewer
+        python311Packages.base58
+        repgrep # ripgrep replace
+        ripgrep-all # rg with PDF, office doc, compress file support
+        rsync
+        sd # Better sed
+        speedtest-cli # Internet speed test CLI
+        sshs # SSH config manager TUI
+        tldr # Better man pages
+        unstable.cryptomator-cli # Encrypted container CLI
+        vim
+        xxgdb # gdb TUI
       ])
       ++ optionalPkgs "messaging" (
         # Messaging apps
