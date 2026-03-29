@@ -256,7 +256,6 @@ in
         speedtest-cli # Internet speed test CLI
         sshs # SSH config manager TUI
         tldr # Better man pages
-        unstable.cryptomator-cli # Encrypted container CLI
         vim
         xxgdb # gdb TUI
       ])
