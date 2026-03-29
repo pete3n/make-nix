@@ -271,21 +271,9 @@
           modules = [
             (
               assert
-                builtins.pathExists ./hosts/${sa.host}/nix-core.nix
-                || throw "darwinConfigurations: missing ./hosts/${sa.host}/nix-core.nix";
-              ./hosts/${sa.host}/nix-core.nix
-            )
-            (
-              assert
-                builtins.pathExists ./hosts/${sa.host}/system.nix
-                || throw "darwinConfigurations: missing ./hosts/${sa.host}/system.nix";
-              ./hosts/${sa.host}/system.nix
-            )
-            (
-              assert
-                builtins.pathExists ./hosts/${sa.host}/apps.nix
-                || throw "darwinConfigurations: missing ./hosts/${sa.host}/apps.nix";
-              ./hosts/${sa.host}/apps.nix
+                builtins.pathExists ./hosts/${sa.host}/configuration.nix
+                || throw "darwinConfigurations: missing ./hosts/${sa.host}/configuration.nix";
+              ./hosts/${sa.host}/configuration.nix
             )
             agenix.nixosModules.default
             ./users/darwin-user.nix

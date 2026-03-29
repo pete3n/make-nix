@@ -18,19 +18,7 @@
   #
   # Related Discussion: https://discourse.nixos.org/t/darwin-again/29331
   environment.systemPackages = with pkgs; [
-    git
-    tldr
-    magic-wormhole-rs
-    ripgrep
-    home-manager
     skhd
-    element-desktop
-  ];
-
-  # Import other system packages and configuration options
-  imports = [
-    ./yabai.nix
-    ./skhd.nix
   ];
 
   homebrew = lib.mkIf makeNixAttrs.useHomebrew {

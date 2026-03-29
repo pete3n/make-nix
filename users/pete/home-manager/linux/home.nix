@@ -210,9 +210,10 @@ in
           age
           age-plugin-yubikey
           opensc
-          yubikey-manager
-          yubikey-personalization
           pinentry-curses
+          yubikey-manager
+					yubioath-flutter
+          yubikey-personalization
         ]
       )
       ++ optionalPkgs "yubi-u2f" (

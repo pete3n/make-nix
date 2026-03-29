@@ -75,8 +75,8 @@ in
           hostname = "github.com";
           user = "git";
           identityFile = [
-            "Users/${makeUser}/.ssh/id_ed25519_sk_rk_github"
-            "Users/${makeUser}/.ssh/pete3n"
+            "/Users/${makeUser}/.ssh/id_ed25519_sk_rk_github"
+            "/Users/${makeUser}/.ssh/pete3n"
           ];
           identitiesOnly = true;
         };
@@ -85,7 +85,7 @@ in
         "framework-dt" = {
           hostname = "framework-dt.p22";
           user = "pete";
-          identityFile = "Users/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
+          identityFile = "/Users/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
           identitiesOnly = true;
           extraOptions = {
             IdentityAgent = "none";
@@ -97,14 +97,14 @@ in
         "backupsvr" = {
           hostname = "backupsvr.p22";
           user = "root";
-          identityFile = "Users/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
+          identityFile = "/Users/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
           identitiesOnly = true;
           extraOptions.IdentityAgent = "none";
         };
         "mediasvr" = {
           hostname = "media.p22";
           user = "root";
-          identityFile = "Users/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
+          identityFile = "/Users/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
           identitiesOnly = true;
           extraOptions.IdentityAgent = "none";
         };
@@ -178,6 +178,16 @@ in
     };
   };
 
+  # Import resident keys from Yubikey if any are missing from ~/.ssh
+  yubi-ssh-import = {
+    enable = (hasTag "yubi-ssh-import" makeTags);
+    userKeys = [
+      "id_ed25519_sk_rk_aws"
+      "id_ed25519_sk_rk_github"
+      "id_ed25519_sk_rk_linode"
+      "id_ed25519_sk_rk_p22"
+    ];
+  };
   fonts.fontconfig.enable = true;
 
   # Home Manager needs a bit of information about you and the
@@ -188,10 +198,25 @@ in
     username = "${makeUser}";
     homeDirectory = "/Users/${makeUser}";
 
+    file = lib.optionalAttrs (hasTag "yubi-u2f" makeTags) {
+      ".config/Yubico/u2f_keys".text = "${makeUser}:...";
+    };
+
     packages =
       (with pkgs; [
+        tldr
+        magic-wormhole-rs
+        magic-wormhole
         python312Packages.base58
       ])
+      ++ optionalPkgs "messaging" (
+        # Messaging apps
+        with pkgs;
+        [
+          mod.no-gpu-signal-desktop
+          unstable.element-desktop
+        ]
+      )
       ++ optionalPkgs "nixvim" nixvim'
       ++ (with pkgs; [
         local.yubioath-darwin
@@ -203,6 +228,7 @@ in
           age-plugin-yubikey
           opensc
           yubikey-manager
+          yubioath-darwin
           yubikey-personalization
           pinentry_mac
         ]
