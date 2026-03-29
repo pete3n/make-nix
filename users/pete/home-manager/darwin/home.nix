@@ -218,7 +218,6 @@ in
         browsh # Terminal browser
         ddgr # Search duckduckgo from the terminal
         fdupes # Duplicate file finder
-        litemdview # Simple markdown viewer
         local.ipod-shuffle-4g
         nextcloud-client
         remmina
