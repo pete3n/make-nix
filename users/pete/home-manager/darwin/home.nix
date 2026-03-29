@@ -219,7 +219,6 @@ in
         ddgr # Search duckduckgo from the terminal
         fdupes # Duplicate file finder
         local.ipod-shuffle-4g
-        unstable.standardnotes
         unstable.yt-dlp # Youtube download Python version
         unzip
         vlc
