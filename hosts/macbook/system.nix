@@ -25,14 +25,6 @@ in
             fi
           ''
         }
-        ${lib.optionalString (hasTag "yubi-u2f" makeTags) # sh
-          ''
-            if [ -f /etc/pam.d/sudo ]; then
-            	echo "Backing up /etc/pam.d/sudo to /etc/pam.d/sudo.before-nix-darwin"
-            	mv /etc/pam.d/sudo /etc/pam.d/sudo.before-nix-darwin
-            fi
-          ''
-        }
       '';
       activateSettings = {
         text = # sh
@@ -43,7 +35,6 @@ in
             fi
           '';
       };
-
     };
     primaryUser = makeNixAttrs.user;
 
