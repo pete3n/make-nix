@@ -17,30 +17,31 @@ in
     stateVersion = 5;
     activationScripts = {
       preActivation.text = ''
-        ${lib.optionalString (hasTag "p22" makeTags) ''
-          for f in /etc/auto_master; do
-            if [ -f "$f" ] && [ ! -f "$f.before-nix-darwin" ]; then
-              echo "Backing up $f to $f.before-nix-darwin"
-              mv "$f" "$f.before-nix-darwin"
+        ${lib.optionalString (hasTag "p22" makeTags) # sh
+          ''
+            if [ -f /etc/auto_master ]; then
+            	echo "Backing up /etc/auto_master to /etc/auto_master.before-nix-darwin"
+            	mv /etc/auto_master /etc/auto_master.before-nix-darwin
             fi
-          done
-        ''}
-        ${lib.optionalString (hasTag "yubi-u2f" makeTags) ''
-          for f in /etc/pam.d/sudo; do
-            if [ -f "$f" ] && [ ! -f "$f.before-nix-darwin" ]; then
-              echo "Backing up $f to $f.before-nix-darwin"
-              mv "$f" "$f.before-nix-darwin"
+          ''
+        }
+        ${lib.optionalString (hasTag "yubi-u2f" makeTags) # sh
+          ''
+            if [ -f /etc/pam.d/sudo ]; then
+            	echo "Backing up /etc/pam.d/sudo to /etc/pam.d/sudo.before-nix-darwin"
+            	mv /etc/pam.d/sudo /etc/pam.d/sudo.before-nix-darwin
             fi
-          done
-        ''}
+          ''
+        }
       '';
       activateSettings = {
-        text = ''
-          if [ -n "${config.system.primaryUser}" ]; then
-            sudo -u ${config.system.primaryUser} \
-              /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
-          fi
-        '';
+        text = # sh
+          ''
+            if [ -n "${config.system.primaryUser}" ]; then
+            	sudo -u ${config.system.primaryUser} \
+            		/System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
+            fi
+          '';
       };
 
     };
