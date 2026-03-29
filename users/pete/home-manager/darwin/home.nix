@@ -204,7 +204,7 @@ in
           opensc
           yubikey-manager
           yubikey-personalization
-          pinentry-mac
+          pinentry_mac
         ]
       );
   };
