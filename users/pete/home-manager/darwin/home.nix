@@ -15,7 +15,6 @@ let
   makeHost = makeNixAttrs.host;
   makeTags = makeNixAttrs.tags;
   hasTag = makeNixLib.hasTag;
-  optionalImport = tag: path: lib.optional (hasTag tag makeTags) path;
   optionalPkgs = tag: pkgList: lib.optionals (hasTag tag makeTags) pkgList;
 
 in
@@ -59,6 +58,10 @@ in
 
   programs = {
     home-manager.enable = true;
+
+    fzf-launcher = {
+      enable = hasTag "aerospace" makeTags;
+    };
 
     clip58.enable = true;
 
@@ -274,7 +277,7 @@ in
           age-plugin-yubikey
           opensc
           yubikey-manager
-					local.yubioath-darwin
+          local.yubioath-darwin
           yubikey-personalization
           pinentry_mac
         ]

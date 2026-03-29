@@ -1,6 +1,7 @@
 {
   backup = import ./cross-platform/backup.nix;
   clip58 = import ./cross-platform/clip58.nix;
+	fzf-launcher = import ./darwin/fzf-launcher.nix;
   hyprWhichKey = import ./linux/hyprWhichKey.nix;
   khal-notify = import ./linux/khal-notify.nix;
   lazydocker = import ./cross-platform/lazydocker.nix;

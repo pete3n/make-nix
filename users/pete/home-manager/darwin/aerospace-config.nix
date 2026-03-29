@@ -1,30 +1,5 @@
-{ pkgs, ... }:
-let
-  fzf-launcher = pkgs.writeShellScriptBin "fzf-launcher" # bash
-    ''
-      #!/usr/bin/env bash
-      # Get all applications from standard locations
-      _apps=$(
-        find /Applications /System/Applications ~/Applications \
-          -maxdepth 2 -name "*.app" -type d 2>/dev/null \
-          | sed 's|.*/||; s|\.app$||' \
-          | sort -u
-      )
-
-      _selection=$(printf '%s\n' "$_apps" | \
-        ${pkgs.fzf}/bin/fzf \
-          --prompt="Launch: " \
-          --layout=reverse \
-          --border \
-          --height=40% \
-          --no-multi)
-
-      [ -n "$_selection" ] && open -a "$_selection"
-    '';
-in
+{ ... }:
 {
-  home.packages = [ fzf-launcher ];
-
   home.file.".config/aerospace/aerospace.toml".text = ''
     # Aerospace configuration
     # https://nikitabobko.github.io/AeroSpace/guide
@@ -34,7 +9,7 @@ in
     alt-return = 'exec-and-forget alacritty'
 
     # Launcher
-    alt-d = 'exec-and-forget ${fzf-launcher}/bin/fzf-launcher'
+    alt-d = 'exec-and-forget fzf-launcher'
 
     # Close window
     alt-c = 'close'
