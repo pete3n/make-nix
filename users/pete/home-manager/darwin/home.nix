@@ -15,11 +15,13 @@ let
   makeHost = makeNixAttrs.host;
   makeTags = makeNixAttrs.tags;
   hasTag = makeNixLib.hasTag;
+  optionalImport = tag: path: lib.optional (hasTag tag makeTags) path;
   optionalPkgs = tag: pkgList: lib.optionals (hasTag tag makeTags) pkgList;
 
 in
 {
   imports =
+		optionalImport "aerospace" ../darwin/aerospace-config.nix
     lib.optional (
       hasTag "git" makeTags || hasTag "git-ssh-user" makeTags
     ) ../cross-platform/git-config.nix
