@@ -52,8 +52,6 @@ in
     supportedFilesystems = [ "ntfs" ];
   };
 
-  hardware.bolt.enable = true; # boltctl
-
   nix = {
     settings = {
       experimental-features = [
@@ -118,6 +116,7 @@ in
   };
 
   services = {
+    hardware.bolt.enable = true; # boltctl
     # Enable resolvctl for DNS changes
     resolved = {
       enable = true;
