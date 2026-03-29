@@ -11,6 +11,7 @@
         FONT="JetBrainsMono Nerd Font"
 
         sketchybar --bar \
+					drawing=on \
         	height=30 \
         	position=top \
         	color=$BAR_COLOR \

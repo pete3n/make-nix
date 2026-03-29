@@ -15,7 +15,6 @@ let
   makeHost = makeNixAttrs.host;
   makeTags = makeNixAttrs.tags;
   hasTag = makeNixLib.hasTag;
-  optionalImport = tag: path: lib.optional (hasTag tag makeTags) path;
   optionalPkgs = tag: pkgList: lib.optionals (hasTag tag makeTags) pkgList;
 
 in
@@ -24,7 +23,10 @@ in
     lib.optional (
       hasTag "git" makeTags || hasTag "git-ssh-user" makeTags
     ) ../cross-platform/git-config.nix
-		++ optionalImport "aerospace" ../darwin/aerospace-config.nix
+    ++ lib.optionals (hasTag "aerospace" makeTags) [
+      ./aerospace-config.nix
+      ./sketchybar-config.nix
+    ]
     ++ builtins.attrValues homeModules
     ++ [
       ../cross-platform/alacritty-config.nix
