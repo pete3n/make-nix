@@ -8,7 +8,7 @@
   useHomebrew = true;
   useCache = true;
   useKeys = true;
-  tags = [ "git" "nixvim" "power-user" "p22" "yubi-age-user" "yubi-u2f" ];
+  tags = [ "git" "nixvim" "power-user" "p22" "yubi-age-user" "yubi-ssh-import" "yubi-u2f" ];
   specialisations = [ ];
   sshPubKeys = [ ];
 }
