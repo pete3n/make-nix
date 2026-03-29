@@ -176,18 +176,19 @@ in
         }
       ];
     };
+
+    # Import resident keys from Yubikey if any are missing from ~/.ssh
+    yubi-ssh-import = {
+      enable = (hasTag "yubi-ssh-import" makeTags);
+      userKeys = [
+        "id_ed25519_sk_rk_aws"
+        "id_ed25519_sk_rk_github"
+        "id_ed25519_sk_rk_linode"
+        "id_ed25519_sk_rk_p22"
+      ];
+    };
   };
 
-  # Import resident keys from Yubikey if any are missing from ~/.ssh
-  yubi-ssh-import = {
-    enable = (hasTag "yubi-ssh-import" makeTags);
-    userKeys = [
-      "id_ed25519_sk_rk_aws"
-      "id_ed25519_sk_rk_github"
-      "id_ed25519_sk_rk_linode"
-      "id_ed25519_sk_rk_p22"
-    ];
-  };
   fonts.fontconfig.enable = true;
 
   # Home Manager needs a bit of information about you and the
