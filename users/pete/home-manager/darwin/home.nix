@@ -221,7 +221,6 @@ in
         local.ipod-shuffle-4g
         unstable.yt-dlp # Youtube download Python version
         unzip
-        vlc
         xdg-user-dirs
         zip
 
