@@ -18,9 +18,10 @@ in
     ++ lib.optionals (hasTag "p22" makeTags) [
       ../shared-imports/linux/p22-nfs.nix # File share
       ../shared-imports/linux/p22-printers.nix # Local printer config
-      ../shared-imports/cross-platform//p22-pki.nix # Trusted root cert
+      ../shared-imports/cross-platform/p22-pki.nix # Trusted root cert
       ../shared-imports/cross-platform/p22-remote-builder.nix # System is a build host for remote builds
     ]
+    ++ optionalImport "yubi-u2f" ../shared-imports/linux/yubikey-pam-u2f.nix
     ++ [
       # This is the hardware configuration created by the installer
       # Most importantly it contains the UUIDs for your boot and root filesystems
@@ -52,6 +53,8 @@ in
     loader.efi.canTouchEfiVariables = true;
     supportedFilesystems = [ "ntfs" ];
   };
+
+  hardware.bolt.enable = true; # boltctl
 
   nix = {
     settings = {
@@ -103,7 +106,7 @@ in
         };
       };
     };
-    hostName = "framework-dt";
+    hostName = "${makeNixAttrs.host}";
     useDHCP = false; # Disable automatic DHCP; manually call: dhcpcd -B interface
     nameservers = [ ]; # Use resolved
 
@@ -116,68 +119,68 @@ in
     # proxy.noProxy = "127.0.0.1,localhost,internal.domain";
   };
 
-  # Enable resolvctl for DNS changes
-  services.resolved = {
-    enable = true;
-    dnssec = "allow-downgrade";
-    dnsovertls = "opportunistic";
-
-    extraConfig = ''
-      DNS=192.168.1.1
-      Domains=~p22
-    '';
-
-    fallbackDns = [
-      "1.1.1.1"
-      "8.8.8.8"
-    ];
-  };
-
-  # Allow remote Yubikeys to authenticate
-  services.yubikeyUsbipRemote = {
-    enable = true;
-  };
-
-  # SSH
-  services.openssh = {
-    enable = true;
-    ports = [ 22 ];
-    hostKeys = [
-      {
-        type = "ed25519";
-        path = "/etc/ssh/ssh_host_ed25519_key";
-      }
-    ];
-    settings = {
-      AcceptEnv = "USBIP_YUBIKEY";
-      PubkeyAuthentication = true;
-      PasswordAuthentication = false;
-      KbdInteractiveAuthentication = false;
-      PermitRootLogin = "no";
-      UseDns = true;
-      X11Forwarding = false;
-      AllowAgentForwarding = false;
-      PermitTunnel = "no";
-    };
-  };
-
-  # Audio
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-    wireplumber.enable = true;
-  };
-
   services = {
+    # Enable resolvctl for DNS changes
+    resolved = {
+      enable = true;
+      dnssec = "allow-downgrade";
+      dnsovertls = "opportunistic";
+
+      extraConfig = ''
+        DNS=192.168.1.1
+        Domains=~p22
+      '';
+
+      fallbackDns = [
+        "1.1.1.1"
+        "8.8.8.8"
+      ];
+    };
+
+    openssh = {
+      enable = true;
+      ports = [ 22 ];
+      hostKeys = [
+        {
+          type = "ed25519";
+          path = "/etc/ssh/ssh_host_ed25519_key";
+        }
+      ];
+      settings = {
+        AcceptEnv = "USBIP_YUBIKEY";
+        PubkeyAuthentication = true;
+        PasswordAuthentication = false;
+        KbdInteractiveAuthentication = false;
+        PermitRootLogin = "no";
+        UseDns = true;
+        X11Forwarding = false;
+        AllowAgentForwarding = false;
+        PermitTunnel = "no";
+      };
+    };
+
+    pipewire = {
+      enable = true;
+      alsa.enable = true;
+      alsa.support32Bit = true;
+      pulse.enable = true;
+      wireplumber.enable = true;
+    };
+
     # TODO: Check out flatpaks for home-manager with nix-flatpak
     flatpak.enable = true;
     fwupd.enable = true;
-    hardware.bolt.enable = true; # boltctl
     power-profiles-daemon.enable = true;
     thermald.enable = true;
+
+  }
+  // lib.optionalAttrs (hasTag "yubi-age-user" makeTags) {
+    pcscd.enable = true;
+    udev.packages = [ pkgs.yubikey-personalization ];
+    yubikeyUsbipServer.enable = true;
   };
+
+  programs.gnupg.agent.enable = lib.mkIf (hasTag "yubi-age-user" makeTags) true;
 
   ### Fonts and Locale ###
   i18n.defaultLocale = "en_US.UTF-8";

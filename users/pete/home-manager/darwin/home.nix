@@ -195,6 +195,17 @@ in
       ++ optionalPkgs "nixvim" nixvim'
       ++ (with pkgs; [
         local.yubioath-darwin
-      ]);
+      ])
+      ++ optionalPkgs "yubi-age-user" (
+        with pkgs;
+        [
+          age
+          age-plugin-yubikey
+          opensc
+          yubikey-manager
+          yubikey-personalization
+          pinentry-mac
+        ]
+      );
   };
 }

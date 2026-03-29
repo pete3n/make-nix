@@ -17,13 +17,14 @@ in
   imports =
     optionalImport "local-ai" ../shared-imports/linux/ollama.nix
     ++ optionalImport "crypto" ../shared-imports/linux/crypto-services.nix
-    ++ optionalImport "sdr" ../shared-imports/linux/usrp-sdr.nix
     ++ lib.optionals (hasTag "p22" makeTags) [
       ../shared-imports/cross-platform/p22-build-client.nix # Remote client builds
       ../shared-imports/cross-platform/p22-pki.nix # Trusted root cert
       ../shared-imports/linux/p22-nfs.nix # File share
       ../shared-imports/linux/p22-printers.nix # Local printer config
     ]
+    ++ optionalImport "sdr" ../shared-imports/linux/usrp-sdr.nix
+    ++ optionalImport "yubi-u2f" ../shared-imports/linux/yubikey-pam-u2f.nix
     ++ [
       # This is the hardware configuration created by the installer
       # Most importantly it contains the UUIDs for your boot and root filesystems
@@ -120,7 +121,7 @@ in
 
   ### NETWORK CONFIG ###
   networking = {
-    hostName = "framework16";
+    hostName = "${makeNixAttrs.host}";
     useDHCP = true;
     dhcpcd.enable = true;
     nameservers = [ ]; # Use resolved
@@ -134,6 +135,8 @@ in
     # proxy.noProxy = "127.0.0.1,localhost,internal.domain";
   };
 
+
+	# Build key for remote build machines
   age.secrets = lib.optionalAttrs (makeNixLib.hasTag "p22" makeNixAttrs.tags) {
     p22-build-key = {
       file = ./secrets/p22-build-key.age;
@@ -169,11 +172,6 @@ in
     lidmond = {
       enable = true;
       accessGroup = "wheel";
-    };
-
-    # Allow remotely connecting Yubikey
-    yubikeyUsbipServer = {
-      enable = true;
     };
 
     resolved = {
@@ -225,8 +223,14 @@ in
 
     # TODO: Check out flatpaks for home-manager with nix-flatpak
     flatpak.enable = true;
-
+  }
+  // lib.optionalAttrs (hasTag "yubi-age-user" makeTags) {
+    pcscd.enable = true;
+    udev.packages = [ pkgs.yubikey-personalization ];
+    yubikeyUsbipServer.enable = true;
   };
+
+  programs.gnupg.agent.enable = lib.mkIf (hasTag "yubi-age-user" makeTags) true;
 
   # Portals must be enable system wide for Flatpak support
   xdg.portal = {

@@ -8,6 +8,7 @@
 let
   makeTags = makeNixAttrs.tags;
   hasTag = makeNixLib.hasTag;
+  optionalImport = tag: path: lib.optional (hasTag tag makeTags) path;
 in
 {
   imports =
@@ -16,6 +17,7 @@ in
       ../shared-imports/cross-platform/p22-build-client.nix # Remote client builds
       ../shared-imports/cross-platform/p22-pki.nix # Trusted root cert
     ]
+    ++ optionalImport "yubi-u2f" ../shared-imports/darwin/yubikey-pam-u2f.nix
     ++ [
       # Nix binary cache substituter config
       ../shared-imports/cross-platform/cache-config.nix
@@ -28,11 +30,6 @@ in
       "nix-command"
       "flakes"
     ];
-
-    # Disable auto-optimise-store because of this issue:
-    #   https://github.com/NixOS/nix/issues/7273
-    # "error: cannot link '/nix/store/.tmp-link-xxxxx-xxxxx' to '/nix/store/.links/xxxx': File exists"
-    auto-optimise-store = false;
   };
 
   nixpkgs.hostPlatform = "x86_64-darwin";

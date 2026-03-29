@@ -202,7 +202,27 @@ in
           unstable.teams-for-linux
         ]
       )
-      ++ optionalPkgs "sdr" [ pkgs.gnuradio ]; # Software defined radio
+      ++ optionalPkgs "sdr" [ pkgs.gnuradio ] # Software defined radio
+      ++ optionalPkgs "yubi-age-user" (
+				# Userland packages to support Yubikey system integration
+        with pkgs;
+        [
+          age
+          age-plugin-yubikey
+          opensc
+          yubikey-manager
+          yubikey-personalization
+          pinentry-curses
+        ]
+      )
+      ++ optionalPkgs "yubi-u2f" (
+				# Userland packages to support system level Yubikey u2f and pam integration
+        with pkgs;
+        [
+          pam_u2f
+          pamtester
+        ]
+      );
   };
 
   # systemd --user services
