@@ -1,58 +1,42 @@
+# Aerospace configuration
+# https://nikitabobko.github.io/AeroSpace/guide
 { ... }:
 {
-  home.file.".config/aerospace/aerospace.toml".text = ''
-    # Aerospace configuration
-    # https://nikitabobko.github.io/AeroSpace/guide
+  home.file.".config/aerospace/aerospace.toml".text = # toml
+    ''
+      [mode.main.binding]
+      cmd-ctrl-return = 'exec-and-forget alacritty'
+      cmd-ctrl-q = 'exec-and-forget alacritty'
+      cmd-ctrl-r = 'exec-and-forget alacritty -e fzf-launcher'
+      cmd-ctrl-c = 'close'
+      cmd-ctrl-f = 'fullscreen'
+      cmd-ctrl-h = 'focus left'
+      cmd-ctrl-j = 'focus down'
+      cmd-ctrl-k = 'focus up'
+      cmd-ctrl-l = 'focus right'
+      cmd-ctrl-shift-h = 'move left'
+      cmd-ctrl-shift-j = 'move down'
+      cmd-ctrl-shift-k = 'move up'
+      cmd-ctrl-shift-l = 'move right'
+      cmd-ctrl-1 = 'workspace 1'
+      cmd-ctrl-2 = 'workspace 2'
+      cmd-ctrl-3 = 'workspace 3'
+      cmd-ctrl-4 = 'workspace 4'
+      cmd-ctrl-5 = 'workspace 5'
+      cmd-ctrl-shift-1 = 'move-node-to-workspace 1'
+      cmd-ctrl-shift-2 = 'move-node-to-workspace 2'
+      cmd-ctrl-shift-3 = 'move-node-to-workspace 3'
+      cmd-ctrl-shift-4 = 'move-node-to-workspace 4'
+      cmd-ctrl-shift-5 = 'move-node-to-workspace 5'
+      cmd-ctrl-slash = 'layout tiles horizontal vertical'
+      cmd-ctrl-comma = 'layout accordion horizontal vertical'
 
-    [mode.main.binding]
-    # Terminal
-    alt-return = 'exec-and-forget alacritty'
-
-    # Launcher
-    alt-d = 'exec-and-forget fzf-launcher'
-
-    # Close window
-    alt-c = 'close'
-
-    # Toggle fullscreen
-    alt-f = 'fullscreen'
-
-    # Focus
-    alt-h = 'focus left'
-    alt-j = 'focus down'
-    alt-k = 'focus up'
-    alt-l = 'focus right'
-
-    # Move
-    alt-shift-h = 'move left'
-    alt-shift-j = 'move down'
-    alt-shift-k = 'move up'
-    alt-shift-l = 'move right'
-
-    # Workspaces
-    alt-1 = 'workspace 1'
-    alt-2 = 'workspace 2'
-    alt-3 = 'workspace 3'
-    alt-4 = 'workspace 4'
-    alt-5 = 'workspace 5'
-
-    # Move window to workspace
-    alt-shift-1 = 'move-node-to-workspace 1'
-    alt-shift-2 = 'move-node-to-workspace 2'
-    alt-shift-3 = 'move-node-to-workspace 3'
-    alt-shift-4 = 'move-node-to-workspace 4'
-    alt-shift-5 = 'move-node-to-workspace 5'
-
-    # Layout
-    alt-slash = 'layout tiles horizontal vertical'
-    alt-comma = 'layout accordion horizontal vertical'
-
-    [gaps]
-    inner.horizontal = 5
-    inner.vertical   = 5
-    outer.left       = 15
-    outer.bottom     = 15
-    outer.top        = 15
-    outer.right      = 15
-  '';
+      [gaps]
+      inner.horizontal = 5
+      inner.vertical   = 5
+      outer.left       = 15
+      outer.bottom     = 15
+      outer.top        = 15
+      outer.right      = 15
+    '';
 }
