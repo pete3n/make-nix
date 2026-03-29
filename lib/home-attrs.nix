@@ -4,7 +4,12 @@
 {
   lib,
   validTags,
+  isLinux,
+  isDarwin,
   systemOnlyTags,
+  darwinOnlyTags,
+  linuxOnlyTags,
+  ...
 }: # This implements two curried (linked) functions allowing
 { dir }: # lib to be bound once and dir multiple times.
 assert builtins.pathExists dir || throw "getHomeAttrs: directory not found: ${toString dir}";
@@ -37,11 +42,29 @@ let
       homeAttrs = import homePath { };
       invalidTags = builtins.filter (tag: !builtins.elem tag validTags) (homeAttrs.tags or [ ]);
       isHomeAlone = homeAttrs.isHomeAlone or false;
+      system = homeAttrs.system or "";
+
       systemTagsUsed = builtins.filter (tag: builtins.elem tag systemOnlyTags) (homeAttrs.tags or [ ]);
+      darwinTagsUsed = builtins.filter (tag: builtins.elem tag darwinOnlyTags) (homeAttrs.tags or [ ]);
+      linuxTagsUsed = builtins.filter (tag: builtins.elem tag linuxOnlyTags) (homeAttrs.tags or [ ]);
       warnIfSystemTags =
         val:
         if isHomeAlone && systemTagsUsed != [ ] then
           builtins.trace "WARNING: getHomeAttrs: home-alone config ${toString homePath} uses system-only tags: ${lib.concatStringsSep ", " systemTagsUsed}" val
+        else
+          val;
+
+      warnIfDarwinTags =
+        val:
+        if isLinux system && darwinTagsUsed != [ ] then
+          builtins.trace "WARNING: getHomeAttrs: Linux config ${toString homePath} uses Darwin-only tags: ${lib.concatStringsSep ", " darwinTagsUsed}" val
+        else
+          val;
+
+      warnIfLinuxTags =
+        val:
+        if isDarwin system && linuxTagsUsed != [ ] then
+          builtins.trace "WARNING: getHomeAttrs: Darwin config ${toString homePath} uses Linux-only tags: ${lib.concatStringsSep ", " linuxTagsUsed}" val
         else
           val;
     in
@@ -55,7 +78,11 @@ let
       invalidTags == [ ]
       || throw "getHomeAttrs: invalid tags in ${toString homePath}: ${lib.concatStringsSep ", " invalidTags} 
 		\nTag must be listed in lib/default.nix to be used.";
-    warnIfSystemTags (lib.nameValuePair "${homeAttrs.user}@${homeAttrs.host}" homeAttrs);
+    warnIfSystemTags (
+      warnIfDarwinTags (
+        warnIfLinuxTags (lib.nameValuePair "${homeAttrs.user}@${homeAttrs.host}" homeAttrs)
+      )
+    );
 in
 
 let
