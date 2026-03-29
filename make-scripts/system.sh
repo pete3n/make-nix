@@ -27,7 +27,6 @@ spec=""
 _set_switch_spec() {
 	_switch_spec_in=${SWITCH_SPEC:-}
 
-	# Normalize SPECS into one-per-line, trimmed, drop empties
 	_specs_nl=$(
 		printf '%s' "${SPECS:-}" |
 		tr ',' '\n' |
@@ -36,10 +35,9 @@ _set_switch_spec() {
 
 	if [ -z "$_specs_nl" ]; then
 		logf "\n%binfo:%b No valid specialisation found. Skipping...\n" "${C_INFO}" "${C_RST}"
-		exit 0
+		return 0
 	fi
 
-	# Truthy => take first
 	if is_truthy "$_switch_spec_in"; then
 		_first_spec=$(printf '%s\n' "$_specs_nl" | sed -n '1p')
 		spec="${_first_spec}"
@@ -48,19 +46,16 @@ _set_switch_spec() {
 
 	if [ -z "$_switch_spec_in" ]; then
 		logf "\n%binfo:%b No valid specialisation found. Skipping...\n" "${C_INFO}" "${C_RST}"
-		exit 0
+		return 0
 	fi
 
-	# Trim BOOT_SPEC for comparison
 	_switch_spec_in=$(printf '%s' "$_switch_spec_in" | xargs)
 
-	# Validate membership
 	if printf '%s\n' "$_specs_nl" | grep -Fx -- "$_switch_spec_in" >/dev/null 2>&1; then
 		spec="${_switch_spec_in}"
 		return 0
 	fi
 
-	# Not valid => discard with warning
 	logf "\n%bwarn:%b BOOT_SPEC '%s' not in available SPECS (%s). Ignoring.\n" \
 		"${C_WARN}" "${C_RST}" "$_switch_spec_in" "${SPECS:-}"
 	spec=""
