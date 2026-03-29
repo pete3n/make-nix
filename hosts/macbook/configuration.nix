@@ -24,18 +24,15 @@ in
       ../shared-imports/darwin/common-packages.nix
       ./system.nix
       # Import other system packages and configuration options
-			#./yabai.nix
-			#./skhd.nix
+      #./yabai.nix
+      #./skhd.nix
     ];
-
-  system.primaryUser = makeNixAttrs.user;
 
   networking.hostName = "${makeNixAttrs.host}";
   networking.computerName = "${makeNixAttrs.host}";
-  system.defaults.smb.NetBIOSName = "${makeNixAttrs.host}";
 
   # Add ability to used TouchID for sudo authentication
-  security.pam.services.sudo_local.touchIdAuth = false;
+  pam.services.sudo_local.touchIdAuth = false;
 
   services = {
     aerospace = lib.mkIf (hasTag "aerospace" makeTags) {
