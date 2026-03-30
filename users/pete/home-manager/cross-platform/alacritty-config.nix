@@ -1,3 +1,4 @@
+{ makeNixLib, makeNixAttrs, ... }:
 {
   programs.alacritty = {
     enable = true;
@@ -47,6 +48,52 @@
           white = "#f7f7f7";
         };
       };
+      keyboard.bindings =
+        if makeNixLib.isDarwin makeNixAttrs.system then
+          [
+            {
+              key = "V";
+              mods = "Command";
+              action = "Paste";
+            }
+            {
+              key = "C";
+              mods = "Command";
+              action = "Copy";
+            }
+            {
+              key = "Q";
+              mods = "Command";
+              action = "Quit";
+            }
+            {
+              key = "N";
+              mods = "Command";
+              action = "CreateNewWindow";
+            }
+            {
+              key = "Return";
+              mods = "Command";
+              action = "ToggleFullscreen";
+            }
+            {
+              key = "Key0";
+              mods = "Command";
+              action = "ResetFontSize";
+            }
+            {
+              key = "Equals";
+              mods = "Command";
+              action = "IncreaseFontSize";
+            }
+            {
+              key = "Minus";
+              mods = "Command";
+              action = "DecreaseFontSize";
+            }
+          ]
+        else
+          [ ];
     };
   };
 }

@@ -25,7 +25,7 @@ in
     ) ../cross-platform/git-config.nix
     ++ lib.optionals (hasTag "aerospace" makeTags) [
       ./aerospace-config.nix
-      ./sketchybar-config.nix
+			./sketchybar-config.nix
     ]
     ++ builtins.attrValues homeModules
     ++ [
