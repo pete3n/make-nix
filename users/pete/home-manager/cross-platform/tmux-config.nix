@@ -6,6 +6,11 @@
   ...
 }:
 let
+  isDarwin = makeNixLib.isDarwin makeNixAttrs.system;
+  isLinux = makeNixLib.isLinux makeNixAttrs.system;
+  hasTag = makeNixLib.hasTag;
+  tags = makeNixAttrs.tags;
+
   tmux_ssh_wrapper = # sh
     ''
       ssh() {
@@ -46,7 +51,6 @@ let
           trap _reset_window_name INT
 
           if [ -n "''${_destination}" ]; then
-						printf "DEBUG: destination='%s' args='%s'\n" "''${_destination}" "$*" >&2
             tmux rename-window "''${_destination}"
           fi
 
@@ -71,13 +75,20 @@ let
 in
 {
   home.packages = with pkgs; [ powerline-fonts ];
+
   programs.tmux = {
-    shell =
-      if makeNixLib.isDarwin makeNixAttrs.system then "${pkgs.zsh}/bin/zsh" else "${pkgs.bash}/bin/bash";
     enable = true;
+    shell = if isDarwin then "${pkgs.zsh}/bin/zsh" else "${pkgs.bash}/bin/bash";
     sensibleOnTop = false;
     escapeTime = 10;
     mouse = true;
+    keyMode = "vi";
+    baseIndex = 1;
+    historyLimit = 50000;
+    clock24 = true;
+    focusEvents = true;
+    terminal = "screen-256color";
+
     plugins = with pkgs.tmuxPlugins; [
       onedark-theme
       pain-control
@@ -93,9 +104,19 @@ in
       tmux-fzf
       {
         plugin = extrakto;
-        extraConfig = ''
-          set -g @extrakto_clip_tool "wl-copy"
-        '';
+        extraConfig =
+          if isDarwin then
+            ''
+              set -g @extrakto_clip_tool "pbcopy"
+            ''
+          else if hasTag "wayland" tags then
+            ''
+              set -g @extrakto_clip_tool "wl-copy"
+            ''
+          else
+            ''
+              set -g @extrakto_clip_tool "xclip"
+            '';
       }
       resurrect
       {
@@ -106,57 +127,51 @@ in
         '';
       }
     ];
-    extraConfig = # sh
-      ''
-        set -g history-limit 50000
-        setw -g clock-mode-style 24
 
-        # neovim recommended
-        set-option -g focus-events on
-        set-option -g default-terminal "screen-256color"
-        set-option -sa terminal-features ',alacritty:RGB'
+    extraConfig = ''
+      set -g set-titles on
+      set -g set-titles-string "tmux: #S"
+      set-option -sa terminal-features ',alacritty:RGB'
+      set-option -g renumber-windows on
 
-        # List key bindings
-        bind b list-keys
+      # List key bindings
+      bind b list-keys
 
-        # "Zen" mode - zoom window without status bar
-        bind Z if -F '#{window_zoomed_flag}' \
+      # "Zen" mode - zoom window without status bar
+      bind Z if -F '#{window_zoomed_flag}' \
         'resize-pane -Z; set -g status on' \
         'resize-pane -Z; set -g status off'
 
-        # Enter visual selection with vim binding
-        bind-key -T copy-mode-vi v send-keys -X begin-selection
+      # Enter visual selection with vim binding
+      bind-key -T copy-mode-vi v send-keys -X begin-selection
 
-        # Start with 1 for the first window and auto-renumber
-        set -g base-index 1
-        set-option -g renumber-windows on
+      # Split panes in current path
+      bind '"' split-window -v -c "#{pane_current_path}"
+      bind % split-window -h -c "#{pane_current_path}"
+      bind | split-window -h -c "#{pane_current_path}"
+      bind _ split-window -v -c "#{pane_current_path}"
 
-        # Use vim keys to navigate selection mode
-        set-window-option -g mode-keys vi
+      # Transparent status bar on top
+      set -g status-bg default
+      set -g status-fg default
+      set-option -g status-style bg=default
+      set -g status-position top
 
-        # Split panes in current path
-        bind '"' split-window -v -c "#{pane_current_path}"
-        bind % split-window -h -c "#{pane_current_path}"
-        bind | split-window -h -c "#{pane_current_path}"
-        bind _ split-window -v -c "#{pane_current_path}"
-
-        # Transparent status bar on top
-        set -g status-bg default
-        set -g status-fg default
-        set-option -g status-style bg=default
-        set -g status-position top
-
-        # Add zoomed status
-        set -g status-left "#[fg=#282c34,bg=#98c379,bold] #S #{prefix_highlight}#[fg=#98c379,bg=#282c34,nobold,nounderscore,noitalics] #{?window_zoomed_flag,#[fg=#white]Z* ,}"
-      '';
+      # Add zoomed status
+      set -g status-left "#[fg=#282c34,bg=#98c379,bold] #S #{prefix_highlight}#[fg=#98c379,bg=#282c34,nobold,nounderscore,noitalics] #{?window_zoomed_flag,#[fg=#white]Z* ,}"
+    ''
+    + lib.optionalString isDarwin ''
+      set-option -ga terminal-overrides ',alacritty:Tc:smcup@:rmcup@'
+    '';
   };
+
   programs.fzf.tmux.enableShellIntegration = true;
 
-  programs.bash = lib.mkIf (makeNixLib.isLinux makeNixAttrs.system) {
+  programs.bash = lib.mkIf isLinux {
     initExtra = tmux_ssh_wrapper;
   };
 
-  programs.zsh = lib.mkIf (makeNixLib.isDarwin makeNixAttrs.system) {
+  programs.zsh = lib.mkIf isDarwin {
     initContent = lib.mkOrder 1000 tmux_ssh_wrapper;
   };
 }
