@@ -47,7 +47,16 @@
             	fi
             fi
           '';
-
+      nix_path = # sh
+        ''
+          nixpath() {
+            if [ -z "''${1:-}" ]; then
+              printf "Usage: nixpath <binary>\n" >&2
+              return 1
+            fi
+            printf "%s\n" "$(realpath "$(command -v "''${1}")")"
+          }
+        '';
       check_fastfetch = # sh
         ''
           # Show fastfetch at login but not for every new TMUX pane/window
@@ -74,7 +83,7 @@
           	if ps -p $$ -o ppid= | xargs -I {} ps -p {} -o comm= | grep -qw tmux; then
           		# Save the current window name so we can restore it
           		local original_window_name=""
-							original_window_name=$(tmux display-message -p '#W')
+          		original_window_name=$(tmux display-message -p '#W')
 
           		reset_window_name() {
           			tmux rename-window "$original_window_name"
@@ -85,7 +94,7 @@
 
           		# Parse and extract the destination host with some really ugly character matching
           		local destination=""
-							destination=$(printf '%s\n' "$@" | sed 's/[[:space:]]*\(\(\(-[46AaCfGgKkMNnqsTtVvXxYy]\)\|\(-[^[:space:]]*\([[:space:]]\+[^[:space:]]*\)\?\)\)[[:space:]]*\)*[[:space:]]\+\([^-][^[:space:]]*\).*/\6/')
+          		destination=$(printf '%s\n' "$@" | sed 's/[[:space:]]*\(\(\(-[46AaCfGgKkMNnqsTtVvXxYy]\)\|\(-[^[:space:]]*\([[:space:]]\+[^[:space:]]*\)\?\)\)[[:space:]]*\)*[[:space:]]\+\([^-][^[:space:]]*\).*/\6/')
 
           		tmux rename-window "$destination"
 
@@ -128,9 +137,10 @@
       syntaxHighlighting.enable = true;
       defaultKeymap = "viins";
       shellAliases = {
+				ns = "nix-search-tv print | fzf --preview 'nix-search-tv preview {}' --scheme history";
         lsc = "lsd --classic"; # For annoying colors on SMB/NFS mounts
-        wl-copy = "pbcopy"; # I use Wayland too much to remember the pb clip cmds
-        wl-paste = "pbpaste";
+        cclip = "pbcopy"; 
+        pclip = "pbpaste";
         cd = "z";
       };
       sessionVariables = {
@@ -151,7 +161,8 @@
           #Import ssh key TODO: make less imperative
           ''
             zstyle :omz:plugins:ssh-agent identities pete3n
-          '';
+          ''
+          + nix_path;
       };
       initContent = lib.mkMerge [
         earlyInit
