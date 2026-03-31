@@ -1,6 +1,16 @@
 # Aerospace configuration
 # https://nikitabobko.github.io/AeroSpace/guide
 { config, pkgs, ... }:
+let
+  smart-close = pkgs.writeShellScript "smart-close" ''
+    _focused=$(${pkgs.aerospace}/bin/aerospace list-windows --focused --format "%{app-name} %{window-title}")
+    if echo "$_focused" | grep -q "tmux:"; then
+      ${pkgs.tmux}/bin/tmux detach-client
+    else
+      ${pkgs.aerospace}/bin/aerospace close
+    fi
+  '';
+in
 {
   programs.aerospace = {
     enable = true;
@@ -17,8 +27,8 @@
       mode.main.binding = {
         cmd-enter = "exec-and-forget ${pkgs.alacritty}/bin/alacritty";
         cmd-r = "exec-and-forget ${pkgs.alacritty}/bin/alacritty -e ${config.home.homeDirectory}/.nix-profile/bin/fzf-launcher";
-        cmd-t = "exec-and-forget ${pkgs.alacritty}/bin/alacritty -e /bin/sh -c 'source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh; source ${config.home.homeDirectory}/.nix-profile/etc/profile.d/hm-session-vars.sh; exec ${pkgs.tmux}/bin/tmux new-session -A -s 0'";
-        ctrl-cmd-c = "close";
+        cmd-t = "exec-and-forget open -n ${pkgs.alacritty}/Applications/Alacritty.app --args -e /bin/sh -c 'source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh; source ${config.home.homeDirectory}/.nix-profile/etc/profile.d/hm-session-vars.sh; exec ${pkgs.tmux}/bin/tmux new-session -A -s 0'";
+        cmd-shift-q = "exec-and-forget ${smart-close}";
         cmd-f = "fullscreen";
         cmd-h = "focus left";
         cmd-j = "focus down";
