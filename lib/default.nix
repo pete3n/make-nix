@@ -58,7 +58,11 @@ rec {
     "cuda"
     "hyprland"
     "mpd"
+    "wayland"
+    "x11"
   ];
+
+  #TODO: Implement wayland, x11 in specialisations
 
   # Configuration tags that can be applied to both home and system configs.
   validConfigTags = [
