@@ -31,8 +31,8 @@ in
     ++ [
       ../cross-platform/alacritty-config.nix
       ../cross-platform/cli-programs.nix
+      ../cross-platform/tmux-config.nix
       ./firefox-config.nix
-      ./tmux-config.nix
       ./zsh-config.nix
     ];
 
