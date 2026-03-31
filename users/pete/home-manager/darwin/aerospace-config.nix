@@ -55,13 +55,13 @@ in
         cmd-shift-3 = "move-node-to-workspace 3";
         cmd-shift-4 = "move-node-to-workspace 4";
         cmd-shift-5 = "move-node-to-workspace 5";
-        cmd-shift-s = "move-node-to-workspace scratchpad";
+        cmd-shift-s = "move-node-to-workspace S";
         cmd-s = "exec-and-forget ${pkgs.writeShellScript "toggle-scratchpad" ''
           _current=$(${pkgs.aerospace}/bin/aerospace list-workspaces --focused)
-          if [ "$_current" = "scratchpad" ]; then
+          if [ "$_current" = "S" ]; then
             ${pkgs.aerospace}/bin/aerospace workspace-back-and-forth
           else
-            ${pkgs.aerospace}/bin/aerospace workspace scratchpad
+            ${pkgs.aerospace}/bin/aerospace workspace S
           fi
         ''}";
         cmd-slash = "layout tiles horizontal vertical";

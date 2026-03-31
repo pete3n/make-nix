@@ -30,13 +30,13 @@
 
         sketchybar --add event aerospace_workspace_change
 
-        for sid in 1 2 3 4 5; do
-        	sketchybar --add item "space.$sid" left \
-        		--subscribe "space.$sid" aerospace_workspace_change \
-        		--set "space.$sid" \
-        			icon="$sid" \
-        			click_script="aerospace workspace $sid" \
-        			script="sketchybar --set \$NAME icon.color=\$([ \"\$AEROSPACE_FOCUSED_WORKSPACE\" = \"\$sid\" ] && echo 0xff5277c3 || echo 0xff7ebae4)"
+        for sid in 1 2 3 4 5 S; do
+        sketchybar --add item "space.$sid" left \
+        --subscribe "space.$sid" aerospace_workspace_change \
+        --set "space.$sid" \
+        icon="$sid" \
+        click_script="aerospace workspace $sid" \
+        script="sketchybar --set \$NAME icon.color=\$([ \"\$AEROSPACE_FOCUSED_WORKSPACE\" = \"$sid\" ] && echo 0xff5277c3 || echo 0xff7ebae4)"
         done
 
         sketchybar --add item clock center \
