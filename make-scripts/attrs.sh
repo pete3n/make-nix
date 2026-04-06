@@ -37,6 +37,16 @@ use_cache=""
 tags=""
 ssh_pub_keys=""
 specs=""
+# Embedded system vars
+embedded_target=""
+pi_board=""
+build_system=""
+deploy_method=""
+
+# Valid values — must match lib/default.nix
+valid_embedded_targets="raspberry-pi"
+valid_pi_boards="rpi02 rpi3 rpi4 rpi5"
+valid_deploy_methods="sd-image pxe"
 
 # Either use a hostname provided from commandline args or default to current hostname
 if [ -z "${TGT_HOST:-}" ]; then
@@ -93,6 +103,26 @@ _validate_options() {
 		err 1 "Homebrew cannot be used on a Linux system. Configuration is invalid."
 	fi
 
+	# Embedded system cross-field validation (mirrors home-attrs.nix assertions)
+	if [ -n "${embedded_target:-}" ]; then
+		_validate_in_list "${embedded_target}" "${valid_embedded_targets}" "embedded_target"
+
+		# Raspberry Pi specific
+		if [ "${embedded_target}" = "raspberry-pi" ]; then
+			if [ -z "${pi_board:-}" ]; then
+				err 1 "pi_board is required when embedded_target=raspberry-pi."
+			fi
+			_validate_in_list "${pi_board}" "${valid_pi_boards}" "pi_board"
+
+			if [ -n "${deploy_method:-}" ]; then
+				_validate_in_list "${deploy_method}" "${valid_deploy_methods}" "deploy_method"
+				if [ "${deploy_method}" = "pxe" ] && [ "${pi_board}" != "rpi5" ]; then
+					err 1 "deploy_method=pxe is only supported for pi_board=rpi5 (got '${pi_board}')."
+				fi
+			fi
+		fi
+	fi
+
 	return 0
 }
 
@@ -103,18 +133,23 @@ _update_env() {
 
 	_filter=""
 	# Only filter out vars we have an updated value for
-	[ -n "${attrs_path:-}" ] && _filter="${_filter}|ATTRS_PATH"
-	[ -n "${host:-}" ] && _filter="${_filter}|TGT_HOST"
-	[ -n "${user:-}" ] && _filter="${_filter}|TGT_USER"
-	[ -n "${system:-}" ] && _filter="${_filter}|TGT_SYSTEM"
-	[ -n "${is_linux:-}" ] && _filter="${_filter}|IS_LINUX"
+	[ -n "${attrs_path:-}" ]    && _filter="${_filter}|ATTRS_PATH"
+	[ -n "${host:-}" ]          && _filter="${_filter}|TGT_HOST"
+	[ -n "${user:-}" ]          && _filter="${_filter}|TGT_USER"
+	[ -n "${system:-}" ]        && _filter="${_filter}|TGT_SYSTEM"
+	[ -n "${is_linux:-}" ]      && _filter="${_filter}|IS_LINUX"
 	[ -n "${is_home_alone:-}" ] && _filter="${_filter}|HOME_ALONE"
-	[ -n "${tags:-}" ] && _filter="${_filter}|CFG_TAGS"
-	[ -n "${specs:-}" ] && _filter="${_filter}|SPECS"
-	[ -n "${ssh_pub_keys:-}" ] && _filter="${_filter}|SSH_PUB_KEYS"
-	[ -n "${use_homebrew:-}" ] && _filter="${_filter}|USE_HOMEBREW"
-	[ -n "${use_cache:-}" ] && _filter="${_filter}|USE_CACHE"
-	[ -n "${use_keys:-}" ] && _filter="${_filter}|USE_KEYS"
+	[ -n "${embedded_target:-}" ] && _filter="${_filter}|EMBEDDED_TARGET"
+	[ -n "${is_pi:-}" ]           && _filter="${_filter}|IS_PI"
+	[ -n "${tags:-}" ]          && _filter="${_filter}|CFG_TAGS"
+	[ -n "${specs:-}" ]         && _filter="${_filter}|SPECS"
+	[ -n "${ssh_pub_keys:-}" ]  && _filter="${_filter}|SSH_PUB_KEYS"
+	[ -n "${use_homebrew:-}" ]  && _filter="${_filter}|USE_HOMEBREW"
+	[ -n "${use_cache:-}" ]     && _filter="${_filter}|USE_CACHE"
+	[ -n "${use_keys:-}" ]      && _filter="${_filter}|USE_KEYS"
+	[ -n "${pi_board:-}" ]      && _filter="${_filter}|PI_BOARD"
+	[ -n "${build_system:-}" ]  && _filter="${_filter}|BUILD_SYSTEM"
+	[ -n "${deploy_method:-}" ] && _filter="${_filter}|DEPLOY_METHOD"
 
 	if [ -n "$_filter" ]; then
 		_filter="^(${_filter#|})="
@@ -129,18 +164,24 @@ _update_env() {
 		printf "%s" "${_other_vars}"
 
 		# Only update values that are set
-		[ -n "${attrs_path:-}" ] && printf "ATTRS_PATH=%s\n" "${attrs_path}"
-		[ -n "${host:-}" ] && printf "TGT_HOST=%s\n" "${host}"
-		[ -n "${user:-}" ] && printf "TGT_USER=%s\n" "${user}"
-		[ -n "${system:-}" ] && printf "TGT_SYSTEM=%s\n" "${system}"
-		[ -n "${is_linux:-}" ] && printf "IS_LINUX=%s\n" "${is_linux}"
-		[ -n "${is_home_alone:-}" ] && printf "HOME_ALONE=%s\n" "${is_home_alone}"
-		[ -n "${tags:-}" ] && printf "CFG_TAGS=%s\n" "${tags}"
-		[ -n "${specs:-}" ] && printf "SPECS=%s\n" "${specs}"
-		[ -n "${ssh_pub_keys:-}" ] && printf "SSH_PUB_KEYS='%s'\n" "${ssh_pub_keys}"
-		[ -n "${use_homebrew:-}" ] && printf "USE_HOMEBREW=%s\n" "${use_homebrew}"
-		[ -n "${use_cache:-}" ] && printf "USE_CACHE=%s\n" "${use_cache}"
-		[ -n "${use_keys:-}" ] && printf "USE_KEYS=%s\n" "${use_keys}"
+		[ -n "${attrs_path:-}" ]    && printf "ATTRS_PATH=%s\n"    "${attrs_path}"
+		[ -n "${host:-}" ]          && printf "TGT_HOST=%s\n"      "${host}"
+		[ -n "${user:-}" ]          && printf "TGT_USER=%s\n"      "${user}"
+		[ -n "${system:-}" ]        && printf "TGT_SYSTEM=%s\n"    "${system}"
+		[ -n "${is_linux:-}" ]      && printf "IS_LINUX=%s\n"      "${is_linux}"
+		[ -n "${is_home_alone:-}" ] && printf "HOME_ALONE=%s\n"    "${is_home_alone}"
+		[ -n "${embedded_target:-}" ] && printf "EMBEDDED_TARGET=%s\n" "${embedded_target}"
+		[ -n "${is_pi:-}" ]           && printf "IS_PI=%s\n"           "${is_pi}"
+		[ -n "${tags:-}" ]          && printf "CFG_TAGS=%s\n"      "${tags}"
+		[ -n "${specs:-}" ]         && printf "SPECS=%s\n"         "${specs}"
+		[ -n "${ssh_pub_keys:-}" ]  && printf "SSH_PUB_KEYS='%s'\n" "${ssh_pub_keys}"
+		[ -n "${use_homebrew:-}" ]  && printf "USE_HOMEBREW=%s\n"  "${use_homebrew}"
+		[ -n "${use_cache:-}" ]     && printf "USE_CACHE=%s\n"     "${use_cache}"
+		[ -n "${use_keys:-}" ]      && printf "USE_KEYS=%s\n"      "${use_keys}"
+		[ -n "${pi_board:-}" ]      && printf "PI_BOARD=%s\n"      "${pi_board}"
+		[ -n "${build_system:-}" ]  && printf "BUILD_SYSTEM=%s\n"  "${build_system}"
+		[ -n "${deploy_method:-}" ] && printf "DEPLOY_METHOD=%s\n" "${deploy_method}"
+		true
 	} > "${MAKE_NIX_ENV}"
 }
 
@@ -169,6 +210,17 @@ _set_vars() {
   if [ "${_is_new_file}" = "true" ] && [ -z "${HOME_ALONE-}" ]; then
     : "${is_home_alone:=false}"
   fi
+
+	# EMBEDDED_TARGET: identifies the embedded platform for this host.
+	# When set, platform-specific fields (PI_BOARD etc.) become required.
+	if [ -n "${EMBEDDED_TARGET-}" ]; then
+		embedded_target="${EMBEDDED_TARGET}"
+		is_pi="false"
+		[ "${embedded_target}" = "raspberry-pi" ] && is_pi="true"
+	elif [ "${_is_new_file}" = "true" ]; then
+		: "${embedded_target:=}"
+		: "${is_pi:=false}"
+	fi
 
 	# Use Homebrew for packages in Nix Darwin configuration
   _assign_bool_if_set USE_HOMEBREW use_homebrew
@@ -204,21 +256,26 @@ _set_vars() {
 		specs=""
 	fi
 
-	# Target system tuple, autodetect and use host system if none provided
-	# Don't override the system if checking or rebuilding an attribute set
-  if [ -n "${TGT_SYSTEM-}" ]; then
-    system="${TGT_SYSTEM}"
-  elif [ "${_is_new_file}" = "true" ]; then
-		# Create a Nix compatible system tuple e.g: aarch64-linux, x86_64-darwin
-		_arch=$(uname -m)
-		# Normalize arm64 and aarch64 to always be aarch64
-		[ "${_arch}" = "arm64" ] && _arch=aarch64
-		# Use UNAME_S if specified, otherwise detect host system and use lowercase name
-		_os=$(printf "%s" "${UNAME_S:-$(uname -s)}" | tr '[:upper:]' '[:lower:]')
-		system=$(printf "%s-%s" "${_arch}" "${_os}")
-  else
+	# Target system tuple, autodetect and use host system if none provided.
+	# Don't override the system if checking or rebuilding an attribute set.
+	if [ -n "${TGT_SYSTEM-}" ]; then
+		system="${TGT_SYSTEM}"
+	elif [ "${_is_new_file}" = "true" ]; then
+		if [ "${embedded_target}" = "raspberry-pi" ]; then
+			# Pi targets are always aarch64-linux regardless of the build host.
+			system="aarch64-linux"
+		else
+			# Create a Nix compatible system tuple e.g: aarch64-linux, x86_64-darwin
+			_arch=$(uname -m)
+			# Normalize arm64 and aarch64 to always be aarch64
+			[ "${_arch}" = "arm64" ] && _arch=aarch64
+			# Use UNAME_S if specified, otherwise detect host system and use lowercase name
+			_os=$(printf "%s" "${UNAME_S:-$(uname -s)}" | tr '[:upper:]' '[:lower:]')
+			system=$(printf "%s-%s" "${_arch}" "${_os}")
+		fi
+	else
 		[ -n "${system-}" ] || err 1 "system tuple could not be determined"
-  fi
+	fi
 	
 	# Set is_linux for easy condition checks without string comparison.
 	case "${system-}" in
@@ -231,6 +288,29 @@ _set_vars() {
 			err 1 "Unsupported system detected" "${system}"
 			;;
 	esac
+
+	# Embedded platform-specific fields.
+	# PI_BOARD: which Raspberry Pi model this host is (required when EMBEDDED_TARGET=raspberry-pi).
+	if [ -n "${PI_BOARD-}" ]; then
+		pi_board="${PI_BOARD}"
+	elif [ "${_is_new_file}" = "true" ] && [ "${embedded_target}" = "raspberry-pi" ]; then
+		err 1 "PI_BOARD must be set when EMBEDDED_TARGET=raspberry-pi. Valid values: ${valid_pi_boards}"
+	fi
+
+	# BUILD_SYSTEM: the machine that runs 'nix build'. Defaults to x86_64-linux.
+	# Set this to aarch64-linux if building on another Pi or an aarch64 server.
+	if [ -n "${BUILD_SYSTEM-}" ]; then
+		build_system="${BUILD_SYSTEM}"
+	elif [ "${_is_new_file}" = "true" ] && [ -n "${embedded_target}" ]; then
+		build_system="x86_64-linux"
+	fi
+
+	# DEPLOY_METHOD: how to provision the embedded host initially. Defaults to sd-image.
+	if [ -n "${DEPLOY_METHOD-}" ]; then
+		deploy_method="${DEPLOY_METHOD}"
+	elif [ "${_is_new_file}" = "true" ] && [ -n "${embedded_target}" ]; then
+		deploy_method="sd-image"
+	fi
 }
 
 # (Private): Assign global configuration values by evaluating an attribute file using Nix
@@ -282,8 +362,12 @@ _eval_vars() {
 
 	is_home_alone="$(_nix_eval "builtins.toString (${_base_expr}.isHomeAlone or false)")"
 	is_home_alone="$(normalize_bool "${is_home_alone}")"
-	is_linux="$(_nix_eval "builtins.toString (${_base_expr}.isLinux or false)")"
-	is_linux="$(normalize_bool "${is_linux}")"
+	# Derive is_linux from the system tuple rather than reading a stored isLinux field.
+	case "${system}" in
+		*-linux)  is_linux="true" ;;
+		*-darwin) is_linux="false" ;;
+		*) err 1 "_eval_vars: cannot determine is_linux from system '${system}'" ;;
+	esac
 	use_homebrew="$(_nix_eval "builtins.toString (${_base_expr}.useHomebrew or false)")"
 	use_homebrew="$(normalize_bool "${use_homebrew}")"
 	use_keys="$(_nix_eval "builtins.toString (${_base_expr}.useKeys or false)")"
@@ -295,19 +379,51 @@ _eval_vars() {
   specs="$(_nix_eval "builtins.concatStringsSep \",\" (${_base_expr}.specialisations or [])")"
 	ssh_pub_keys="$(_nix_eval "builtins.concatStringsSep \",\" (${_base_expr}.sshPubKeys or [])")"
 
+	# Embedded system fields — read embeddedTarget first; it drives all downstream logic.
+	# piBoard being non-empty alongside embeddedTarget=raspberry-pi identifies a Pi file.
+	embedded_target="$(_nix_eval "${_base_expr}.embeddedTarget or \"\"")"
+	if [ -n "${embedded_target}" ]; then
+		is_pi="false"
+		[ "${embedded_target}" = "raspberry-pi" ] && is_pi="true"
+		pi_board="$(_nix_eval "${_base_expr}.piBoard or \"\"")"
+		build_system="$(_nix_eval "${_base_expr}.buildSystem or \"x86_64-linux\"")"
+		deploy_method="$(_nix_eval "${_base_expr}.deployMethod or \"sd-image\"")"
+	else
+		embedded_target=""
+		is_pi="false"
+		pi_board=""
+		build_system=""
+		deploy_method=""
+	fi
+
 	_msg="\n${C_INFO}<<< Reading attributes:${C_RST}\n"
 	_msg="${_msg} user: %b%s%b\n host: %b%s%b\n system: %b%s%b\n"
-	_msg="${_msg} is_linux: %b%s%b\n is_home_alone: %b%s%b\n use_homebrew: %b%s%b\n"
-	_msg="${_msg} use_keys: %b%s%b\n use_cache: %b%s%b\n"
+	_msg="${_msg} is_linux: %b%s%b\n is_home_alone: %b%s%b\n"
+	_msg="${_msg} embedded_target: %b%s%b\n is_pi: %b%s%b\n"
+	_msg="${_msg} use_homebrew: %b%s%b\n use_keys: %b%s%b\n use_cache: %b%s%b\n"
 	_msg="${_msg} tags: %b%s%b\n specs: %b%s%b\n ssh_pub_keys: %b%s%b\n"
 
 	logf "$_msg" \
-		"${C_CFG}" "${user}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"\
-		"${C_CFG}" "${system}" "${C_RST}" "${C_CFG}" "${is_linux}" "${C_RST}"\
-		"${C_CFG}" "${is_home_alone}" "${C_RST}" "${C_CFG}" "${use_homebrew}" "${C_RST}"\
-		"${C_CFG}" "${use_keys}" "${C_RST}" "${C_CFG}" "${use_cache}" "${C_RST}"\
-		"${C_CFG}" "${tags}" "${C_RST}" "${C_CFG}" "${specs}" "${C_RST}" \
-    "${C_CFG}" "${ssh_pub_keys}" "${C_RST}"
+		"${C_CFG}" "${user}"         "${C_RST}" \
+		"${C_CFG}" "${host}"         "${C_RST}" \
+		"${C_CFG}" "${system}"       "${C_RST}" \
+		"${C_CFG}" "${is_linux}"        "${C_RST}" \
+		"${C_CFG}" "${is_home_alone}"   "${C_RST}" \
+		"${C_CFG}" "${embedded_target}" "${C_RST}" \
+		"${C_CFG}" "${is_pi}"           "${C_RST}" \
+		"${C_CFG}" "${use_homebrew}" "${C_RST}" \
+		"${C_CFG}" "${use_keys}"     "${C_RST}" \
+		"${C_CFG}" "${use_cache}"    "${C_RST}" \
+		"${C_CFG}" "${tags}"         "${C_RST}" \
+		"${C_CFG}" "${specs}"        "${C_RST}" \
+		"${C_CFG}" "${ssh_pub_keys}" "${C_RST}"
+
+	if [ "${is_pi}" = "true" ]; then
+		logf " pi_board: %b%s%b\n build_system: %b%s%b\n deploy_method: %b%s%b\n" \
+			"${C_CFG}" "${pi_board}"     "${C_RST}" \
+			"${C_CFG}" "${build_system}" "${C_RST}" \
+			"${C_CFG}" "${deploy_method}" "${C_RST}"
+	fi
 }
 
 # Read the Nix attribute file and update the env vars
@@ -500,6 +616,14 @@ write_attrs() {
 				printf "\n  "
 		fi
 		printf " ];\n"
+		if [ -n "${embedded_target}" ]; then
+			printf '  embeddedTarget = "%s";\n' "${embedded_target}"
+			printf '  buildSystem = "%s";\n'    "${build_system}"
+			printf '  deployMethod = "%s";\n'   "${deploy_method}"
+			if [ "${is_pi}" = "true" ]; then
+				printf '  piBoard = "%s";\n' "${pi_board}"
+			fi
+		fi
 		printf '}\n'
 	}
 
@@ -576,6 +700,14 @@ write_attrs() {
 				logf "\n  "
 		fi
 		logf " ]\n"
+		if [ -n "${embedded_target}" ]; then
+			logf '  embeddedTarget    = "%s"\n' "${embedded_target}"
+			logf '  buildSystem       = "%s"\n' "${build_system}"
+			logf '  deployMethod      = "%s"\n' "${deploy_method}"
+			if [ "${is_pi}" = "true" ]; then
+				logf '  piBoard           = "%s"\n' "${pi_board}"
+			fi
+		fi
 		logf '}\n'
 
 		_print_new_attrs >"${_attr_path}"
@@ -623,24 +755,20 @@ write_attrs() {
 		_commit_config "${_target_path}";
 	fi
 
-	if [ "${_is_new_file}" = "true" ] && [ "${is_home_alone}" = "false" ]; then
-		_target_path="$(resolve_path "./make-attrs/system/${_attrset}.nix")"
+	if [ "${_is_new_file}" = "true" ]; then
+		if [ "${is_home_alone}" = "true" ]; then
+			_target_path="$(resolve_path "./make-attrs/home-alone/${_attrset}.nix")"
+		else
+			_target_path="$(resolve_path "./make-attrs/system/${_attrset}.nix")"
+		fi
 		logf "New Nix attribute file will be written: %b%s%b\n" "${C_PATH}" "${_target_path}" "${C_RST}"
-		_write_new_attrs "${_target_path}" "system" || \
+		_write_new_attrs "${_target_path}" || \
 			err 1 "Could not generate configuration: ${C_PATH}${_target_path}${C_RST}"
-		_commit_config "${_target_path}";
-	fi
-
-	if [ "${_is_new_file}" = "false" ] && [ "${is_home_alone}" = "true" ]; then
-		_update_attrs "${attrs_path}" "home-alone" || \
+		_commit_config "${_target_path}"
+	else
+		_update_attrs "${attrs_path}" || \
 			err 1 "Could not update configuration: ${C_PATH}${attrs_path}${C_RST}"
-		_commit_config "${attrs_path}";
-	fi
-
-	if [ "${_is_new_file}" = "false" ] && [ "${is_home_alone}" = "false" ]; then
-		_update_attrs "${attrs_path}" "system" || \
-			err 1 "Could not update configuration: ${C_PATH}${attrs_path}${C_RST}"
-		_commit_config "${attrs_path}";
+		_commit_config "${attrs_path}"
 	fi
 }
 
@@ -665,18 +793,13 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-[ -n "$mode" ] || err 2 "${prog}: no mode specified (use --build or --switch)"
-[ $# -eq 0 ] || err 2 "${prog}: unexpected argument: $1"
+[ -n "$mode" ] || err 2 "${prog}: no mode specified (use --check-all, --check-system, --check-home, --write, or --read)"
+[ $# -eq 0 ]   || err 2 "${prog}: unexpected argument: $1"
 
 case "${mode}" in
-	check-all )
-		check_attrs ${mode} exit $? ;;
-	check-system )
-		check_attrs ${mode} exit $? ;;
-	check-home )
-		check_attrs ${mode} exit $? ;;
-	read )
-		read_attrs ${mode} exit $? ;;
-	write )
-		write_attrs exit $? ;;
+	check-all)    check_attrs "${mode}"; exit $? ;;
+	check-system) check_attrs "${mode}"; exit $? ;;
+	check-home)   check_attrs "${mode}"; exit $? ;;
+	read)         read_attrs;            exit $? ;;
+	write)        write_attrs;           exit $? ;;
 esac

@@ -92,6 +92,64 @@ _build_nixos() {
 	fi
 }
 
+# Build Pi SD card image or netboot artifacts.
+# Unlike a regular NixOS build, the useful output for initial provisioning is
+# the image artifact, not the system closure. The system closure is still
+# accessible via nixosConfigurations for subsequent nixos-rebuild updates.
+#
+# deployMethod=sd-image: builds piImages."${attrset}" → .sdImage (a .img.zst file)
+# deployMethod=pxe:      builds piNetboot."${attrset}" → netboot ramdisk
+_build_pi() {
+	_attrset="${user}@${host}"
+	_deploy="${deploy_method:-sd-image}"
+
+	logf "\n%b>>> Building Pi configuration for:%b %b%s%b (deployMethod: %s)\n" \
+		"${C_INFO}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}" "${_deploy}"
+
+	if [ "${dry_switch}" = "--dry-run" ]; then
+		logf "\n%binfo: --dry-run%b - no result output will be created.\n" "${C_INFO}" "${C_RST}"
+	fi
+
+	case "${_deploy}" in
+		sd-image)
+			_flake_attr="path:${flake_root}#piImages.\"${_attrset}\""
+			_result_link="result-${host}-pi-sdimage"
+			;;
+		pxe)
+			_flake_attr="path:${flake_root}#piNetboot.\"${_attrset}\""
+			_result_link="result-${host}-pi-netboot"
+			;;
+		*)
+			err 1 "Unknown deployMethod '${_deploy}' for Pi build."
+			;;
+	esac
+
+	set -- nix build -L --max-jobs auto --cores 0 --option fallback true
+	if is_truthy "${NO_SUB:-}"; then
+		set -- "$@" --option substitute false
+	fi
+	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
+	set -- "$@" --out-link "${_result_link}" "${_flake_attr}"
+
+	print_cmd -- NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"
+
+	if NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
+		logf "\n%b✓ Pi build success.%b\n" "${C_OK}" "${C_RST}"
+		logf "\n%bResult in:\n%b %b%s/%s%b\n" \
+			"${C_INFO}" "${C_RST}" "${C_PATH}" "${flake_root}" "${_result_link}" "${C_RST}"
+
+		if [ "${_deploy}" = "sd-image" ]; then
+			logf "\n%bTo flash:%b\n"  "${C_INFO}" "${C_RST}"
+			logf "  zstd -d %s/%s/sd-image/*.img.zst -o pi.img\n" \
+				"${flake_root}" "${_result_link}"
+			logf "  sudo dd if=pi.img of=/dev/sdX bs=8M status=progress\n"
+		fi
+		return 0
+	else
+		err 1 "Pi build failed."
+	fi
+}
+
 # Build system (nix-darwin)
 _build_darwin() {
 	_attrset="${user}@${host}"
@@ -153,7 +211,6 @@ _switch_nixos() {
 	logf "\n%b>>> Switching%b NixOS system configuration for %b%s%b\n" \
 		"${C_INFO}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"
 
-
 	set -- "${_rebuild_bin}" switch --option fallback true
 	if is_truthy "${NO_SUB:-}"; then
 		set -- "$@" --option substitute false
@@ -163,7 +220,6 @@ _switch_nixos() {
 	set -- "$@" --flake "path:${flake_root}#${_attrset}"
 
 	print_cmd 'sudo NIX_CONFIG="extra-experimental-features = nix-command flakes"' "$@"
-	# Prepend the wrapper + env exactly once
 	set -- as_root env 'NIX_CONFIG=extra-experimental-features = nix-command flakes' "$@"
 
 	if "$@"; then
@@ -171,6 +227,64 @@ _switch_nixos() {
 		return 0
 	fi
 	err 1 "NixOS configuration switch failed."
+}
+
+# Switch Pi configuration via nixos-rebuild --target-host (post-first-boot only).
+# Pi hosts are present in nixosConfigurations so the same rebuild path works.
+# This function is only meaningful once the Pi is running NixOS — it cannot
+# perform the initial flash. Use build (--build) for that.
+_switch_pi() {
+	_attrset="${user}@${host}"
+	_result_bin="./result-${host}-nixos/sw/bin/nixos-rebuild"
+	_rebuild_bin=""
+
+	if has_cmd "nixos-rebuild"; then
+		_rebuild_bin="nixos-rebuild"
+	fi
+
+	if [ -x "${_result_bin}" ]; then
+		_rebuild_bin="${_result_bin}"
+	fi
+
+	if [ -z "${_rebuild_bin}" ]; then
+		logf "\n%binfo:%b nixos-rebuild not found, building first...\n" "${C_INFO}" "${C_RST}"
+		_build_nixos
+		if [ -x "${_result_bin}" ]; then
+			_rebuild_bin="${_result_bin}"
+		fi
+	fi
+
+	if [ -z "${_rebuild_bin}" ]; then
+		err 1 "Could not locate nixos-rebuild binary."
+	fi
+
+	if [ "${dry_switch}" = "--dry-run" ]; then
+		logf "\n%binfo: --dry-run%b - configuration will not be switched...\n" "${C_INFO}" "${C_RST}"
+		return 0
+	fi
+
+	logf "\n%b>>> Switching%b Pi NixOS configuration for %b%s%b\n" \
+		"${C_INFO}" "${C_RST}" "${C_CFG}" "${host}" "${C_RST}"
+	logf "%bNote:%b Pi switch requires the Pi to already be running NixOS.\n" \
+		"${C_INFO}" "${C_RST}"
+	logf "Use %bmake build-pi%b for initial SD card image creation.\n" \
+		"${C_CMD}" "${C_RST}"
+
+	set -- "${_rebuild_bin}" switch --option fallback true
+	if is_truthy "${NO_SUB:-}"; then
+		set -- "$@" --option substitute false
+	fi
+	[ -n "${dry_switch:-}" ] && set -- "$@" "${dry_switch}"
+	set -- "$@" --flake "path:${flake_root}#${_attrset}"
+
+	print_cmd 'sudo NIX_CONFIG="extra-experimental-features = nix-command flakes"' "$@"
+	set -- as_root env 'NIX_CONFIG=extra-experimental-features = nix-command flakes' "$@"
+
+	if "$@"; then
+		logf "\n%b✓ Pi NixOS configuration switch success.%b\n" "${C_OK}" "${C_RST}"
+		return 0
+	fi
+	err 1 "Pi NixOS configuration switch failed."
 }
 
 # Switch system configuration (darwin)
@@ -246,6 +360,10 @@ else
 	is_linux="${IS_LINUX}"
 fi
 
+# IS_PI is optional — defaults to false if not set by attrs.sh
+is_pi="$(normalize_bool "${IS_PI:-false}")"
+deploy_method="${DEPLOY_METHOD:-sd-image}"
+
 if is_truthy "${DRY_RUN:-}"; then
 	dry_switch="--dry-run"
 fi
@@ -278,7 +396,9 @@ done
 
 case "${mode}" in
   build)
-    if [ "${is_linux}" = "true" ]; then
+		if [ "${is_pi}" = "true" ]; then
+			_build_pi
+    elif [ "${is_linux}" = "true" ]; then
       _build_nixos
     else
       _build_darwin
@@ -286,7 +406,13 @@ case "${mode}" in
     exit $?
     ;;
   switch)
-    if [ "${is_linux}" = "true" ]; then
+		if [ "${is_pi}" = "true" ]; then
+			# Pi switch only makes sense once NixOS is running on the Pi.
+			# The check for NixOS is the same as for regular Linux: uname -a | grep NixOS.
+			# On the build host (which is not the Pi) this will be false, so switch
+			# is skipped — consistent with how regular NixOS switch is guarded.
+			uname -a | grep -q "NixOS" && _switch_pi || :
+    elif [ "${is_linux}" = "true" ]; then
 			# Don't attempt to switch to a NixOS configuration outside of NixOS.
 			uname -a | grep -q "NixOS" && _switch_nixos || :
     else 
