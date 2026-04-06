@@ -88,7 +88,6 @@ in
         borgbackup
         browsh # Terminal browser
         ddgr # Search duckduckgo from the terminal
-        unstable.cryptomator # Encrypted container GUI
         fdupes # Duplicate file finder
         kdePackages.okular # Okular PDF viewer
         kdePackages.dolphin # Dolphin file browser
@@ -142,7 +141,6 @@ in
         speedtest-cli # Internet speed test CLI
         sshs # SSH config manager TUI
         tldr # Better man pages
-        unstable.cryptomator-cli # Encrypted container CLI
         vim
         xxgdb # gdb TUI
 
@@ -168,7 +166,10 @@ in
         termshark
         wireshark
         whois
-      ])
+      ]) ++ lib.optionals (makeNixAttrs.system == "x86_64-linux") (with pkgs; [
+				unstable.cryptomator # Encrypted container GUI
+        unstable.cryptomator-cli # Encrypted container CLI
+			])
       ++ optionalPkgs "nixvim" nixvim'
       ++ optionalPkgs "media-creation" (
         # Multimedia creation and editing tools for 3d, audio, images, music, and video
