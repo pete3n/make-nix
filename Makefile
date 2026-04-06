@@ -140,8 +140,16 @@ build: prep-goal write-attrs-sh check-sh build-system-sh build-home-sh clean-sh
 .PHONY: build-system
 build-system: prep-goal write-attrs-sh check-system-sh build-system-sh clean-sh
 
+.PHONY: build-pi
+build-pi: prep-goal write-attrs-sh check-system-sh build-pi-sh clean-sh
+
 .PHONY: build-home
 build-home: prep-goal write-attrs-sh check-home-sh build-home-sh clean-sh
+
+# Build the Pi image artifact (SD card image or PXE netboot).
+.PHONY: build-pi-sh
+build-pi-sh:
+	@sh "make-scripts/system.sh" --build
 
 # Build flake-based system configurations for Linux or Darwin systems.
 .PHONY: build-system-sh
@@ -178,30 +186,37 @@ switch: prep-goal write-attrs-sh check-sh switch-system-sh switch-home-sh \
 switch-system: prep-goal write-attrs-sh check-system-sh switch-system-sh \
 	set-boot-sh clean-sh
 
+.PHONY: switch-pi
+switch-pi: prep-goal write-attrs-sh check-system-sh switch-pi-sh clean-sh
+
 .PHONY: switch-home
 switch-home: prep-goal write-attrs-sh check-home-sh switch-home-sh clean-sh
 
+# Switch the Pi NixOS configuration (post-first-boot, over SSH).
+.PHONY: switch-pi-sh
+switch-pi-sh:
+	@sh "make-scripts/system.sh" --switch
 # Build and activate flake-based system configurations for Linux or Darwin systems.
 .PHONY: switch-system-sh
 switch-system-sh:
-	@sh make-scripts/system.sh --switch
+	@sh "make-scripts/system.sh" --switch
 
 # Activate flake-based Home-manager configurations for Linux or Darwin systems.
 .PHONY: activate-home-sh
 activate-home-sh:
-	@sh make-scripts/home.sh --activate
+	@sh "make-scripts/home.sh" --activate
 
 # Build and activate flake-based Home-manager configurations for Linux or Darwin systems.
 .PHONY: switch-home-sh
 switch-home-sh:
-	@sh make-scripts/home.sh --switch
+	@sh "make-scripts/home.sh" --switch
 
 .PHONY: update
 update: prep-goal update-sh clean-sh
 
 .PHONY: update-sh
 update-sh:
-	@sh make-scripts/update.sh
+	@sh "make-scripts/update.sh"
 
 .PHONY: test
 test: prep-goal check-sh warn-if-dirty-sh
@@ -214,5 +229,5 @@ all: prep-goal install-sh write-attrs-sh check-sh warn-if-dirty-sh \
 %:
 	@printf "Unknown target: '$@'\n"
 	@printf "Valid targets: help all install check switch update uninstall\n"
-	@printf "Valid sub-targets: check-system check-home build-system build-home switch-system switch-home\n"
+	@printf "Valid sub-targets: check-system check-home build-system build-pi build-home switch-system switch-pi switch-home\n"
 	@false
