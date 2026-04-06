@@ -74,6 +74,7 @@ make <help|install|check|build|switch|all>
 | --------- | ------------------------------------------------------------------------------------ |
 | `help`    | View make-nix usage help.                                                            |
 | `install` | Install Nix and/or Nix-Darwin on a bare MacOS or Linux system. Does not run on NixOS or Nix-Darwin managed systems. |
+| `uninstall` | Uninstall Nix and/or Nix-Darwin on a bare MacOS or Linux system. Does not run on NixOS or Nix-Darwin managed systems. |
 | `check`   | Validate flake configurations for the target user and host.                          |
 | `build`   | Build Nix closures for home and system configurations. Runs `check` first to prevent configuration mismatches. |
 | `switch`  | Check, build, and activate configurations.                                           |
