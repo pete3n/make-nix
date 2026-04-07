@@ -317,6 +317,18 @@
             };
           }
           {
+            desc = "yUbikey Oath";
+            menuKey = "u";
+            hyprBind = {
+              mods = [ "$mainMod" ];
+              key = "u";
+              action = {
+                type = "exec";
+                cmd = "yubioath-flutter";
+              };
+            };
+          }
+          {
             desc = "Yazi";
             menuKey = "y";
             hyprBind = {
