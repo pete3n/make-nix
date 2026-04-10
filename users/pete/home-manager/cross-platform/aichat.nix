@@ -448,6 +448,8 @@ let
     type = "openai-compatible";
     api_base = "http://localhost:11434/v1";
     models = [
+			{ name = "gemma:31b"; }
+			{ name = "gemma4:e4b"; }
       { name = "qwen3.5:9b"; }
       { name = "qwen3-coder:latest"; }
       { name = "jaahas/qwen3.5-uncensored:latest"; }
