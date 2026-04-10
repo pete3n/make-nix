@@ -1,7 +1,7 @@
 { ... }:
 {
   user = "pete";
-  host = "rpi4";
+  host = "rpi4-etp";
   system = "aarch64-linux";
   isLinux = true;
   isHomeAlone = false;
