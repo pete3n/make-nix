@@ -13,4 +13,5 @@
   yubi-age-secrets = import ./linux/yubi-age-secrets.nix;
   yubi-age-decrypt = import ./cross-platform/yubi-age-decrypt.nix;
   yubi-ssh-import = import ./cross-platform/yubi-ssh-import.nix;
+	zoeyChar = import ./linux/zoey-char.nix;
 }
