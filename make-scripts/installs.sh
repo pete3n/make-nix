@@ -184,15 +184,15 @@ _ensure_experimental_features() {
 
 		# Wait for daemon to be ready before returning
 		logf "\n%binfo:%b Waiting for nix-daemon to restart...\n" "${C_INFO}" "${C_RST}"
-		_retries=10
-		while [ "${_retries}" -gt 0 ]; do
-				if nix store ping --store daemon 2>/dev/null; then
-						logf "%b✅ nix-daemon ready.%b\n" "${C_OK}" "${C_RST}"
-						break
+			_retries=10
+			while [ "${_retries}" -gt 0 ]; do
+				if nix-store --version >/dev/null 2>&1; then
+					logf "%b✅ nix-daemon ready.%b\n" "${C_OK}" "${C_RST}"
+					break
 				fi
 				_retries=$(( _retries - 1 ))
 				sleep 2
-		done
+			done
 
 		if [ "${_retries}" -eq 0 ]; then
 				err 1 "nix-daemon did not become ready after restart."
