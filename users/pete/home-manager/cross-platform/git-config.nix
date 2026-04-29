@@ -20,6 +20,7 @@ in
   programs = {
     git = {
       enable = true;
+			lfs.enable = true;
       settings = {
         core.editor = "nvim";
         init = {

@@ -94,6 +94,7 @@ in
         kdePackages.k3b # CD Burning GUI
         litemdview # Simple markdown viewer
         local.ipod-shuffle-4g
+				local.vip-access # Provision Symantec VIP TOTP
         mosh # Mobile-shell SSH replacement
         nextcloud-client
         remmina
