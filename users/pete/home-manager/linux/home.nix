@@ -98,7 +98,7 @@ in
         mosh # Mobile-shell SSH replacement
         nextcloud-client
         remmina
-        rustdesk-flutter
+        rustdesk
         unstable.standardnotes
         unstable.yt-dlp # Youtube download Python version
         unzip
