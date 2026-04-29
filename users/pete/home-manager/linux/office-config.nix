@@ -29,23 +29,25 @@ in
   };
 
   # Populate ~/.local/share/fonts with ttf files (not symlinks)
-  home.activation.onlyofficeUserFonts =
-    lib.hm.dag.entryAfter [ "writeBoundary" ] # sh
-      ''
-        set -eu
+  home.activation = {
+    onlyofficeUserFonts =
+      lib.hm.dag.entryAfter [ "writeBoundary" ] # sh
+        ''
+          set -eu
 
-        rm -rf "${ooFonts}"
-        mkdir -p "${ooFonts}"
+          rm -rf "${ooFonts}"
+          mkdir -p "${ooFonts}"
 
-        # Copy actual files (dereference symlinks with -L)
-        if [ -d "${hmFonts}" ]; then
-        	${pkgs.rsync}/bin/rsync -aL \
-        	--include='*/' --include='*.ttf' --include='*.otf' --exclude='*' \
-        	"${hmFonts}/" "${ooFonts}/"
-        fi
-        chmod -R 744 "${ooFonts}"
+          # Copy actual files (dereference symlinks with -L)
+          if [ -d "${hmFonts}" ]; then
+          	${pkgs.rsync}/bin/rsync -aL \
+          	--include='*/' --include='*.ttf' --include='*.otf' --exclude='*' \
+          	"${hmFonts}/" "${ooFonts}/"
+          fi
+          chmod -R 744 "${ooFonts}"
 
-        ${pkgs.findutils}/bin/find "${ooFonts}" -type f \( -name '*.ttf' -o -name '*.otf' \) -exec chmod 0644 {} \;
-        ${pkgs.fontconfig}/bin/fc-cache -f "${ooFonts}" >/dev/null 2>&1 || true
-      '';
+          ${pkgs.findutils}/bin/find "${ooFonts}" -type f \( -name '*.ttf' -o -name '*.otf' \) -exec chmod 0644 {} \;
+          ${pkgs.fontconfig}/bin/fc-cache -f "${ooFonts}" >/dev/null 2>&1 || true
+        '';
+  };
 }
