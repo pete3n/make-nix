@@ -682,7 +682,7 @@ in
 
       ### Formatting
       - All variable references use ''${var} syntax rather than $var.
-      - In Nix injected shell strings, runtime variables must be escaped as ''${var}.
+      - In Nix injected shell strings, runtime variables must be escaped as '''''${var}.
       - Nix build-time interpolations use normal ''${} syntax without escaping.
 
       ### Printf preference
