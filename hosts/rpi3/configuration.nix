@@ -8,7 +8,6 @@
 {
   imports = with nixos-raspberrypi.nixosModules; [
     raspberry-pi-3.base
-    raspberry-pi-3.display-vc4
   ];
 
   users.users.${makeNixAttrs.user}.initialPassword = "changeme";
@@ -22,7 +21,7 @@
   # they apply before the interface is brought up, so the MAC is stable.
   systemd.network.links."10-eth0" = {
     matchConfig.OriginalName = "eth0";
-    linkConfig.MACAddress = "10:A8:29:86:15:E4";
+    linkConfig.MACAddress = "10:A8:29:18:26:4b";
   };
 
   # Static IP on eth0. useDHCP is disabled globally and only enabled
@@ -30,25 +29,25 @@
   networking.interfaces.eth0 = {
     useDHCP = false;
     ipv4.addresses = [{
-      address = "10.138.95.1";
-      prefixLength = 24;
+      address = "169.254.0.1";
+      prefixLength = 16;
     }];
   };
 
   services.dnsmasq = {
-    enable = true;
+    enable = false;
     settings = {
       # Only listen on eth0, not loopback or any future interfaces.
       interface = "eth0";
       bind-interfaces = true;
 
       # DHCP range and lease time.
-      dhcp-range = "10.138.95.6,10.138.95.6,24h";
+      dhcp-range = "169.254.0.100,169.254.0.200,24h";
 
       # Advertise the Pi itself as the gateway and DNS server.
       dhcp-option = [
-        "option:router,10.138.95.1"
-        "option:dns-server,10.138.95.1"
+        "option:router,169.254.0.1"
+        "option:dns-server,169.254.0.1"
       ];
 
       # Don't forward plain (non-dotted) hostnames upstream.
