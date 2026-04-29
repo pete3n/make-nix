@@ -312,6 +312,14 @@ in
           ];
           identitiesOnly = true;
         };
+        "linode" = {
+          hostname = "tech.p3n.dev";
+          user = "ubuntu";
+          identityFile = [
+            "/home/${makeUser}/.ssh/id_ed25519_sk_rk_linode"
+          ];
+          identitiesOnly = true;
+        };
       }
       // lib.optionalAttrs (hasTag "p22" makeTags) {
         "framework-dt" = {
