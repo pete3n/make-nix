@@ -68,38 +68,56 @@ _activate_home() {
 }
 
 _switch_home() {
-	_flake_key="${user}@${host}"
-	_backup_ext="hm-backup"
-	_hm_cmd=""
+    _flake_key="${user}@${host}"
+    _backup_ext="hm-backup"
 
-	if has_cmd home-manager; then
-		set -- home-manager
-	else
-		# Online only from Nixpkgs
-		set -- nix run nixpkgs#home-manager --
-	fi
+    if has_cmd home-manager; then
+        set -- home-manager
+    else
+        set -- nix run nixpkgs#home-manager --
+    fi
 
-	logf "\n%b>>> Building home configuration for:%b %b%s%b\n" \
-		"${C_INFO}" "${C_RST}" "${C_CFG}" "${user}@${host}" "${C_RST}"
+    logf "\n%b>>> Building home configuration for:%b %b%s%b\n" \
+        "${C_INFO}" "${C_RST}" "${C_CFG}" "${user}@${host}" "${C_RST}"
 
-	if [ "${dry_switch}" = "--dry-run" ]; then
-		logf "\n%binfo: DRY_RUN%b: no result output will be created.\n" "${C_INFO}" "${C_RST}"
-	fi
+    if [ "${dry_switch}" = "--dry-run" ]; then
+        logf "\n%binfo: DRY_RUN%b: no result output will be created.\n" "${C_INFO}" "${C_RST}"
+    fi
 
-	set -- "$@" switch -b "${_backup_ext}" --max-jobs auto --cores 0 
-	[ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
-	if is_truthy "${NO_SUB:-}"; then
-		set -- "$@" --no-substitute
-	fi
-	set -- "$@" --option fallback true --flake "path:${flake_root}#${_flake_key}"
+    set -- "$@" switch -b "${_backup_ext}" --max-jobs auto --cores 0
+    [ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
+    is_truthy "${NO_SUB:-}" && set -- "$@" --no-substitute
+    set -- "$@" --option fallback true --flake "path:${flake_root}#${_flake_key}"
 
-	print_cmd -- env NIX_CONFIG="\"extra-experimental-features = nix-command flakes\"" "$@"
-	if env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
-		logf "\n%b✓ Home-manager configuration switch success.%b\n" "${C_OK}" "${C_RST}"
-		return 0
-	else
-		err 1 "Switch failed."
-	fi
+    # Cross-user branch
+    if [ -n "${TGT_SWITCH_USER:-}" ] && [ "${TGT_SWITCH_USER}" != "$(id -un)" ]; then
+        _tmp_flake="$(mktemp -d /tmp/make-nix-switch.XXXXXX)"
+        cp -r "${flake_root}/." "${_tmp_flake}/"
+        chmod -R a+rX "${_tmp_flake}"
+
+        set -- home-manager switch -b "${_backup_ext}" --max-jobs auto --cores 0
+        [ -n "${dry_switch}" ] && set -- "$@" "${dry_switch}"
+        is_truthy "${NO_SUB:-}" && set -- "$@" --no-substitute
+        set -- "$@" --option fallback true --flake "path:${_tmp_flake}#${_flake_key}"
+
+        print_cmd -- sudo -u "${TGT_SWITCH_USER}" \
+            env NIX_CONFIG='"extra-experimental-features = nix-command flakes"' "$@"
+        if sudo -u "${TGT_SWITCH_USER}" \
+            env NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@"; then
+            rm -rf "${_tmp_flake}"
+            logf "\n%b✓ Home-manager configuration switch success.%b\n" "${C_OK}" "${C_RST}"
+            return 0
+        else
+            rm -rf "${_tmp_flake}"
+            err 1 "Switch failed."
+        fi
+    fi
+
+    print_cmd NIX_CONFIG='"extra-experimental-features = nix-command flakes"' "$@"
+    NIX_CONFIG='extra-experimental-features = nix-command flakes' "$@" \
+        || err 1 "Home-manager switch failed."
+
+    logf "\n%b✓ Home-manager configuration switch success.%b\n" "${C_OK}" "${C_RST}"
 }
 
 if ! has_cmd "nix"; then
