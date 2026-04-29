@@ -58,7 +58,7 @@ in
 		];
   };
 
-	services.zoey-char.enable = true;
+	services.zoeyChar.enable = true;
 
   # Modules with additional program configuration
   programs = {
