@@ -170,9 +170,44 @@ _launch_nix_install() {
 	fi
 }
 
+# make-nix requires both nix-command and flakes enabled
+_ensure_experimental_features() {
+    _features="nix-command flakes"
+
+    # Single-user install writes to user config; multi-user (daemon) writes to /etc/nix/nix.conf
+    if is_truthy "${SINGLE_USER:-}"; then
+        _nix_conf="${HOME}/.config/nix/nix.conf"
+        mkdir -p "$(dirname "${_nix_conf}")"
+        _use_sudo=""
+    else
+        _nix_conf="/etc/nix/nix.conf"
+        _use_sudo="sudo"
+    fi
+
+    if grep -q "experimental-features" "${_nix_conf}" 2>/dev/null; then
+        logf "\n%binfo:%b experimental-features already set in %s. Skipping.\n" \
+            "${C_INFO}" "${C_RST}" "${_nix_conf}"
+        return 0
+    fi
+
+    logf "\n%b>>> Writing experimental-features to %s...%b\n" "${C_INFO}" "${_nix_conf}" "${C_RST}"
+    printf 'experimental-features = nix-command flakes\n' \
+        | ${_use_sudo} tee -a "${_nix_conf}" > /dev/null
+
+    # Daemon must be restarted for the setting to take effect on multi-user installs
+    if ! is_truthy "${SINGLE_USER:-}"; then
+        if [ "${UNAME_S:-}" = "Darwin" ]; then
+            sudo launchctl kickstart -k system/org.nixos.nix-daemon 2>/dev/null || true
+        elif has_cmd "systemctl"; then
+            sudo systemctl restart nix-daemon 2>/dev/null || true
+        fi
+    fi
+}
+
 if ! has_cmd "nix"; then
 	source_nix
 	_launch_nix_install 
+	_ensure_experimental_features
 else
 	logf "\n%binfo:%b Nix already installed. Skipping install...\n" "${C_INFO}" "${C_RST}"
 	logf "If you want to re-install, please run 'make uninstall' first.\n"
