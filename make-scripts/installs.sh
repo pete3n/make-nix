@@ -202,7 +202,7 @@ _ensure_experimental_features() {
     fi
 
     # Ensure features are active for the remainder of this shell session
-    printf 'NIX_CONFIG=extra-experimental-features = nix-command flakes\n' >> "${MAKE_NIX_ENV}"
+		printf "NIX_CONFIG='extra-experimental-features = nix-command flakes'\n" >> "${MAKE_NIX_ENV}"
 }
 
 if ! has_cmd "nix"; then
