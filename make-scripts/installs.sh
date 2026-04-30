@@ -174,30 +174,35 @@ _launch_nix_install() {
 _ensure_experimental_features() {
     _features="nix-command flakes"
 
-	# Single-user install writes to user config; multi-user (daemon) writes to /etc/nix/nix.conf
-	if ! is_truthy "${SINGLE_USER:-}"; then
-		if [ "${UNAME_S:-}" = "Darwin" ]; then
-				sudo launchctl kickstart -k system/org.nixos.nix-daemon 2>/dev/null || true
-		elif has_cmd "systemctl"; then
-				sudo systemctl restart nix-daemon 2>/dev/null || true
-		fi
+    if is_truthy "${SINGLE_USER:-}"; then
+        _nix_conf="${HOME}/.config/nix/nix.conf"
+        mkdir -p "$(dirname "${_nix_conf}")"
+        _use_sudo=""
+    else
+        _nix_conf="/etc/nix/nix.conf"
+        _use_sudo="sudo"
+    fi
 
-		# Wait for daemon to be ready before returning
-		logf "\n%binfo:%b Waiting for nix-daemon to restart...\n" "${C_INFO}" "${C_RST}"
-			_retries=10
-			while [ "${_retries}" -gt 0 ]; do
-				if nix-store --version >/dev/null 2>&1; then
-					logf "%b✅ nix-daemon ready.%b\n" "${C_OK}" "${C_RST}"
-					break
-				fi
-				_retries=$(( _retries - 1 ))
-				sleep 2
-			done
+    if ! grep -q "experimental-features" "${_nix_conf}" 2>/dev/null; then
+        logf "\n%b>>> Writing experimental-features to %s...%b\n" \
+            "${C_INFO}" "${_nix_conf}" "${C_RST}"
+        printf 'experimental-features = nix-command flakes\n' \
+            | ${_use_sudo} tee -a "${_nix_conf}" > /dev/null
 
-		if [ "${_retries}" -eq 0 ]; then
-				err 1 "nix-daemon did not become ready after restart."
-		fi
-	fi
+        if ! is_truthy "${SINGLE_USER:-}"; then
+            if [ "${UNAME_S:-}" = "Darwin" ]; then
+                sudo launchctl kickstart -k system/org.nixos.nix-daemon 2>/dev/null || true
+            elif has_cmd "systemctl"; then
+                sudo systemctl restart nix-daemon 2>/dev/null || true
+            fi
+        fi
+    else
+        logf "\n%binfo:%b experimental-features already set in %s. Skipping.\n" \
+            "${C_INFO}" "${C_RST}" "${_nix_conf}"
+    fi
+
+    # Ensure features are active for the remainder of this shell session
+    export NIX_CONFIG="extra-experimental-features = nix-command flakes"
 }
 
 if ! has_cmd "nix"; then
