@@ -14,6 +14,6 @@ let
 in
 {
   "api_keys/anthropic-aichat-api.age".publicKeys = allKeys;
-  "wpa_supplicant/bsf_lan.conf.age".publicKeys = allKeys;
+  "wpa_supplicant/wifi-lan.conf.age".publicKeys = allKeys;
   "pete3n.age".publicKeys = [ pete3n_github_sk ];
 }

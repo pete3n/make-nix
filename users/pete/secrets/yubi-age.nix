@@ -17,11 +17,11 @@ in
 		mode = "0400";
   };
 
-  age.secrets."wifi-${user}-bsf-lan" = {
-    file = ./wpa_supplicant/bsf-lan.conf.age;
+  age.secrets."wifi-${user}-wifi-lan" = {
+    file = ./wpa_supplicant/wifi-lan.conf.age;
     owner = "root";
     group = "root";
     mode = "0400";
-    path = "/run/wpa_supplicant/${user}/bsf-lan.conf";
+    path = "/run/wpa_supplicant/${user}/wifi-lan.conf";
   };
 }
