@@ -17,19 +17,11 @@ in
 		mode = "0400";
   };
 
-  age.secrets."wifi-${user}-p22-lan-2g" = {
-    file = ./wpa_supplicant/p22-lan-2g.conf.age;
+  age.secrets."wifi-${user}-bsf-lan" = {
+    file = ./wpa_supplicant/bsf-lan.conf.age;
     owner = "root";
     group = "root";
     mode = "0400";
-    path = "/run/wpa_supplicant/${user}/p22-lan-2g.conf";
-  };
-
-  age.secrets."wifi-${user}-p22-lan-5g" = {
-    file = ./wpa_supplicant/p22-lan-5g.conf.age;
-    owner = "root";
-    group = "root";
-    mode = "0400";
-    path = "/run/wpa_supplicant/${user}/p22-lan-5g.conf";
+    path = "/run/wpa_supplicant/${user}/bsf-lan.conf";
   };
 }
