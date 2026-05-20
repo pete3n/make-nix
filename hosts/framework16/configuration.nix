@@ -61,9 +61,9 @@ in
     # Workaround for suspend then sleep issues.
     # Resolved amdgpu VPE queue reset failed / ib ring test failed (-110)
     # Resolved nvme drive sleep issues.
+    # "amdgpu.ip_block_mask=0x7FF"
     kernelParams = [
       "rtc_cmos.use_acpi_alarm=1"
-      "amdgpu.ip_block_mask=0x7FF"
       "nvme_core.default_ps_max_latency_us=1000"
     ];
 
@@ -72,8 +72,8 @@ in
       "sg"
     ];
 
-    # Kernel 6.19 build error
     # kernelPackages = pkgs.linuxPackages_latest;
+    # kernelPackages = pkgs.linuxPackages_7_0; -- MLO for WiFi7 broken
     kernelPackages = pkgs.linuxPackages_6_18;
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
@@ -134,8 +134,7 @@ in
     # proxy.noProxy = "127.0.0.1,localhost,internal.domain";
   };
 
-
-	# Build key for remote build machines
+  # Build key for remote build machines
   age.secrets = lib.optionalAttrs (makeNixLib.hasTag "p22" makeNixAttrs.tags) {
     p22-build-key = {
       file = ./secrets/p22-build-key.age;
