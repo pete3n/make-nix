@@ -266,9 +266,9 @@
             cmd = "dolphin";
           }
           {
-            desc = "Emoji Picker";
+            desc = "ElementDesktop";
             menuKey = "e";
-            cmd = "rofi -show-icons -combi-modi drun,run -show emoji";
+            cmd = "element-desktop";
           }
           {
             desc = "Firefox";
@@ -279,6 +279,21 @@
             desc = "Clipboard History";
             menuKey = "h";
             cmd = "cliphist list | rofi -dmenu -display-columns 2 | cliphist decode | wl-copy";
+          }
+          {
+            desc = "eMoji Picker";
+            menuKey = "m";
+            cmd = "rofi -show-icons -combi-modi drun,run -show emoji";
+          }
+          {
+            desc = "standardNotes";
+            menuKey = "n";
+            cmd = "standardnotes";
+          }
+          {
+            desc = "OnlyOffice";
+            menuKey = "o";
+            cmd = "onlyoffice-desktopeditors";
           }
           {
             desc = "Terminal";
@@ -303,6 +318,11 @@
                 cmd = "rofi -show-icons -combi-modi drun,run -show combi";
               };
             };
+          }
+          {
+            desc = "SignalDesktop";
+            menuKey = "s";
+            cmd = "signal-desktop";
           }
           {
             desc = "Tmux";
@@ -565,7 +585,7 @@
           }
         ];
 
-				menu.entries.recording = [
+        menu.entries.recording = [
           {
             desc = "Record";
             menuKey = "r";
@@ -576,7 +596,7 @@
             menuKey = "s";
             cmd = "pkill wf-recorder";
           }
-				];
+        ];
 
         menu.entries.screenshots = [
           {
