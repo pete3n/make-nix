@@ -57,6 +57,9 @@ in
     ]
     ++ lib.optionals (hasTag "git-ssh-user") [
       ./${makeNixAttrs.user}/secrets/git-ssh.nix
+    ]
+    ++ lib.optionals (hasTag "p22") [
+      ./${makeNixAttrs.user}/secrets/p22-vpn.nix
     ];
 
   users.users.${makeNixAttrs.user} = {

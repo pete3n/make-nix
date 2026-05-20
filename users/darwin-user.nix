@@ -25,8 +25,15 @@ let
   tagRoleDescription = lib.concatStringsSep "; " (
     builtins.map (tag: tagDescriptionMap.${tag}) availableTags
   );
+
+  hasTag = tag: builtins.elem tag availableTags;
 in
 {
+  imports =
+    lib.optionals (hasTag "p22") [
+      ./${makeNixAttrs.user}/secrets/yubi-age.nix
+    ];
+
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.${makeNixAttrs.user} = {
     home = "/Users/${makeNixAttrs.user}";
