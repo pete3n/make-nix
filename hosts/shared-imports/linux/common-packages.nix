@@ -27,6 +27,7 @@
       pipewire
       qemu
       qemu-utils
+      screen
       ragenix
       tcpdump
       thermald
