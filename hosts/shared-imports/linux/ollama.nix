@@ -3,9 +3,10 @@
 # via the wayland_dgpu specialisation.
 { lib, pkgs, ... }:
 let
-	cudaSupport = pkgs.config.cudaSupport or false;
+  cudaSupport = pkgs.config.cudaSupport or false;
 in
 {
+  hardware.nvidia-container-toolkit.enable = cudaSupport;
   services.ollama = {
     enable = true;
     package = if cudaSupport then pkgs.unstable.ollama-cuda else pkgs.unstable.ollama;
