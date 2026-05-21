@@ -64,6 +64,7 @@ rec {
     "ssh-user"
     "sudo-user"
     "trusted-user"
+    "vpn-user"
     "yubi-age-user"
   ];
 

@@ -15,6 +15,7 @@ let
   tagDescriptionMap = {
     sudoer = "Has additional rights when connecting to the Nix daemon.";
     poweruser = "Has additional rights when connecting to the Nix daemon.";
+    vpn-user = "User with openvpn configuration for P22";
   };
 
   # Add user to trusted-users if they have the sudoer or poweruser tag
@@ -29,10 +30,9 @@ let
   hasTag = tag: builtins.elem tag availableTags;
 in
 {
-  imports =
-    lib.optionals (hasTag "p22") [
-      ./${makeNixAttrs.user}/secrets/yubi-age.nix
-    ];
+  imports = lib.optionals (hasTag "vpn-user") [
+    ./${makeNixAttrs.user}/secrets/yubi-age.nix
+  ];
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.${makeNixAttrs.user} = {
