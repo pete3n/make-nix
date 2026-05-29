@@ -23,7 +23,7 @@ let
         printf "%s\n" "$encoded"
       ''
     else
-    # sh
+      # sh
       ''
         #!/usr/bin/env sh
         set -eu

@@ -1,4 +1,9 @@
-{ pkgs, config, makeNixAttrs, ... }:
+{
+  pkgs,
+  config,
+  makeNixAttrs,
+  ...
+}:
 ###################################################################################
 #
 #  macOS's System configuration

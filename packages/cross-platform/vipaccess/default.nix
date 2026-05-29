@@ -32,7 +32,8 @@ let
     };
   };
 
-in pkgs.writeShellApplication {
+in
+pkgs.writeShellApplication {
   name = "vip-provision-yubikey";
 
   runtimeInputs = [

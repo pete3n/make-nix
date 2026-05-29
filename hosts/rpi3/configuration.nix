@@ -28,10 +28,12 @@
   networking.useDHCP = false;
   networking.interfaces.eth0 = {
     useDHCP = false;
-    ipv4.addresses = [{
-      address = "169.254.0.1";
-      prefixLength = 16;
-    }];
+    ipv4.addresses = [
+      {
+        address = "169.254.0.1";
+        prefixLength = 16;
+      }
+    ];
   };
 
   services.dnsmasq = {
@@ -60,7 +62,10 @@
   # dnsmasq listens on port 53 — open it on the interface.
   networking.firewall.interfaces.eth0 = {
     allowedTCPPorts = [ 53 ];
-    allowedUDPPorts = [ 53 67 ];  # 53 = DNS, 67 = DHCP server
+    allowedUDPPorts = [
+      53
+      67
+    ]; # 53 = DNS, 67 = DHCP server
   };
 
   services.openssh = {
@@ -68,6 +73,5 @@
     settings.PasswordAuthentication = true;
   };
 
-  boot.kernelModules = lib.optionals
-    (makeNixLib.hasTag "pi-gpio" makeNixAttrs.tags) [ "gpio-keys" ];
+  boot.kernelModules = lib.optionals (makeNixLib.hasTag "pi-gpio" makeNixAttrs.tags) [ "gpio-keys" ];
 }

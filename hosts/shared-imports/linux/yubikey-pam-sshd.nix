@@ -14,7 +14,7 @@ let
 in
 {
   security.pam.services = {
-		# Don't require u2f for local login
+    # Don't require u2f for local login
     login.u2fAuth = lib.mkForce false;
     system-login.u2fAuth = lib.mkForce false;
     sudo = {

@@ -8,7 +8,12 @@
   useHomebrew = false;
   useCache = false;
   useKeys = false;
-  tags = [ "hyprland" "git" "nixvim" "sdr" ];
+  tags = [
+    "hyprland"
+    "git"
+    "nixvim"
+    "sdr"
+  ];
   specialisations = [ ];
   sshPubKeys = [ ];
 }

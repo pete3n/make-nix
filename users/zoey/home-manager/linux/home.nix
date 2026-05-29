@@ -54,11 +54,11 @@ in
     homeDirectory = "/home/${makeNixAttrs.user}";
 
     packages = with pkgs; [
-        xdg-user-dirs
-		];
+      xdg-user-dirs
+    ];
   };
 
-	services.zoeyChar.enable = true;
+  services.zoeyChar.enable = true;
 
   # Modules with additional program configuration
   programs = {

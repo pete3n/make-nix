@@ -8,7 +8,16 @@
   useHomebrew = true;
   useCache = true;
   useKeys = true;
-  tags = [ "aerospace" "git" "nixvim" "power-user" "p22" "yubi-age-user" "yubi-ssh-import" "yubi-u2f" ];
+  tags = [
+    "aerospace"
+    "git"
+    "nixvim"
+    "power-user"
+    "p22"
+    "yubi-age-user"
+    "yubi-ssh-import"
+    "yubi-u2f"
+  ];
   specialisations = [ ];
   sshPubKeys = [ ];
 }

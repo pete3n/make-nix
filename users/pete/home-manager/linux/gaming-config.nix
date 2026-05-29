@@ -1,11 +1,11 @@
 { pkgs, ... }:
 {
-	home.packages = with pkgs; [
-		heroic
-		mod._86Box
-	];
+  home.packages = with pkgs; [
+    heroic
+    mod._86Box
+  ];
 
-	programs = {
-		lutris.enable = true;
-	};
+  programs = {
+    lutris.enable = true;
+  };
 }

@@ -94,7 +94,7 @@ in
         kdePackages.k3b # CD Burning GUI
         litemdview # Simple markdown viewer
         local.ipod-shuffle-4g
-				local.vip-access # Provision Symantec VIP TOTP
+        local.vip-access # Provision Symantec VIP TOTP
         mosh # Mobile-shell SSH replacement
         nextcloud-client
         remmina
@@ -132,6 +132,7 @@ in
         mutt # Terminal email
         navi # Cheat-sheets
         nb # CLI note-taking
+        nixfmt # Nix linter
         procs # Better process viewer
         python311Packages.base58
         repgrep # ripgrep replace
@@ -167,10 +168,14 @@ in
         termshark
         wireshark
         whois
-      ]) ++ lib.optionals (makeNixAttrs.system == "x86_64-linux") (with pkgs; [
-				unstable.cryptomator # Encrypted container GUI
-        unstable.cryptomator-cli # Encrypted container CLI
-			])
+      ])
+      ++ lib.optionals (makeNixAttrs.system == "x86_64-linux") (
+        with pkgs;
+        [
+          unstable.cryptomator # Encrypted container GUI
+          unstable.cryptomator-cli # Encrypted container CLI
+        ]
+      )
       ++ optionalPkgs "nixvim" nixvim'
       ++ optionalPkgs "media-creation" (
         # Multimedia creation and editing tools for 3d, audio, images, music, and video
@@ -206,7 +211,7 @@ in
       )
       ++ optionalPkgs "sdr" [ pkgs.gnuradio ] # Software defined radio
       ++ optionalPkgs "yubi-age-user" (
-				# Userland packages to support Yubikey system integration
+        # Userland packages to support Yubikey system integration
         with pkgs;
         [
           age
@@ -214,12 +219,12 @@ in
           opensc
           pinentry-curses
           yubikey-manager
-					yubioath-flutter
+          yubioath-flutter
           yubikey-personalization
         ]
       )
       ++ optionalPkgs "yubi-u2f" (
-				# Userland packages to support system level Yubikey u2f and pam integration
+        # Userland packages to support system level Yubikey u2f and pam integration
         with pkgs;
         [
           pam_u2f

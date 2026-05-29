@@ -1,4 +1,9 @@
-{ pkgs, lib, outputs, ... }:
+{
+  pkgs,
+  lib,
+  outputs,
+  ...
+}:
 {
   configuration = {
     system.nixos.tags = [
@@ -46,7 +51,7 @@
         # NOTE: This is imperative and dependent on the USB Thunderbolt port
         # that the eGPU is connected to
         nvidiaBusId = "PCI:65:0:0";
-				amdgpuBusId = "PCI:195@0:0:0";
+        amdgpuBusId = "PCI:195@0:0:0";
       };
     };
 

@@ -3,7 +3,7 @@
   home.packages = with pkgs; [
     mpc # Media player daemon CLI interface
     playerctl
-		picard # Fix metadata
+    picard # Fix metadata
   ];
 
   services.mpd = {

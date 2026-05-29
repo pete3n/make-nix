@@ -1,7 +1,7 @@
 {
   backup = import ./cross-platform/backup.nix;
   clip58 = import ./cross-platform/clip58.nix;
-	fzf-launcher = import ./darwin/fzf-launcher.nix;
+  fzf-launcher = import ./darwin/fzf-launcher.nix;
   hyprWhichKey = import ./linux/hyprWhichKey.nix;
   khal-notify = import ./linux/khal-notify.nix;
   lazydocker = import ./cross-platform/lazydocker.nix;
@@ -13,5 +13,5 @@
   yubi-age-secrets = import ./linux/yubi-age-secrets.nix;
   yubi-age-decrypt = import ./cross-platform/yubi-age-decrypt.nix;
   yubi-ssh-import = import ./cross-platform/yubi-ssh-import.nix;
-	zoeyChar = import ./linux/zoey-char.nix;
+  zoeyChar = import ./linux/zoey-char.nix;
 }

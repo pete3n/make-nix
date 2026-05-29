@@ -161,7 +161,7 @@ in
       };
     };
 
-		# Allow attaching to remote USB Yubikey over USBIP
+    # Allow attaching to remote USB Yubikey over USBIP
     yubikeyUsbipRemote.enable = true;
 
     pipewire = {

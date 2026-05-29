@@ -16,6 +16,14 @@ in
   "api_keys/anthropic-aichat-api.age".publicKeys = allKeys;
   "wpa_supplicant/wifi-lan.conf.age".publicKeys = allKeys;
   "pete3n.age".publicKeys = [ pete3n_github_sk ];
-	"openvpn/p22-client1-tcp.age".publicKeys = [ framework16 pete_yk_pri pete_yk_bak ];
-	"openvpn/p22-client1.age".publicKeys = [ framework16 pete_yk_pri pete_yk_bak ];
+  "openvpn/p22-client1-tcp.age".publicKeys = [
+    framework16
+    pete_yk_pri
+    pete_yk_bak
+  ];
+  "openvpn/p22-client1.age".publicKeys = [
+    framework16
+    pete_yk_pri
+    pete_yk_bak
+  ];
 }

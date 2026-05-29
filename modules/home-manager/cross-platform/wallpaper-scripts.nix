@@ -128,11 +128,11 @@ in
 
     wallpaperPath = lib.mkOption {
       type = lib.types.path;
-      description = ''Wallpaper image path'';
+      description = "Wallpaper image path";
     };
   };
 
-	# TODO: Implement XDG paths
+  # TODO: Implement XDG paths
   config = lib.mkIf cfg.enable {
     programs.wallpaper-scripts.wallpaperPath = lib.mkDefault (
       if config.programs.wallpaper-scripts.os == "darwin" then

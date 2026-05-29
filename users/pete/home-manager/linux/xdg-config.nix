@@ -73,7 +73,7 @@
       };
     };
 
-		# Fix for Dolphin to recognize Alacritty
+    # Fix for Dolphin to recognize Alacritty
     configFile."kdeglobals" = {
       text = ''
         [General]
@@ -82,7 +82,7 @@
       '';
     };
 
-		# Fix to allow kbuildsyscoca6 to build the menu database correctly
+    # Fix to allow kbuildsyscoca6 to build the menu database correctly
     configFile."menus/applications.menu".text = ''
       <!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
         "http://www.freedesktop.org/standards/menu-spec/menu-1.0.dtd">

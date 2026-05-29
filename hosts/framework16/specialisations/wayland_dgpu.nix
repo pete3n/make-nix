@@ -12,7 +12,7 @@
       "wayland"
       "dGPU"
       "nvidia"
-			"cuda"
+      "cuda"
       "RTX-5070"
     ];
     nixpkgs.config = {
@@ -23,11 +23,11 @@
     imports = [
       outputs.nixosModules.nvidia-scripts
     ];
-		
-    environment.systemPackages = with pkgs; [ 
-			cudaPackages.cudatoolkit 
-			nvtopPackages.nvidia
-		];
+
+    environment.systemPackages = with pkgs; [
+      cudaPackages.cudatoolkit
+      nvtopPackages.nvidia
+    ];
 
     systemd.services = {
       dgpuLink = {
@@ -49,7 +49,7 @@
           RemainAfterExit = true;
         };
       };
-		};
+    };
 
     hardware.nvidia = {
       modesetting.enable = true;

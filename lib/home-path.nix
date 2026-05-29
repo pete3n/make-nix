@@ -6,7 +6,8 @@
   system,
   user,
 }:
-assert builtins.pathExists basePath || throw "getHomePath: base filepath not found: ${toString basePath}";
+assert
+  builtins.pathExists basePath || throw "getHomePath: base filepath not found: ${toString basePath}";
 assert (system != "") || throw "getHomePath: system was not passed.";
 assert (user != "") || throw "getHomePath: user was not passed.";
 
@@ -20,6 +21,5 @@ let
       throw "getHomePath: unsupported system '${system}'";
   homePath = basePath + "/${user}/home-manager/${platform}/home.nix";
 in
-assert
-  builtins.pathExists homePath || throw "Home-manager module not found: ${toString homePath}";
+assert builtins.pathExists homePath || throw "Home-manager module not found: ${toString homePath}";
 homePath

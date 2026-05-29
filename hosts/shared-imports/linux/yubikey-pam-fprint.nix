@@ -1,5 +1,11 @@
 # Fingerprint or yubikey auth for laptops
-{ config, pkgs, lib, makeNixAttrs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  makeNixAttrs,
+  ...
+}:
 
 let
   homeDir = config.users.users.${makeNixAttrs.user}.home or "/home/${makeNixAttrs.user}";
@@ -11,7 +17,7 @@ in
 
   security.pam.services.sudo = {
     # prevent generated stacks from being appended
-    u2fAuth    = lib.mkForce false;
+    u2fAuth = lib.mkForce false;
     fprintAuth = lib.mkForce false;
 
     # Require (U2F OR fingerprint); try U2F first

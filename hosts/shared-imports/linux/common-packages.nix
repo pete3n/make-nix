@@ -22,6 +22,7 @@
       nixos-rebuild-ng
       openvpn
       parted
+      patchelf
       pavucontrol
       pciutils
       pipewire

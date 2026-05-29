@@ -26,8 +26,8 @@
       scsiLinkPolicy = "min_power";
       powertop.enable = true;
       powerUpCommands = ''
-				${pkgs.brightnessctl}/bin/brightnessctl set 25%
-			'';
+        				${pkgs.brightnessctl}/bin/brightnessctl set 25%
+        			'';
     };
 
     environment.systemPackages = with pkgs; [

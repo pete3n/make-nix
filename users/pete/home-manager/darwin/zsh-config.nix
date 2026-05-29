@@ -137,9 +137,9 @@
       syntaxHighlighting.enable = true;
       defaultKeymap = "viins";
       shellAliases = {
-				ns = "nix-search-tv print | fzf --preview 'nix-search-tv preview {}' --scheme history";
+        ns = "nix-search-tv print | fzf --preview 'nix-search-tv preview {}' --scheme history";
         lsc = "lsd --classic"; # For annoying colors on SMB/NFS mounts
-        cclip = "pbcopy"; 
+        cclip = "pbcopy";
         pclip = "pbpaste";
         cd = "z";
       };

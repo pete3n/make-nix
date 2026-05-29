@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.programs.pomodoro;
 in
@@ -8,13 +13,21 @@ in
 
     activityIntervals = lib.mkOption {
       type = lib.types.listOf lib.types.int;
-      default = [ 25 50 75 ];
+      default = [
+        25
+        50
+        75
+      ];
       description = "Activity interval options in minutes";
     };
 
     restIntervals = lib.mkOption {
       type = lib.types.listOf lib.types.int;
-      default = [ 5 10 15 ];
+      default = [
+        5
+        10
+        15
+      ];
       description = "Rest interval options in minutes";
     };
 
@@ -59,12 +72,12 @@ in
     home.packages = [ pkgs.local.pomodoro-timer ];
 
     xdg.configFile."pomodoro/config.json".text = builtins.toJSON {
-      activity_intervals    = cfg.activityIntervals;
-      rest_intervals        = cfg.restIntervals;
-      activity_playlist     = cfg.activityPlaylist;
-      rest_playlist         = cfg.restPlaylist;
-      activity_image        = cfg.activityImage;
-      rest_image            = cfg.restImage;
+      activity_intervals = cfg.activityIntervals;
+      rest_intervals = cfg.restIntervals;
+      activity_playlist = cfg.activityPlaylist;
+      rest_playlist = cfg.restPlaylist;
+      activity_image = cfg.activityImage;
+      rest_image = cfg.restImage;
       image_display_duration = cfg.imageDisplayDuration;
       default_activity_name = cfg.defaultActivityName;
     };

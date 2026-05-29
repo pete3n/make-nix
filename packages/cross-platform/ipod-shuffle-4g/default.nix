@@ -2,9 +2,9 @@
 let
   runtimeDeps = with pkgs; [
     coreutils
-		ffmpeg
-		gawk
-		mpc
+    ffmpeg
+    gawk
+    mpc
     python3
   ];
 
@@ -25,9 +25,9 @@ pkgs.symlinkJoin {
   ];
   buildInputs = [ pkgs.makeWrapper ];
   postBuild = ''
-    for bin in ipod-shuffle-4g ipod-mpd-copy; do
-      wrapProgram $out/bin/$bin \
-				--prefix PATH : ${pkgs.lib.makeBinPath runtimeDeps}
-    done
+        for bin in ipod-shuffle-4g ipod-mpd-copy; do
+          wrapProgram $out/bin/$bin \
+    				--prefix PATH : ${pkgs.lib.makeBinPath runtimeDeps}
+        done
   '';
 }

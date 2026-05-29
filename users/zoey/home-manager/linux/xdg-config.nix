@@ -1,4 +1,4 @@
-{  makeNixAttrs, ... }:
+{ makeNixAttrs, ... }:
 {
   xdg = {
     enable = true;

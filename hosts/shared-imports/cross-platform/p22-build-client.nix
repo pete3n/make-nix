@@ -28,7 +28,10 @@
 
   programs.ssh.knownHosts = {
     "framework-dt" = {
-      hostNames = [ "framework-dt" "192.168.1.8" ];
+      hostNames = [
+        "framework-dt"
+        "192.168.1.8"
+      ];
       publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO70Au6FegohwKFygshDnN9TGll69m4cc1WXMqa8tXl/";
     };
   };
