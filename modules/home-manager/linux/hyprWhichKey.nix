@@ -81,6 +81,8 @@ let
     in
     if action.type == "dispatch" then
       "hyprctl dispatch ${action.dispatch}" + lib.optionalString (action.arg != null) " ${action.arg}"
+    else if action.type == "layoutmsg" then
+      "hyprctl dispatch layoutmsg ${action.message}"
     else if action.type == "exec" then
       action.cmd
     else
@@ -139,7 +141,7 @@ let
         - define programs.hyprWhichKey.settings.menu.groups.${grp}.submenu = [ ... ];
         - remove '${grp}' from any fromGroup reference (or from submenuGroups).
     '';
-    (builtins.removeAttrs entry [ "fromGroup" ])
+    (removeAttrs entry [ "fromGroup" ])
     // {
       key = entry.key or (group.key or grp);
       desc = entry.desc or (group.desc or grp);
@@ -192,10 +194,14 @@ let
       err "missing desc"
     else if hb != null && !(hb ? key) then
       err "hyprBind.key missing"
-    else if action.type == "exec" && !(action ? cmd) then
-      err "hyprBind.action.type=exec missing cmd"
-    else if action.type == "dispatch" && !(action ? dispatch) then
-      err "hyprBind.action.type=dispatch missing dispatch"
+    # Note: action.cmd / action.dispatch / action.message are module options with
+    # default = null, so `action ? attr` is always true. Check the value instead.
+    else if action.type == "exec" && action.cmd == null then
+      err "hyprBind.action.type=exec requires cmd"
+    else if action.type == "dispatch" && action.dispatch == null then
+      err "hyprBind.action.type=dispatch requires dispatch"
+    else if action.type == "layoutmsg" && action.message == null then
+      err "hyprBind.action.type=layoutmsg requires message"
     else
       entry;
 
@@ -263,8 +269,11 @@ let
     if prefix == null then
       null
     else if action.type == "dispatch" then
-      "${prefix}, ${action.dispatch}"
-      + lib.optionalString (action ? arg && action.arg != null) ", ${action.arg}"
+      # `action ? arg` is always true (it's a module option with default = null),
+      # only need to check action.arg != null.
+      "${prefix}, ${action.dispatch}" + lib.optionalString (action.arg != null) ", ${action.arg}"
+    else if action.type == "layoutmsg" then
+      "${prefix}, layoutmsg, ${action.message}"
     else if action.type == "exec" then
       "${prefix}, exec, ${action.cmd}"
     else
@@ -286,9 +295,12 @@ let
     if parts == null then
       null
     else
-      lib.concatStringsSep "+" (
-        (map printHyprMod (lib.splitString " " parts.modsStr)) ++ [ parts.keyStr ]
-      );
+      let
+        # lib.splitString " " "" yields [""] rather than [], so filter empty strings
+        # before mapping, otherwise no-mod entries display as "+KEY" instead of "KEY".
+        modTokens = lib.filter (s: s != "") (lib.splitString " " parts.modsStr);
+      in
+      lib.concatStringsSep "+" ((map printHyprMod modTokens) ++ [ parts.keyStr ]);
 
   allEntries = concatLists (builtins.attrValues cfg.settings.menu.entries);
   validatedEntries = map validateEntry allEntries;
@@ -394,6 +406,7 @@ in
             "nop"
             "exec"
             "dispatch"
+            "layoutmsg" # layout-specific messages sent via `layoutmsg` dispatcher (e.g. togglesplit)
           ];
           default = "nop";
           description = "Hyprland action type.";
@@ -415,6 +428,17 @@ in
           type = types.nullOr types.str;
           default = null;
           description = "Optional argument for type=dispatch.";
+        };
+
+        message = mkOption {
+          type = types.nullOr types.str;
+          default = null;
+          description = ''
+            Layout message for type=layoutmsg.
+            Generates: bind = MODS, KEY, layoutmsg, MESSAGE
+            Use this for dispatchers removed in 0.54 that were folded into layoutmsg
+            (e.g. togglesplit, swapsplit).
+          '';
         };
       };
       hyprActionModule = submodule hyprActionOpts;

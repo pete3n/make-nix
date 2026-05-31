@@ -38,6 +38,7 @@
 
     userDirs = {
       enable = true;
+      setSessionVariables = true;
       documents = "/home/${makeNixAttrs.user}/Documents";
       download = "/home/${makeNixAttrs.user}/Downloads";
       music = "/home/${makeNixAttrs.user}/Music";
@@ -47,7 +48,7 @@
       videos = "/home/${makeNixAttrs.user}/Videos";
 
       extraConfig = {
-        XDG_PROJECT_DIR = "/home/${makeNixAttrs.user}/Projects";
+        PROJECT = "/home/${makeNixAttrs.user}/Projects";
       };
     };
 

@@ -2,19 +2,19 @@
   description = "Pete3n's make-nix flake";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
-    nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
+    nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     home-manager-darwin = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -37,12 +37,12 @@
     };
 
     pete3n-mods = {
-      url = "github:pete3n/nix-modules?ref=nixos-25.11";
+      url = "github:pete3n/nix-modules?ref=nixos-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     nixvim = {
-      url = "github:pete3n/nixvim-flake?ref=nixos-25.11";
+      url = "github:pete3n/nixvim-flake?ref=nixos-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -338,7 +338,7 @@
       );
 
       # Formatter for nix files, available through 'nix fmt'
-      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
+      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt);
 
       # Flake wide overlays accessible though ouputs.overlays
       overlays = import ./overlays { inherit inputs makeNixLib; };

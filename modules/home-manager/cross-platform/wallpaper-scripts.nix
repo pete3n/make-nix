@@ -17,7 +17,7 @@ let
       ''
     else
       ''
-        ${pkgs.swww}/bin/swww img "$wallpaper_path"
+        ${pkgs.awww}/bin/awww img "$wallpaper_path"
       '';
 
   # Set either the default wallpaper or a user-specified path
@@ -43,7 +43,7 @@ let
       ''
     else
       ''
-        ${pkgs.swww}/bin/swww query | grep -oP 'image: \K.*' | head -n 1
+        ${pkgs.awww}/bin/awww query | grep -oP 'image: \K.*' | head -n 1
       '';
 
   # Configure the appropriate command to set the wallpaper images for
@@ -55,7 +55,7 @@ let
       ''
     else
       ''
-        ${pkgs.swww}/bin/swww img --transition-step 20 --transition-fps 60 "$next_wallpaper"
+        ${pkgs.awww}/bin/awww img --transition-step 20 --transition-fps 60 "$next_wallpaper"
       '';
 
   /*

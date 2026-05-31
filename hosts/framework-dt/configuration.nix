@@ -125,18 +125,16 @@ in
     # Enable resolvctl for DNS changes
     resolved = {
       enable = true;
-      dnssec = "allow-downgrade";
-      dnsovertls = "opportunistic";
-
-      extraConfig = ''
-        DNS=192.168.1.1
-        Domains=~p22
-      '';
-
-      fallbackDns = [
-        "1.1.1.1"
-        "8.8.8.8"
-      ];
+      settings.Resolve = {
+        DNSSEC = "allow-downgrade";
+        DNSOverTLS = "opportunistic";
+        DNS = [ "192.168.1.1" ];
+        Domains = [ "~p22" ];
+        FallbackDNS = [
+          "1.1.1.1"
+          "8.8.8.8"
+        ];
+      };
     };
 
     openssh = {

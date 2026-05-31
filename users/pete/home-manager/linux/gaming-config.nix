@@ -2,7 +2,7 @@
 {
   home.packages = with pkgs; [
     heroic
-    mod._86Box
+    mod._86box
   ];
 
   programs = {

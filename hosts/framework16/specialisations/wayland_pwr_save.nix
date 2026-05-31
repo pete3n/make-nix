@@ -25,9 +25,19 @@
       cpufreq.max = 2400000; # 2.4 GHz
       scsiLinkPolicy = "min_power";
       powertop.enable = true;
-      powerUpCommands = ''
-        				${pkgs.brightnessctl}/bin/brightnessctl set 25%
-        			'';
+
+      # Deprecated
+      # It will be removed in NixOS 26.11.
+      #                  It is recommended to create an explicit systemd oneshot service instead,
+      #                  that is pulled in at the right time during the boot process.
+      #                  See https://www.freedesktop.org/software/systemd/man/latest/systemd.special.html
+      #                 for more information on possible targets that can be used for this.
+      #                  If you also want to run this service upon waking up from resume, the recommended
+      #                  method to do so is described here:
+      #                  https://www.freedesktop.org/software/systemd/man/latest/systemd.special.html#sleep.target
+      #powerUpCommands = ''
+      #  				${pkgs.brightnessctl}/bin/brightnessctl set 25%
+      #  			'';
     };
 
     environment.systemPackages = with pkgs; [

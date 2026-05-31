@@ -32,6 +32,7 @@ in
   # Yazi cli file manager
   programs.yazi = {
     enable = true;
+		shellWrapperName = "y";
 
     keymap = {
       mgr = {

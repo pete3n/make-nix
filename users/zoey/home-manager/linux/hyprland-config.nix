@@ -13,6 +13,8 @@
 
   wayland.windowManager.hyprland = {
     enable = true;
+		#TODO: Port config to lua
+		configType = "hyprlang";
     xwayland.enable = false;
 
     settings = {
@@ -53,7 +55,7 @@
         disable_hyprland_logo = true;
       };
 
-      "windowrulev2" = [
+      "windowrule" = [
         "float, class:^(char-popout)$"
         "center, class:^(char-popout)$"
         "noborder, class:^(char-popout)$"

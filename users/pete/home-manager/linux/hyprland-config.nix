@@ -22,7 +22,7 @@
 
   services = {
     hyprpolkitagent.enable = true; # Privilege elevation request service
-    swww.enable = true; # Wallpaper service
+    awww.enable = true; # Wallpaper service
 
     hyprlidmon = {
       enable = lib.mkDefault (makeNixLib.hasTag "laptop" makeNixAttrs.tags);
@@ -565,8 +565,8 @@
               ];
               key = "T";
               action = {
-                type = "dispatch";
-                dispatch = "togglesplit";
+                type = "layoutmsg";
+                message = "togglesplit";
               };
 
             };
@@ -1036,6 +1036,8 @@
 
   wayland.windowManager.hyprland = {
     enable = true;
+    #TODO: Port config to lua
+    configType = "hyprlang";
     xwayland.enable = true;
 
     settings = {
@@ -1094,11 +1096,6 @@
         };
       };
 
-      # Execute your favorite apps at launch
-      # exec-once = waybar & hyprpaper & firefox
-      # Source a file (multi-file configs)
-      # source = ~/.config/hypr/myColors.conf
-
       # Some default env vars.
       "env" = [
         "XCURSOR_SIZE,24"
@@ -1106,71 +1103,9 @@
         "WLR_NO_HARDWARE_CURSORS,1"
       ];
 
-      # See https://wiki.hyprland.org/Configuring/Window-Rules/ for window rules
-      # Fix for steam menus
-      "windowrulev2" = [
-        "stayfocused, title:^()$,class:^(steam)$"
-        "minsize 1 1, title:^()$,class:^(steam)$"
-      ]
-      ++
-        # PIP for Firefox video popouts
-        [
-          "float, title:^(Picture-in-Picture)$"
-          "pin, title:^(Picture-in-Picture)$"
-          "size 30% 30%, title:^(Picture-in-Picture)$"
-          "move 65% 5%, title:^(Picture-in-Picture)$"
-        ]
-      ++
-        # Pomodoro config TUI
-        [
-          "float, title:^(Pomodoro)$"
-          "center, title:^(Pomodoro)$"
-          "size 1200 800, title:^(Pomodoro)$"
-          "stayfocused, title:^(Pomodoro)$"
-        ]
-      ++
-        # Pomodoro transition image popup
-        [
-          "float, class:^(pomodoro-img)$"
-          "center, class:^(pomodoro-img)$"
-          "noborder, class:^(pomodoro-img)$"
-          "noshadow, class:^(pomodoro-img)$"
-          "noanim, class:^(pomodoro-img)$"
-          "opacity 0.92 0.92,class:^(pomodoro-img)$"
-          "noinitialfocus, class:^(pomodoro-img)$"
-        ]
-      ++
-        # Calendar popup - centered under waybar
-        [
-          "float,class:^(calendar-popup)$"
-          "noinitialfocus,class:^(calendar-popup)$"
-          "noborder,class:^(calendar-popup)$"
-          "opacity 0.92 0.92,class:^(calendar-popup)$"
-          "size 1280 800,class:^(calendar-popup)$"
-        ]
-      ++
-        # Cava mpd visualizer and mpd art
-        [
-          "float,class:^(mpd-vis)$"
-          "noinitialfocus,class:^(mpd-vis)$"
-          "pin,class:^(mpd-vis)$"
-          "noborder,class:^(mpd-vis)$"
-          "opacity 0.92 0.92,class:^(mpd-vis)$"
-          "noanim,class:^(mpd-vis)$"
-          "size 900 240,class:^(mpd-vis)$"
-          # x = 100% - (900 + 260 + 15) = 100% - 1175
-          "move 100%-1175 40,class:^(mpd-vis)$"
-
-          "float,class:^(mpd-art)$"
-          "noinitialfocus,class:^(mpd-art)$"
-          "pin,class:^(mpd-art)$"
-          "noborder,class:^(mpd-art)$"
-          "opacity 0.82 0.82,class:^(mpd-art)$"
-          "noanim,class:^(mpd-art)$"
-          "size 260 240,class:^(mpd-art)$"
-          # x = 100% - (260 + 15) = 100% - 275
-          "move 100%-275 40,class:^(mpd-art)$"
-        ];
+      # Window rules have been moved to extraConfig — see below.
+      # The old `windowrulev2 = "effect, class:^x$"` comma-separated format was
+      # replaced in 0.53 with `windowrule = effect on, match:class pattern` syntax.
 
       general = {
         gaps_in = 4;
@@ -1216,9 +1151,10 @@
       };
 
       # See https://wiki.hyprland.org/Configuring/Dwindle-Layout/ for more
+      # Note: dwindle.pseudotile was removed in 0.53 — pseudotiling is toggled
+      # exclusively via the `pseudo` dispatch (bound to mainMod+P below).
       dwindle = {
-        pseudotile = true; # master switch for pseudotiling. Enabling is bound to mainMod + P in the keybinds section below
-        preserve_split = true; # you probably want this
+        preserve_split = true;
       };
 
       # See https://wiki.hyprland.org/Configuring/Master-Layout/ for more
@@ -1237,5 +1173,110 @@
         "$mainMod, mouse:273, resizewindow"
       ];
     };
+
+    # Window rules rewritten for the 0.53 syntax overhaul.
+    #
+    # Old format (removed in 0.53):
+    #   windowrulev2 = float, class:^(kitty)$
+    #
+    # New inline format:
+    #   windowrule = float on, match:class ^(kitty)$
+    #
+    # New block format (for grouped effects on the same window):
+    #   windowrule {
+    #     match:class = ^(kitty)$
+    #     float = on
+    #   }
+    #
+    # Key changes:
+    #   - `windowrulev2` → `windowrule`
+    #   - `class:^x$`  → `match:class ^x$` (or `match:class = ^x$` in block)
+    #   - `title:^x$`  → `match:title ^x$`
+    #   - Boolean effects now require an explicit `on`/`off` value
+    #   - Effect names use snake_case: stayfocused → stay_focused, etc.
+    extraConfig = ''
+      # Steam menus: prevent empty-title popups from stealing focus
+      windowrule {
+        name = steam-menus
+        match:class = ^(steam)$
+        match:title = ^()$
+        stay_focused = on
+        min_size = 1 1
+      }
+
+      # Firefox Picture-in-Picture
+      windowrule {
+        name = firefox-pip
+        match:title = ^(Picture-in-Picture)$
+        float = on
+        pin = on
+        size = 30% 30%
+        move = 65% 5%
+      }
+
+      # Pomodoro config TUI
+      windowrule {
+        name = pomodoro-tui
+        match:title = ^(Pomodoro)$
+        float = on
+        center = on
+        size = 1200 800
+        stay_focused = on
+      }
+
+      # Pomodoro transition image popup
+      windowrule {
+        name = pomodoro-img
+        match:class = ^(pomodoro-img)$
+        float = on
+        center = on
+				border_size = 0
+        no_shadow = on
+        no_anim = on
+        opacity = 0.92 0.92
+        no_initial_focus = on
+      }
+
+      # Calendar popup — centered under waybar
+      windowrule {
+        name = calendar-popup
+        match:class = ^(calendar-popup)$
+        float = on
+        no_initial_focus = on
+				border_size = 0
+        opacity = 0.92 0.92
+        size = 1280 800
+      }
+
+      # Cava MPD visualizer
+      # x = 100% - (900 + 260 + 15) = 100% - 1175
+      windowrule {
+        name = mpd-vis
+        match:class = ^(mpd-vis)$
+        float = on
+        no_initial_focus = on
+        pin = on
+				border_size = 0
+        opacity = 0.92 0.92
+        no_anim = on
+        size = 900 240
+        move = 100%-1175 40
+      }
+
+      # MPD album art
+      # x = 100% - (260 + 15) = 100% - 275
+      windowrule {
+        name = mpd-art
+        match:class = ^(mpd-art)$
+        float = on
+        no_initial_focus = on
+        pin = on
+				border_size = 0
+        opacity = 0.82 0.82
+        no_anim = on
+        size = 260 240
+        move = 100%-275 40
+      }
+    '';
   };
 }

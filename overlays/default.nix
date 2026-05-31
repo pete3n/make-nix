@@ -59,7 +59,7 @@ let
             '';
           });
 
-          _86Box = prev._86Box-with-roms.overrideAttrs (oldAttrs: {
+          _86box = prev._86box-with-roms.overrideAttrs (oldAttrs: {
             preFixup = oldAttrs.preFixup + ''
               makeWrapperArgs+=(--set QT_QPA_PLATFORM "xcb")
             '';

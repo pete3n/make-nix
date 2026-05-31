@@ -98,7 +98,7 @@ in
         mosh # Mobile-shell SSH replacement
         nextcloud-client
         remmina
-        rustdesk
+				#rustdesk broken build in 26.05
         unstable.standardnotes
         unstable.yt-dlp # Youtube download Python version
         unzip
@@ -144,7 +144,6 @@ in
         sshs # SSH config manager TUI
         tldr # Better man pages
         vim
-        xxgdb # gdb TUI
 
         ## Pen testing, network recon, binary analysis tools
         angryoxide
@@ -307,51 +306,49 @@ in
     ssh = {
       enable = true;
       enableDefaultConfig = false;
-      matchBlocks = {
+      settings = {
         "github" = {
-          hostname = "github.com";
-          user = "git";
-          identityFile = [
+          HostName = "github.com";
+          User = "git";
+          IdentityFile = [
             "/home/${makeUser}/.ssh/id_ed25519_sk_rk_github"
             "/home/${makeUser}/.ssh/pete3n"
           ];
-          identitiesOnly = true;
+          IdentitiesOnly = true;
         };
         "linode" = {
-          hostname = "tech.p3n.dev";
-          user = "ubuntu";
-          identityFile = [
+          HostName = "tech.p3n.dev";
+          User = "ubuntu";
+          IdentityFile = [
             "/home/${makeUser}/.ssh/id_ed25519_sk_rk_linode"
           ];
-          identitiesOnly = true;
+          IdentitiesOnly = true;
         };
       }
       // lib.optionalAttrs (hasTag "p22" makeTags) {
         "framework-dt" = {
-          hostname = "framework-dt.p22";
-          user = "pete";
-          identityFile = "/home/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
-          identitiesOnly = true;
-          extraOptions = {
-            IdentityAgent = "none";
-            ControlMaster = "auto";
-            ControlPath = "~/.ssh/control-%r@%h:%p";
-            ControlPersist = "10m";
-          };
+          HostName = "framework-dt.p22";
+          User = "pete";
+          IdentityFile = "/home/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
+          IdentitiesOnly = true;
+          IdentityAgent = "none";
+          ControlMaster = "auto";
+          ControlPath = "~/.ssh/control-%r@%h:%p";
+          ControlPersist = "10m";
         };
         "backupsvr" = {
-          hostname = "backupsvr.p22";
-          user = "root";
-          identityFile = "/home/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
-          identitiesOnly = true;
-          extraOptions.IdentityAgent = "none";
+          HostName = "backupsvr.p22";
+          User = "root";
+          IdentityFile = "/home/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
+          IdentitiesOnly = true;
+          IdentityAgent = "none";
         };
         "mediasvr" = {
-          hostname = "media.p22";
-          user = "root";
-          identityFile = "/home/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
-          identitiesOnly = true;
-          extraOptions.IdentityAgent = "none";
+          HostName = "media.p22";
+          User = "root";
+          IdentityFile = "/home/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
+          IdentitiesOnly = true;
+          IdentityAgent = "none";
         };
       };
     };

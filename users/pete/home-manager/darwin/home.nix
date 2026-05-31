@@ -77,43 +77,49 @@ in
     ssh = {
       enable = true;
       enableDefaultConfig = false;
-      matchBlocks = {
+      settings = {
         "github" = {
-          hostname = "github.com";
-          user = "git";
-          identityFile = [
-            "/Users/${makeUser}/.ssh/id_ed25519_sk_rk_github"
-            "/Users/${makeUser}/.ssh/pete3n"
+          HostName = "github.com";
+          User = "git";
+          IdentityFile = [
+            "/home/${makeUser}/.ssh/id_ed25519_sk_rk_github"
+            "/home/${makeUser}/.ssh/pete3n"
           ];
-          identitiesOnly = true;
+          IdentitiesOnly = true;
+        };
+        "linode" = {
+          HostName = "tech.p3n.dev";
+          User = "ubuntu";
+          IdentityFile = [
+            "/home/${makeUser}/.ssh/id_ed25519_sk_rk_linode"
+          ];
+          IdentitiesOnly = true;
         };
       }
       // lib.optionalAttrs (hasTag "p22" makeTags) {
         "framework-dt" = {
-          hostname = "framework-dt.p22";
-          user = "pete";
-          identityFile = "/Users/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
-          identitiesOnly = true;
-          extraOptions = {
-            IdentityAgent = "none";
-            ControlMaster = "auto";
-            ControlPath = "~/.ssh/control-%r@%h:%p";
-            ControlPersist = "10m";
-          };
+          HostName = "framework-dt.p22";
+          User = "pete";
+          IdentityFile = "/home/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
+          IdentitiesOnly = true;
+          IdentityAgent = "none";
+          ControlMaster = "auto";
+          ControlPath = "~/.ssh/control-%r@%h:%p";
+          ControlPersist = "10m";
         };
         "backupsvr" = {
-          hostname = "backupsvr.p22";
-          user = "root";
-          identityFile = "/Users/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
-          identitiesOnly = true;
-          extraOptions.IdentityAgent = "none";
+          HostName = "backupsvr.p22";
+          User = "root";
+          IdentityFile = "/home/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
+          IdentitiesOnly = true;
+          IdentityAgent = "none";
         };
         "mediasvr" = {
-          hostname = "media.p22";
-          user = "root";
-          identityFile = "/Users/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
-          identitiesOnly = true;
-          extraOptions.IdentityAgent = "none";
+          HostName = "media.p22";
+          User = "root";
+          IdentityFile = "/home/${makeUser}/.ssh/id_ed25519_sk_rk_p22";
+          IdentitiesOnly = true;
+          IdentityAgent = "none";
         };
       };
     };

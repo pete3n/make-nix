@@ -22,6 +22,7 @@
 
     userDirs = {
       enable = true;
+      setSessionVars = true;
       documents = "/home/${makeNixAttrs.user}/Documents";
       download = "/home/${makeNixAttrs.user}/Downloads";
       music = "/home/${makeNixAttrs.user}/Music";
