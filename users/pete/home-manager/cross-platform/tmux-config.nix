@@ -88,6 +88,10 @@ let
   # automatic-rename to fire) then re-enable automatic-rename and write the format —
   # all in one tmux invocation. The format keeps automatic-rename functional so that
   # non-shell commands (nvim, htop, …) still show their name when they take the foreground.
+  # For sudo, a #(...) shell command walks pane_pid → sudo child → sudo's child to show
+  # e.g. "sudo openvpn" instead of just "sudo".
+  # _sudo_cmd is single-quoted so bash does not expand the $(pgrep...) inside it;
+  # tmux receives the literals and evaluates them itself at rename time.
   tmux_path_renamer_bash = # sh
     ''
       _tmux_update_window_title() {
@@ -95,7 +99,9 @@ let
         local _path="''${PWD}"
         local _stripped="''${_path#''${HOME}}"
         [ "$_stripped" != "$_path" ] && _path="~$_stripped"
-        local _fmt="#{?#{m/r:^(bash)$,#{pane_current_command}},''${_path},#{pane_current_command}}"
+        local _sudo_cmd='#(p=#{pane_pid}; n=; while c=$(${pkgs.procps}/bin/pgrep -P $p 2>/dev/null | head -1) && [ -n "$c" ] && n=$(${pkgs.procps}/bin/ps -o comm= -p $c 2>/dev/null | tr -d " \n") && [ -n "$n" ]; do p=$c; [ "$n" != "sudo" ] && break; done; [ -n "$n" ] && [ "$n" != "sudo" ] && printf "sudo %s" "$n" || printf "sudo")'
+        local _cmd_or_sudo="#{?#{==:#{pane_current_command},sudo},''${_sudo_cmd},#{pane_current_command}}"
+        local _fmt="#{?#{m/r:^bash$,#{pane_current_command}},''${_path},''${_cmd_or_sudo}}"
         tmux rename-window "$_path" \; \
           set-window-option automatic-rename on \; \
           set-window-option automatic-rename-format "$_fmt"
@@ -110,7 +116,9 @@ let
         local _path="''${PWD}"
         local _stripped="''${_path#''${HOME}}"
         [[ "$_stripped" != "$_path" ]] && _path="~$_stripped"
-        local _fmt="#{?#{m/r:^(zsh)$,#{pane_current_command}},''${_path},#{pane_current_command}}"
+        local _sudo_cmd='#(p=#{pane_pid}; n=; while c=$(pgrep -P $p 2>/dev/null | head -1) && [ -n "$c" ] && n=$(ps -o comm= -p $c 2>/dev/null | tr -d " \n") && [ -n "$n" ]; do p=$c; [ "$n" != "sudo" ] && break; done; [ -n "$n" ] && [ "$n" != "sudo" ] && printf "sudo %s" "$n" || printf "sudo")'
+        local _cmd_or_sudo="#{?#{==:#{pane_current_command},sudo},''${_sudo_cmd},#{pane_current_command}}"
+        local _fmt="#{?#{m/r:^zsh$,#{pane_current_command}},''${_path},''${_cmd_or_sudo}}"
         tmux rename-window "$_path" \; \
           set-window-option automatic-rename on \; \
           set-window-option automatic-rename-format "$_fmt"
