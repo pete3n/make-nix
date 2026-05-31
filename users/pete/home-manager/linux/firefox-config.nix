@@ -12,6 +12,7 @@ in
   programs.firefox = {
     enable = true;
     configPath = "${config.xdg.configHome}/mozilla/firefox";
+		# Symlink legacy ~/.mozilla path to new ~/.config/mozilla path for migration
     policies = {
       SecurityDevices.Add = {
         # Enable openSC smartcart reader
