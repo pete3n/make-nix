@@ -1,5 +1,4 @@
 {
-  config,
   pkgs,
   ...
 }:
@@ -52,11 +51,10 @@
   gtk = {
     enable = true;
     gtk3 = {
-      theme = config.gtk.theme;
       extraConfig.gtk-application-prefer-dark-theme = 1;
     };
     gtk4 = {
-      theme = config.gtk.theme;
+      theme = null;
       extraConfig.gtk-application-prefer-dark-theme = 1;
     };
 
@@ -84,7 +82,40 @@
 
   qt = {
     enable = true;
-    platformTheme.name = "adwaita";
-    style.name = "adwaita-dark";
+    platformTheme.name = "qtct";
+    style = {
+      name = "kvantum";
+      package = pkgs.kdePackages.qtstyleplugin-kvantum;
+    };
+    kvantum = {
+      enable = true;
+      settings.General.theme = "KvArcDark";
+    };
+    qt5ctSettings = {
+      Appearance = {
+        style = "kvantum";
+        icon_theme = "Yaru-magenta";
+        standard_dialogs = "xdgdesktopportal";
+        color_scheme_path = "";
+        custom_palette = false;
+      };
+      Fonts = {
+        fixed = ''"JetBrains Mono,11,-1,5,50,0,0,0,0,0"'';
+        general = ''"Sans Serif,11,-1,5,50,0,0,0,0,0"'';
+      };
+    };
+    qt6ctSettings = {
+      Appearance = {
+        style = "kvantum";
+        icon_theme = "Yaru-magenta";
+        standard_dialogs = "xdgdesktopportal";
+        color_scheme_path = "";
+        custom_palette = false;
+      };
+      Fonts = {
+        fixed = ''"JetBrains Mono,11,-1,5,50,0,0,0,0,0"'';
+        general = ''"Sans Serif,11,-1,5,50,0,0,0,0,0"'';
+      };
+    };
   };
 }
