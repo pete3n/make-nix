@@ -83,6 +83,40 @@ let
         return "''${_ssh_exit}"
       }
     '';
+
+  # On each prompt, immediately rename the window (so #W updates without waiting for
+  # automatic-rename to fire) then re-enable automatic-rename and write the format —
+  # all in one tmux invocation. The format keeps automatic-rename functional so that
+  # non-shell commands (nvim, htop, …) still show their name when they take the foreground.
+  tmux_path_renamer_bash = # sh
+    ''
+      _tmux_update_window_title() {
+        [ -n "''${TMUX:-}" ] || return
+        local _path="''${PWD}"
+        local _stripped="''${_path#''${HOME}}"
+        [ "$_stripped" != "$_path" ] && _path="~$_stripped"
+        local _fmt="#{?#{m/r:^(bash)$,#{pane_current_command}},''${_path},#{pane_current_command}}"
+        tmux rename-window "$_path" \; \
+          set-window-option automatic-rename on \; \
+          set-window-option automatic-rename-format "$_fmt"
+      }
+      PROMPT_COMMAND="''${PROMPT_COMMAND:+''${PROMPT_COMMAND}; }_tmux_update_window_title"
+    '';
+
+  tmux_path_renamer_zsh = # zsh
+    ''
+      _tmux_update_window_title() {
+        [[ -n "''${TMUX}" ]] || return
+        local _path="''${PWD}"
+        local _stripped="''${_path#''${HOME}}"
+        [[ "$_stripped" != "$_path" ]] && _path="~$_stripped"
+        local _fmt="#{?#{m/r:^(zsh)$,#{pane_current_command}},''${_path},#{pane_current_command}}"
+        tmux rename-window "$_path" \; \
+          set-window-option automatic-rename on \; \
+          set-window-option automatic-rename-format "$_fmt"
+      }
+      precmd_functions+=(_tmux_update_window_title)
+    '';
 in
 {
   home.packages = with pkgs; [ powerline-fonts ];
@@ -143,6 +177,10 @@ in
       	set -g set-titles-string "tmux: #S"
       	set-option -sa terminal-features ',alacritty:RGB'
       	set-option -g renumber-windows on
+
+      	# Shell hooks rename windows to ~/path; disable app-driven renaming
+      	set -g automatic-rename on
+      	set -g allow-rename off
 
       	# List key bindings
       	bind b list-keys
@@ -207,10 +245,10 @@ in
   programs.fzf.tmux.enableShellIntegration = true;
 
   programs.bash = lib.mkIf isLinux {
-    initExtra = tmux_ssh_wrapper;
+    initExtra = tmux_ssh_wrapper + tmux_path_renamer_bash;
   };
 
   programs.zsh = lib.mkIf isDarwin {
-    initContent = lib.mkOrder 1000 tmux_ssh_wrapper;
+    initContent = lib.mkOrder 1000 (tmux_ssh_wrapper + tmux_path_renamer_zsh);
   };
 }
