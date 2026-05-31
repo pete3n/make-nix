@@ -217,8 +217,6 @@ in
     # See: https://wiki.hyprland.org/Nix
     hardware.bolt.enable = true; # boltctl
 
-    # TODO: Check out flatpaks for home-manager with nix-flatpak
-    flatpak.enable = true;
   }
   // lib.optionalAttrs (hasTag "yubi-age-user" makeTags) {
     pcscd.enable = true;
@@ -227,17 +225,6 @@ in
   };
 
   programs.gnupg.agent.enable = lib.mkIf (hasTag "yubi-age-user" makeTags) true;
-
-  # Portals must be enable system wide for Flatpak support
-  xdg.portal = {
-    enable = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-    config = {
-      common = {
-        default = [ "gtk" ];
-      };
-    };
-  };
 
   ### Fonts and Locale ###
   i18n.defaultLocale = "en_US.UTF-8";

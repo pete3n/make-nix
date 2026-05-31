@@ -170,8 +170,6 @@ in
       wireplumber.enable = true;
     };
 
-    # TODO: Check out flatpaks for home-manager with nix-flatpak
-    flatpak.enable = true;
     fwupd.enable = true;
     power-profiles-daemon.enable = true;
     thermald.enable = true;
@@ -188,17 +186,6 @@ in
   i18n.defaultLocale = "en_US.UTF-8";
   time.timeZone = "America/New_York";
   #fonts.packages = with pkgs; [ (nerdfonts.override { fonts = [ "JetBrainsMono" ]; }) ];
-
-  # Portals must be enable system wide for Flatpak support
-  xdg.portal = {
-    enable = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-    config = {
-      common = {
-        default = [ "gtk" ];
-      };
-    };
-  };
 
   # Enable Docker - note: This requires iptables
   virtualisation.docker.enable = true;
