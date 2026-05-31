@@ -11,6 +11,17 @@ let
   hasTag = makeNixLib.hasTag;
   tags = makeNixAttrs.tags;
 
+  # Onedark palette
+  onedark_colors = {
+    black = "#282c34";
+    dark_grey = "#3e4452";
+    comment = "#5c6370";
+    fg = "#abb2bf";
+    green = "#98c379";
+    yellow = "#e5c07b";
+    red = "#e06c75";
+  };
+
   tmux_ssh_wrapper = # sh
     ''
       ssh() {
@@ -90,7 +101,6 @@ in
     terminal = "screen-256color";
 
     plugins = with pkgs.tmuxPlugins; [
-      onedark-theme
       pain-control
       vim-tmux-navigator
       logging
@@ -129,36 +139,65 @@ in
     ];
 
     extraConfig = ''
-      set -g set-titles on
-      set -g set-titles-string "tmux: #S"
-      set-option -sa terminal-features ',alacritty:RGB'
-      set-option -g renumber-windows on
+      	set -g set-titles on
+      	set -g set-titles-string "tmux: #S"
+      	set-option -sa terminal-features ',alacritty:RGB'
+      	set-option -g renumber-windows on
 
-      # List key bindings
-      bind b list-keys
+      	# List key bindings
+      	bind b list-keys
 
-      # "Zen" mode - zoom window without status bar
-      bind Z if -F '#{window_zoomed_flag}' \
-        'resize-pane -Z; set -g status on' \
-        'resize-pane -Z; set -g status off'
+      	# Add zoomed status
+      	set -g status-left "#[fg=#282c34,bg=#98c379,bold] #S #{prefix_highlight}#[fg=#98c379,bg=#282c34,nobold,nounderscore,noitalics] #{?window_zoomed_flag,#[fg=white]Z* ,}"
 
-      # Enter visual selection with vim binding
-      bind-key -T copy-mode-vi v send-keys -X begin-selection
+      	# "Zen" mode - zoom window without status bar
+      	bind Z if -F '#{window_zoomed_flag}' \
+      		'resize-pane -Z; set -g status on' \
+      		'resize-pane -Z; set -g status off'
 
-      # Split panes in current path
-      bind '"' split-window -v -c "#{pane_current_path}"
-      bind % split-window -h -c "#{pane_current_path}"
-      bind | split-window -h -c "#{pane_current_path}"
-      bind _ split-window -v -c "#{pane_current_path}"
+      	# Enter visual selection with vim binding
+      	bind-key -T copy-mode-vi v send-keys -X begin-selection
 
-      # Transparent status bar on top
-      set -g status-bg default
-      set -g status-fg default
-      set-option -g status-style bg=default
-      set -g status-position top
+      	# Split panes in current path
+      	bind '"' split-window -v -c "#{pane_current_path}"
+      	bind % split-window -h -c "#{pane_current_path}"
+      	bind | split-window -h -c "#{pane_current_path}"
+      	bind _ split-window -v -c "#{pane_current_path}"
 
-      # Add zoomed status
-      set -g status-left "#[fg=#282c34,bg=#98c379,bold] #S #{prefix_highlight}#[fg=#98c379,bg=#282c34,nobold,nounderscore,noitalics] #{?window_zoomed_flag,#[fg=#white]Z* ,}"
+      	# --- Status Bar ---
+      	set -g status-position top
+
+      	# Base style: fg default lets segments control their own foreground;
+      	# bg=default keeps the gaps transparent (blending with terminal bg).
+      	set -g status-style "fg=${onedark_colors.fg},bg=default"
+      	set -g status-left-length 40
+      	set -g status-right-length 60
+
+      	# Left: session name (green pill), optional zoom indicator
+      	set -g status-left "#[fg=${onedark_colors.black},bg=${onedark_colors.green},bold] #S #[fg=${onedark_colors.green},bg=default,nobold,nounderscore,noitalics] #{?window_zoomed_flag,[Z] ,}"
+
+      	# Right: time / date / hostname (no trailing decorative segments)
+      	set -g status-right "#[fg=${onedark_colors.fg},bg=${onedark_colors.black}] %H:%M  %d %b #[fg=${onedark_colors.black},bg=${onedark_colors.green},bold] #h "
+
+      	# Window list — inactive windows
+      	set -g window-status-style          "fg=${onedark_colors.comment},bg=${onedark_colors.black}"
+      	set -g window-status-current-style  "fg=${onedark_colors.black},bg=${onedark_colors.green},bold"
+      	set -g window-status-activity-style "fg=${onedark_colors.yellow},bg=${onedark_colors.black}"
+      	set -g window-status-bell-style     "fg=${onedark_colors.red},bg=${onedark_colors.black},bold"
+      	set -g window-status-separator      ""
+      	set -g window-status-format         " #I:#W "
+      	set -g window-status-current-format " #I:#W "
+
+      	# Message / command prompt
+      	set -g message-style         "fg=${onedark_colors.fg},bg=${onedark_colors.dark_grey}"
+      	set -g message-command-style "fg=${onedark_colors.fg},bg=${onedark_colors.dark_grey}"
+
+      	set -g pane-border-style        "fg=${onedark_colors.dark_grey},bg=${onedark_colors.black}"
+      	set -g pane-active-border-style "fg=${onedark_colors.green},bg=${onedark_colors.black}"
+
+      	# Pane content: dim inactive, normal active
+      	set -g window-style        "fg=${onedark_colors.comment}"
+      	set -g window-active-style "fg=${onedark_colors.fg}"
     ''
     + lib.optionalString isDarwin ''
       set-option -ga terminal-overrides ',alacritty:Tc:smcup@:rmcup@'
