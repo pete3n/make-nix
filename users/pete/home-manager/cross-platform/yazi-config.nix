@@ -32,7 +32,7 @@ in
   # Yazi cli file manager
   programs.yazi = {
     enable = true;
-		shellWrapperName = "y";
+    shellWrapperName = "y";
 
     keymap = {
       mgr = {
@@ -103,10 +103,7 @@ in
       };
 
       plugin = {
-
-        # Office.yazi configuration
         prepend_preloaders = [
-          # Office Documents
           {
             mime = "application/openxmlformats-officedocument.*";
             run = "office";
@@ -124,13 +121,12 @@ in
             run = "office";
           }
           {
-            name = "*.docx";
+            url = "*.docx";
             run = "office";
           }
         ];
 
         prepend_previewers = [
-          # Office Documents
           {
             mime = "application/openxmlformats-officedocument.*";
             run = "office";
@@ -148,7 +144,7 @@ in
             run = "office";
           }
           {
-            name = "*.docx";
+            url = "*.docx";
             run = "office";
           }
         ];
