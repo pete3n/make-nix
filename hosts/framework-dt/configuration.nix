@@ -147,7 +147,7 @@ in
         }
       ];
       settings = {
-        AcceptEnv = "USBIP_YUBIKEY";
+        AcceptEnv = [ "USBIP_YUBIKEY" ];
         PubkeyAuthentication = true;
         PasswordAuthentication = false;
         KbdInteractiveAuthentication = false;
