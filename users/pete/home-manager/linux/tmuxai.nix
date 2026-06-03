@@ -34,7 +34,7 @@ lib.mkIf hasTmuxAi {
     # Adjust model to match what is currently loaded in Ollama.
     models.local = {
       provider = "openrouter";
-      model = "qwen3:8b";
+      model = "qwen3-coder:latest";
       api_key = "ollama";
       base_url = "http://localhost:11434/v1";
     };

@@ -98,6 +98,7 @@ rec {
   # Configuration tags that can be applied to both home and system configs.
   validConfigTags = [
     "aichat"
+    "llm-agents"
     "crypto"
     "gaming"
     "git"

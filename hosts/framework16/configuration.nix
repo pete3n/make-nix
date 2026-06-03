@@ -15,8 +15,11 @@ let
 in
 {
   imports =
-    optionalImport "local-ai" ../shared-imports/linux/ollama.nix
-    ++ optionalImport "crypto" ../shared-imports/linux/crypto-services.nix
+    optionalImport "crypto" ../shared-imports/linux/crypto-services.nix
+    ++ lib.optionals (hasTag "local-ai" makeTags) [
+      ../shared-imports/linux/ollama.nix
+      ../shared-imports/linux/sandbox-monitor.nix
+    ]
     ++ lib.optionals (hasTag "p22" makeTags) [
       ../shared-imports/cross-platform/p22-build-client.nix # Remote client builds
       ../shared-imports/cross-platform/p22-pki.nix # Trusted root cert
@@ -54,7 +57,7 @@ in
 
   documentation = {
     man.enable = true;
-		man.cache.enable = true;
+    man.cache.enable = true;
   };
 
   boot = {

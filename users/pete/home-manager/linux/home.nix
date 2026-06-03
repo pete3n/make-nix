@@ -30,7 +30,16 @@ in
 
   imports =
     # Conditional imports based on configuration tags
-    lib.optional (hasTag "aichat" makeTags || hasTag "local-ai" makeTags) ../cross-platform/aichat.nix
+    lib.optionals (hasTag "llm-agents" makeTags ) [
+      ./sandbox-wrapper.nix
+      ./claude-code.nix
+      ./opencode.nix
+      ./pi-agent.nix
+      ./tmuxai.nix
+    ]
+    ++ lib.optionals (hasTag "aichat" makeTags ) [
+      ../cross-platform/aichat.nix
+    ]
     ++ optionalImport "awesome" ./awesome-config.nix
     ++ optionalImport "gaming" ./gaming-config.nix
     ++ lib.optional (
@@ -98,7 +107,7 @@ in
         mosh # Mobile-shell SSH replacement
         nextcloud-client
         remmina
-				#rustdesk broken build in 26.05
+        #rustdesk broken build in 26.05
         unstable.standardnotes
         unstable.yt-dlp # Youtube download Python version
         unzip

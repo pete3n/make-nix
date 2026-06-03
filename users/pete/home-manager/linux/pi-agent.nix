@@ -11,11 +11,11 @@ let
 
   jail = inputs.jail-nix.lib.init pkgs;
 
-  pi-pkg = inputs.llm-agents.packages.${pkgs.system}.pi;
+  pi-pkg = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi;
 
   fullSettings = {
     defaultProvider = "anthropic";
-    defaultModel = "claude-sonnet-4-20250514";
+    defaultModel = "claude-sonnet-4-6";
     defaultThinkingLevel = "medium";
     enableInstallTelemetry = false;
     quietStartup = true;
@@ -39,6 +39,18 @@ let
         };
         models = [
           {
+            id = "gemma4:e4b";
+            name = "Gemma4 E4B (Local)";
+            reasoning = false;
+            cost = { input = 0; output = 0; cacheRead = 0; cacheWrite = 0; };
+          }
+          {
+            id = "gemma4:31b";
+            name = "Gemma4 31b (Local)";
+            reasoning = false;
+            cost = { input = 0; output = 0; cacheRead = 0; cacheWrite = 0; };
+          }
+          {
             id = "qwen3-coder:latest";
             name = "Qwen3 Coder (Local)";
             reasoning = false;
@@ -57,23 +69,12 @@ let
 
   contextText = ''
     # Global Instructions
+		
+		You only have access to provided project directories and your API endpoint.
+		Any webfetch, curl, research, etc. needs to be performed from the provider server.
+		Attempting to access any internet address outside of your API will be blocked and logged.
+		If you need external resources that aren't available, ask the user to provide them.
 
-    You are operating inside the Alacritty terminal emulator on systems running
-    NixOS, Nix-Darwin, or other Linux distributions using Nix Home Manager.
-    Sessions may run inside Tmux, within a Wayland/Hyprland graphical environment
-    on Linux, or on macOS with Nix-Darwin.
-
-    You are an expert in GNU core utilities, Nix and Home Manager, Bash and POSIX
-    shell scripting, and Linux networking. Where applicable, prefer declarative
-    Nix/Home Manager solutions over imperative approaches.
-
-    When providing solutions, start with a single clear path rather than presenting
-    multiple options upfront. If further steps are needed, preview the next step or
-    provide a brief summary of the plan. When a decision point requires branching,
-    ask the user which path to take and include your recommended option.
-
-    Responses should facilitate learning — accompany solutions with explanations of
-    why they work, not just what to run.
   '';
 
   jailedPi = jail "jailed-pi" pi-pkg (with jail.combinators;
@@ -88,15 +89,16 @@ let
       (write-text (noescape "~/.pi/agent/settings.json") (builtins.toJSON fullSettings))
       (write-text (noescape "~/.pi/agent/AGENTS.md") contextText)
 
-      # Session history, auth storage, installed packages — readwrite
-      (try-readwrite (noescape "~/.pi/agent"))
+      # Pi writes auth.json via /login, sessions to the configured sessionDir,
+      # and npm packages to ~/.pi/agent/npm/
+      (try-readwrite (noescape "~/.pi/agent/auth.json"))
+      (try-readwrite (noescape "~/.pi/agent/sessions"))
+      (try-readwrite (noescape "~/.pi/agent/npm"))
+
       # npm/bun caches for runtime package downloads
       (try-readwrite (noescape "~/.cache"))
       (try-readwrite (noescape "~/.bun"))
       (try-readwrite (noescape "~/.npm"))
-
-      # Agenix secret accessible inside the jail
-      (try-readonly "/run/agenix/anthropic-api-key")
 
       # Environment forwarding
       (try-fwd-env "ANTHROPIC_API_KEY")
@@ -113,8 +115,6 @@ let
         bashInteractive
         coreutils
         git
-        curl
-        wget
         jq
         ripgrep
         gnugrep
@@ -137,8 +137,6 @@ let
 
 in
 {
-  imports = [ ./pi-agent-module.nix ];
-
   programs.pi-agent = {
     enable = true;
     package = jailedPi;
@@ -157,13 +155,16 @@ in
         pi() {
           ANTHROPIC_API_KEY=$(cat /run/agenix/anthropic-api-key) \
           PI_SKIP_VERSION_CHECK=1 \
+            sandboxed -q --allow api.anthropic.com --allow 2607:6bc0::/32 \
+            -e ANTHROPIC_API_KEY -e PI_SKIP_VERSION_CHECK \
             setpriv --ambient-caps=-sys_nice -- jailed-pi "$@"
         }
       ''
       + lib.optionalString hasLocalAi ''
         pi-local() {
           PI_OFFLINE=1 \
-            sandboxed -q setpriv --ambient-caps=-sys_nice -- jailed-pi "$@"
+            sandboxed -q -e PI_OFFLINE \
+						setpriv --ambient-caps=-sys_nice -- jailed-pi "$@"
         }
       ''
     );
