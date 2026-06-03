@@ -38,4 +38,6 @@
 
   # Enable the GPIO kernel module if the pi-gpio tag is set.
   boot.kernelModules = lib.optionals (makeNixLib.hasTag "pi-gpio" makeNixAttrs.tags) [ "gpio-keys" ];
+	# Disable inherited ZFS support
+	boot.supportedFilesystems.zfs = lib.mkForce false;
 }

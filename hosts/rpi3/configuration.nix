@@ -74,4 +74,5 @@
   };
 
   boot.kernelModules = lib.optionals (makeNixLib.hasTag "pi-gpio" makeNixAttrs.tags) [ "gpio-keys" ];
+  boot.supportedFilesystems.zfs = lib.mkForce false;
 }
