@@ -16,6 +16,10 @@ in
     (import ./yazi-config.nix { inherit pkgs shellIntegration; })
   ];
 
+	home.packages = [
+		pkgs.devenv
+	];
+
   programs = {
     # Local wallpaper-scripts module for changing wallpapers
     wallpaper-scripts = {
