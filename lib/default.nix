@@ -84,6 +84,7 @@ rec {
     "cuda"
     "hyprland"
     "mpd"
+    "rocm"
     "wayland"
     "x11"
   ];
@@ -98,7 +99,6 @@ rec {
   # Configuration tags that can be applied to both home and system configs.
   validConfigTags = [
     "aichat"
-    "llm-agents"
     "crypto"
     "gaming"
     "git"
