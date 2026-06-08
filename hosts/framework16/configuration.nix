@@ -156,7 +156,7 @@ in
     hyprlock = { }; # Only enable hyprlock pam module if using hyprland
   };
 
-	# nix-slop-dev llm-agent sandboxed config
+  # nix-slop-dev llm-agent sandboxed config
   security.sandboxed = {
     enable = true;
     users = [ makeNixAttrs.user ];
