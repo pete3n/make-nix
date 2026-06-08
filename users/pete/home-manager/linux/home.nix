@@ -30,14 +30,7 @@ in
 
   imports =
     # Conditional imports based on configuration tags
-    lib.optionals (hasTag "llm-agents" makeTags ) [
-      ./sandbox-wrapper.nix
-      ./claude-code.nix
-      ./opencode.nix
-      ./pi-agent.nix
-      ./tmuxai.nix
-    ]
-    ++ lib.optionals (hasTag "aichat" makeTags ) [
+    lib.optionals (hasTag "aichat" makeTags ) [
       ../cross-platform/aichat.nix
     ]
     ++ optionalImport "awesome" ./awesome-config.nix
