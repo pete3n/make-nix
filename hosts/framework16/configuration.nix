@@ -18,7 +18,6 @@ in
     optionalImport "crypto" ../shared-imports/linux/crypto-services.nix
     ++ lib.optionals (hasTag "local-ai" makeTags) [
       ../shared-imports/linux/ollama.nix
-      ../shared-imports/linux/sandbox-monitor.nix
     ]
     ++ lib.optionals (hasTag "p22" makeTags) [
       ../shared-imports/cross-platform/p22-build-client.nix # Remote client builds
@@ -51,6 +50,8 @@ in
       ../shared-imports/linux/yubikey-pam-fprint.nix
       outputs.nixosModules.yubikeyUsbipServer # Use Yubikey on remote systems
     ]
+
+    ++ [ inputs.nix-slop-dev.nixosModules.sandboxed ]
     ++ [ inputs.pete3n-mods.nixosModules.default ]
     ++ [ inputs.pete3n-mods.nixosModules.hardware.framework16.fw16-kbd-alsd ]
     ++ [ inputs.pete3n-mods.nixosModules.hardware.framework16.fw16-disable-wake-triggers ];
@@ -153,6 +154,12 @@ in
   }
   // lib.mkIf (makeNixLib.hasTag "hyprland" makeNixAttrs.tags) {
     hyprlock = { }; # Only enable hyprlock pam module if using hyprland
+  };
+
+	# nix-slop-dev llm-agent sandboxed config
+  security.sandboxed = {
+    enable = true;
+    users = [ makeNixAttrs.user ];
   };
 
   services = {
