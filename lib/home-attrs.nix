@@ -140,7 +140,7 @@ let
 in
 
 let
-  pairs = builtins.map loadAttrFile attrFiles;
+  pairs = map loadAttrFile attrFiles;
 in
 assert (
   lib.asserts.assertMsg (
