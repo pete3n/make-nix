@@ -36,8 +36,6 @@
       inputs.hyprland.follows = "hyprland";
     };
 
-    nix-slop-dev.url = "github:pete3n/nix-slop-dev";
-
     pete3n-mods = {
       url = "github:pete3n/nix-modules?ref=nixos-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
