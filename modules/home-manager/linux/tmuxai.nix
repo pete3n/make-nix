@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.programs.tmuxai;
@@ -88,13 +93,21 @@ let
   };
 
   # Serialise a model attrset, dropping unset (null) optional fields.
-  modelToAttrs = model: lib.filterAttrs (_: val: val != null) {
-    inherit (model)
-      provider model api_key
-      base_url
-      api_base api_version deployment_name
-      region aws_profile;
-  };
+  modelToAttrs =
+    model:
+    lib.filterAttrs (_: val: val != null) {
+      inherit (model)
+        provider
+        model
+        api_key
+        base_url
+        api_base
+        api_version
+        deployment_name
+        region
+        aws_profile
+        ;
+    };
 
 in
 {
@@ -184,14 +197,22 @@ in
       type = lib.types.listOf lib.types.str;
       default = [ ];
       description = "Regex patterns matching commands that skip the confirmation prompt.";
-      example = [ "^ls(\\s+.*)?$" "^pwd\\s*$" "^cat(\\s+.*)?$" ];
+      example = [
+        "^ls(\\s+.*)?$"
+        "^pwd\\s*$"
+        "^cat(\\s+.*)?$"
+      ];
     };
 
     blacklistPatterns = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
       description = "Regex patterns matching commands that always show the confirmation prompt.";
-      example = [ "rm\\s+" "mv\\s+" "dd\\s+" ];
+      example = [
+        "rm\\s+"
+        "mv\\s+"
+        "dd\\s+"
+      ];
     };
 
     statusLine = lib.mkOption {
@@ -208,12 +229,20 @@ in
 
     execSplitArgs = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ "-d" "-h" ];
+      default = [
+        "-d"
+        "-h"
+      ];
       description = ''
         Raw arguments passed to `tmux split-window` when creating the exec pane.
         Flags -t, -P, and -F are managed internally and must not be included.
       '';
-      example = [ "-d" "-v" "-p" "70" ];
+      example = [
+        "-d"
+        "-v"
+        "-p"
+        "70"
+      ];
     };
 
     settings = lib.mkOption {
@@ -270,7 +299,7 @@ in
     assertions = [
       {
         assertion = cfg.models != { };
-        message   = "programs.tmuxai: at least one model must be defined in programs.tmuxai.models.";
+        message = "programs.tmuxai: at least one model must be defined in programs.tmuxai.models.";
       }
     ];
 
@@ -278,34 +307,32 @@ in
 
     xdg.configFile."tmuxai/config.yaml".source =
       let
-        explicitSettings =
-          {
-            debug             = cfg.debug;
-            yolo              = cfg.yolo;
-            max_context_size  = cfg.maxContextSize;
-            max_capture_lines = cfg.maxCaptureLines;
-            wait_interval     = cfg.waitInterval;
-            exec_confirm      = cfg.execConfirm;
-            send_keys_confirm = cfg.sendKeysConfirm;
-            paste_multiline_confirm = cfg.pasteMultilineConfirm;
-            tmux.exec_split_args = cfg.execSplitArgs;
-            models = lib.mapAttrs (_: modelToAttrs) cfg.models;
-          }
-          // lib.optionalAttrs (cfg.defaultModel != null) {
-            default_model = cfg.defaultModel;
-          }
-          // lib.optionalAttrs (cfg.statusLine != null) {
-            status_line = cfg.statusLine;
-          }
-          // lib.optionalAttrs (cfg.whitelistPatterns != [ ]) {
-            whitelist_patterns = cfg.whitelistPatterns;
-          }
-          // lib.optionalAttrs (cfg.blacklistPatterns != [ ]) {
-            blacklist_patterns = cfg.blacklistPatterns;
-          };
+        explicitSettings = {
+          debug = cfg.debug;
+          yolo = cfg.yolo;
+          max_context_size = cfg.maxContextSize;
+          max_capture_lines = cfg.maxCaptureLines;
+          wait_interval = cfg.waitInterval;
+          exec_confirm = cfg.execConfirm;
+          send_keys_confirm = cfg.sendKeysConfirm;
+          paste_multiline_confirm = cfg.pasteMultilineConfirm;
+          tmux.exec_split_args = cfg.execSplitArgs;
+          models = lib.mapAttrs (_: modelToAttrs) cfg.models;
+        }
+        // lib.optionalAttrs (cfg.defaultModel != null) {
+          default_model = cfg.defaultModel;
+        }
+        // lib.optionalAttrs (cfg.statusLine != null) {
+          status_line = cfg.statusLine;
+        }
+        // lib.optionalAttrs (cfg.whitelistPatterns != [ ]) {
+          whitelist_patterns = cfg.whitelistPatterns;
+        }
+        // lib.optionalAttrs (cfg.blacklistPatterns != [ ]) {
+          blacklist_patterns = cfg.blacklistPatterns;
+        };
       in
-      yamlFormat.generate "tmuxai-config.yaml"
-        (lib.recursiveUpdate explicitSettings cfg.settings);
+      yamlFormat.generate "tmuxai-config.yaml" (lib.recursiveUpdate explicitSettings cfg.settings);
 
     xdg.configFile."tmuxai/mcp.json" = lib.mkIf (cfg.mcpServers != null) {
       text = builtins.toJSON { mcpServers = cfg.mcpServers; };
