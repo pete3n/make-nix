@@ -36,8 +36,7 @@
       inputs.hyprland.follows = "hyprland";
     };
 
-    jail-nix.url = "sourcehut:~alexdavid/jail.nix";
-    llm-agents.url = "github:numtide/llm-agents.nix";
+    nix-slop-dev.url = "github:pete3n/nix-slop-dev";
 
     pete3n-mods = {
       url = "github:pete3n/nix-modules?ref=nixos-26.05";
