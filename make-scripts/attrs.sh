@@ -710,7 +710,7 @@ write_attrs() {
 		fi
 		logf '}\n'
 
-		_print_new_attrs >"${_attr_path}"
+		_print_new_attrs | nix run nixpkgs#nixfmt -- - >"${_attr_path}"
 	}
 
 	_update_attrs() {
