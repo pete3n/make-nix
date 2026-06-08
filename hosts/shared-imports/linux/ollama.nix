@@ -4,13 +4,19 @@
 { lib, pkgs, ... }:
 let
   cudaSupport = pkgs.config.cudaSupport or false;
-	rocmSupport = pkgs.config.rocmSupport or false;
+  rocmSupport = pkgs.config.rocmSupport or false;
 in
 {
   hardware.nvidia-container-toolkit.enable = cudaSupport;
   services.ollama = {
     enable = true;
-    package = if cudaSupport then pkgs.unstable.ollama-cuda else if rocmSupport then pkgs.unstable.ollama-rocm else pkgs.unstable.ollama-cpu;
+    package =
+      if cudaSupport then
+        pkgs.unstable.ollama-cuda
+      else if rocmSupport then
+        pkgs.unstable.ollama-rocm
+      else
+        pkgs.unstable.ollama-cpu;
     environmentVariables = lib.mkMerge [
       {
         OLLAMA_KEEP_ALIVE = "30m";
