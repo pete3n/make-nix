@@ -10,15 +10,19 @@ let
     enableBashIntegration = makeNixLib.isLinux makeNixAttrs.system;
     enableZshIntegration = makeNixLib.isDarwin makeNixAttrs.system;
   };
+
+  # GPU types
+  hasCuda = makeNixLib.hasTag "cuda" makeNixAttrs.tags;
+  hasRocm = makeNixLib.hasTag "rocm" makeNixAttrs.tags;
 in
 {
   imports = [
     (import ./yazi-config.nix { inherit pkgs shellIntegration; })
   ];
 
-	home.packages = [
-		pkgs.devenv
-	];
+  home.packages = [
+    pkgs.devenv
+  ];
 
   programs = {
     # Local wallpaper-scripts module for changing wallpapers
@@ -42,6 +46,10 @@ in
     # Better top resource monitor
     btop = {
       enable = true;
+      package = pkgs.btop.override {
+        cudaSupport = hasCuda;
+        rocmSupport = hasRocm;
+      };
       settings = {
         vim_keys = true;
         theme_background = false;
