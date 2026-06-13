@@ -8,4 +8,7 @@
   useHomebrew = true;
   useCache = true;
   useKeys = true;
+  tags = [ ];
+  specialisations = [ ];
+  sshPubKeys = [ ];
 }
