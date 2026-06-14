@@ -8,7 +8,7 @@
   useHomebrew = true;
   useCache = true;
   useKeys = true;
-  tags = [ "aerospace" "git" "nixvim" "power-user" "p22" ];
+  tags = [ "aerospace" "git" "nixvim" "power-user" ];
   specialisations = [ ];
   sshPubKeys = [ ];
 }
