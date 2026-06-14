@@ -8,7 +8,7 @@
   useHomebrew = true;
   useCache = true;
   useKeys = true;
-  tags = [ ];
+  tags = [ "nixvim" ];
   specialisations = [ ];
   sshPubKeys = [ ];
 }
