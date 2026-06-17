@@ -25,6 +25,7 @@
     "p22"
     "power-user"
     "rocm"
+    "virtualisation"
     "vpn-user"
     "yubi-age-user"
     "yubi-ssh-import"
