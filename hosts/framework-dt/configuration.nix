@@ -13,8 +13,8 @@ let
 in
 {
   imports =
-    optionalImport "local-ai" ../shared-imports/linux/ollama.nix
-    ++ optionalImport "crypto" ../shared-imports/linux/crypto-services.nix
+    optionalImport "crypto" ../shared-imports/linux/crypto-services.nix
+    ++ optionalImport "local-ai" ../shared-imports/linux/ollama.nix
     ++ lib.optionals (hasTag "p22" makeTags) [
       ../shared-imports/linux/p22-nfs.nix # File share
       ../shared-imports/linux/p22-printers.nix # Local printer config
@@ -87,6 +87,13 @@ in
   # WARNING: This drastically increases the size of the closure
 
   networking = {
+    hostName = "${makeNixAttrs.host}";
+    useDHCP = false; # Disable automatic DHCP; manually call: dhcpcd -B interface
+    nameservers = [ ]; # Use resolved
+
+    # Disable all wireless by default (use wpa_supplicant manually)
+    wireless.enable = false;
+    networkmanager.enable = false;
     interfaces = {
       enp191s0 = {
         ipv4 = {
@@ -107,13 +114,6 @@ in
         };
       };
     };
-    hostName = "${makeNixAttrs.host}";
-    useDHCP = false; # Disable automatic DHCP; manually call: dhcpcd -B interface
-    nameservers = [ ]; # Use resolved
-
-    # Disable all wireless by default (use wpa_supplicant manually)
-    wireless.enable = false;
-    networkmanager.enable = false;
 
     # Configure network proxy if necessary
     # proxy.default = "http://user:password@proxy:port/";
