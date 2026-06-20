@@ -79,12 +79,11 @@ let
 
         		"$NIX_TIMEOUT" 10 "$NIX_USBIP" --tcp-port "''${LOCAL_PORT}" attach \
         			-r localhost \
-        			-b "''${_busid}" || {
-        			printf "err: attach failed or timed out\n"
-        			exit 1
-        		}
+        			-b "''${_busid}"
+        		_attach_rc=$?
 
-        		# Wait for device to appear (up to 5 seconds)
+        		# usbip attach may return non-zero even on success
+        		# check usbip port for the actual result
         		_port=""
         		for _i in 1 2 3 4 5; do
         			_port=$(_find_port)
@@ -95,9 +94,9 @@ let
         		if [ -n "''${_port:-}" ]; then
         			printf '%s\n' "''${_port}" > "''${STATE_FILE}"
         			printf "attached on port %s\n" "''${_port}"
+        		elif [ "''${_attach_rc}" -ne 0 ]; then
+        			printf "err: attach failed (exit code %d)\n" "''${_attach_rc}"
         		else
-        			# Attach returned 0 so the kernel accepted it;
-        			# record state even though we could not parse the port
         			printf 'unknown\n' > "''${STATE_FILE}"
         			printf "warning: attached but could not determine port\n"
         		fi
