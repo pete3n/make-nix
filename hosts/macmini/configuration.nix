@@ -14,7 +14,6 @@ in
   imports =
     lib.optionals (hasTag "p22" makeTags) [
       ../shared-imports/darwin/p22-nfs.nix # File share
-      ../shared-imports/cross-platform/p22-build-client.nix # Remote client builds
       ../shared-imports/cross-platform/p22-pki.nix # Trusted root cert
     ]
     ++ optionalImport "yubi-u2f" ../shared-imports/darwin/yubikey-pam-u2f.nix
@@ -25,12 +24,9 @@ in
       ./system.nix
     ];
 
-  system.primaryUser = makeNixAttrs.user;
 
   networking.hostName = "${makeNixAttrs.host}";
   networking.computerName = "${makeNixAttrs.host}";
-  system.defaults.smb.NetBIOSName = "${makeNixAttrs.host}";
-
   # Add ability to used TouchID for sudo authentication
   security.pam.services.sudo_local.touchIdAuth = false;
 

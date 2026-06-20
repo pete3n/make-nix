@@ -1,29 +1,11 @@
 {
-  pkgs,
-  config,
   makeNixAttrs,
   ...
 }:
-###################################################################################
-#
-#  macOS's System configuration
-#
-#  All the configuration options are documented here:
-#    https://nix-darwin.github.io/nix-darwin/manual
-#
-###################################################################################
 {
   system = {
     stateVersion = 5;
-    activationScripts.activateSettings = {
-      text = ''
-        if [ -n "${config.system.primaryUser}" ]; then
-          sudo -u ${config.system.primaryUser} \
-            /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
-        fi
-      '';
-    };
-
+    primaryUser = makeNixAttrs.user;
     defaults = {
       menuExtraClock.Show24Hour = true;
       dock.autohide = true;
