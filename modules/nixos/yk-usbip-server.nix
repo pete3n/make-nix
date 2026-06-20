@@ -77,7 +77,23 @@ let
         	exit 1
         fi
 
-        # Step 3: Attach yubikey on remote
+        # Step 3: Establish reverse tunnel through ControlMaster
+        printf "yk-ssh: establishing tunnel...\n"
+        ssh \
+        	-o ControlMaster=no \
+        	-o ControlPath="''${CONTROL_PATH}" \
+        	-O forward \
+        	-R "''${REMOTE_PORT}:localhost:''${LOCAL_PORT}" \
+        	"''${_destination}"
+
+        if [ $? -ne 0 ]; then
+        	printf "yk-ssh: failed to establish tunnel\n" >&2
+        	sudo /etc/yubikey-usbip/unbind
+        	ssh -o ControlPath="''${CONTROL_PATH}" -O exit "''${_destination}" 2>/dev/null
+        	exit 1
+        fi
+
+        # Step 4: Attach yubikey on remote
         printf "yk-ssh: attaching Yubikey on remote...\n"
         ssh \
         	-o ControlMaster=no \
@@ -87,18 +103,17 @@ let
         	 && printf '1' > ''${HOME}/.local/state/usbip-yubikey \
         	 && yk-remote attach"
 
-        # Step 4: Open interactive session
+        # Step 5: Open interactive session (tunnel already on ControlMaster)
         printf "yk-ssh: connecting to %s with Yubikey forwarding...\n" \
         	"''${_destination}"
 
         ssh \
         	-o ControlMaster=no \
         	-o ControlPath="''${CONTROL_PATH}" \
-        	-R "''${REMOTE_PORT}:localhost:''${LOCAL_PORT}" \
         	"$@"
         _ssh_exit=$?
 
-        # Step 5: Detach yubikey on remote before unbinding locally
+        # Step 6: Detach yubikey on remote before unbinding locally
         printf "yk-ssh: detaching Yubikey on remote...\n"
         ssh \
         	-o ControlMaster=no \
@@ -107,11 +122,11 @@ let
         	"yk-remote detach \
         	 && rm -f ''${HOME}/.local/state/usbip-yubikey" 2>/dev/null
 
-        # Step 6: Unbind Yubikey and restore local drivers
+        # Step 7: Unbind Yubikey and restore local drivers
         printf "yk-ssh: unbinding device...\n"
         sudo /etc/yubikey-usbip/unbind
 
-        # Step 7: Close control master
+        # Step 8: Close control master (also tears down the tunnel)
         ssh -o ControlPath="''${CONTROL_PATH}" -O exit "''${_destination}" 2>/dev/null
 
         exit "''${_ssh_exit}"
@@ -166,10 +181,12 @@ in
 
           NIX_USBIP="${usbip}/bin/usbip"
           NIX_USBIPD="${usbip}/bin/usbipd"
+          NIX_IPTABLES="${pkgs.iptables}/bin/iptables"
 
           VENDOR_ID="${cfg.vendorId}"
           PRODUCT_ID="${cfg.productId}"
           LOCAL_PORT="${toString cfg.localPort}"
+          TUNNEL_SSH="${if cfg.tunnelSSH then "1" else "0"}"
 
           # Load required kernel modules
           modprobe usbip_core
@@ -197,10 +214,18 @@ in
             exit 1
           }
 
-          # Start usbipd if not already running
+          # Block non-loopback access when tunneling through SSH
+          if [ "''${TUNNEL_SSH}" = "1" ]; then
+            "$NIX_IPTABLES" -D INPUT -p tcp --dport "''${LOCAL_PORT}" \
+              ! -i lo -j DROP 2>/dev/null || true
+            "$NIX_IPTABLES" -I INPUT -p tcp --dport "''${LOCAL_PORT}" \
+              ! -i lo -j DROP
+          fi
+
+          # Start usbipd if not already running (-D daemonizes)
           if ! pgrep -x usbipd > /dev/null; then
             printf "yubikey-usbip: starting usbipd on port %s\n" "''${LOCAL_PORT}"
-            "$NIX_USBIPD" -D --tcp-port "''${LOCAL_PORT}" &
+            "$NIX_USBIPD" -D --tcp-port "''${LOCAL_PORT}"
             sleep 1
           fi
 
@@ -215,7 +240,10 @@ in
           set -u
 
           NIX_USBIP="${usbip}/bin/usbip"
-          NIX_YKINFO="${pkgs.yubikey-personalization}/bin/ykinfo"
+          NIX_IPTABLES="${pkgs.iptables}/bin/iptables"
+
+          LOCAL_PORT="${toString cfg.localPort}"
+          TUNNEL_SSH="${if cfg.tunnelSSH then "1" else "0"}"
 
           if [ ! -f /run/yubikey-usbip/busid ]; then
           	printf "yubikey-usbip: no active binding found\n" >&2
@@ -230,6 +258,12 @@ in
           }
 
           pkill -x usbipd 2>/dev/null || true
+
+          # Remove transient firewall rule
+          if [ "''${TUNNEL_SSH}" = "1" ]; then
+            "$NIX_IPTABLES" -D INPUT -p tcp --dport "''${LOCAL_PORT}" \
+              ! -i lo -j DROP 2>/dev/null || true
+          fi
 
           rm -f /run/yubikey-usbip/busid
 

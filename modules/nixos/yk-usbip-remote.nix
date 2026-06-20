@@ -15,6 +15,7 @@ let
         set -u
 
         NIX_USBIP="${usbip}/bin/usbip"
+        NIX_TIMEOUT="${pkgs.coreutils}/bin/timeout"
 
         STATE_FILE="/run/yubikey-remote/attached-port"
         LOCAL_PORT="${toString cfg.localPort}"
@@ -40,6 +41,15 @@ let
         	printf "err: user %s is not authorized\n" "''${_username}"
         	exit 1
         fi
+
+        # Helper: find attached port by vendor:product in usbip port output
+        _find_port() {
+        	"$NIX_USBIP" port 2>&1 \
+        	| grep -B2 "''${VENDOR_ID}:''${PRODUCT_ID}" \
+        	| grep "^Port [0-9]" \
+        	| grep -o "[0-9][0-9]*" \
+        	| head -1
+        }
 
         case "''${_command}" in
         	attach)
@@ -67,36 +77,34 @@ let
         		printf "attaching device %s (%s:%s)...\n" \
         			"''${_busid}" "''${VENDOR_ID}" "''${PRODUCT_ID}"
 
-        		"$NIX_USBIP" --tcp-port "''${LOCAL_PORT}" attach \
+        		"$NIX_TIMEOUT" 10 "$NIX_USBIP" --tcp-port "''${LOCAL_PORT}" attach \
         			-r localhost \
-        			-b "''${_busid}" &
+        			-b "''${_busid}" || {
+        			printf "err: attach failed or timed out\n"
+        			exit 1
+        		}
 
-        		sleep 2
-
-        		_port=$(
-        			"$NIX_USBIP" port 2>&1 \
-        			| grep "^Port [0-9].*Port in Use" \
-        			| grep -o "[0-9][0-9]*" \
-        			| head -1
-        		)
+        		# Wait for device to appear (up to 5 seconds)
+        		_port=""
+        		for _i in 1 2 3 4 5; do
+        			_port=$(_find_port)
+        			[ -n "''${_port:-}" ] && break
+        			sleep 1
+        		done
 
         		if [ -n "''${_port:-}" ]; then
         			printf '%s\n' "''${_port}" > "''${STATE_FILE}"
         			printf "attached on port %s\n" "''${_port}"
         		else
-        			printf "warning: attach may have failed, check with yk-remote status\n"
+        			# Attach returned 0 so the kernel accepted it;
+        			# record state even though we could not parse the port
+        			printf 'unknown\n' > "''${STATE_FILE}"
+        			printf "warning: attached but could not determine port\n"
         		fi
         		;;
 
         	detach)
-        		# Find attached port by vendor:product at detach time
-        		_port=$(
-        			"$NIX_USBIP" port 2>&1 \
-        			| grep -B2 "''${VENDOR_ID}:''${PRODUCT_ID}" \
-        			| grep "^Port [0-9]" \
-        			| grep -o "[0-9][0-9]*" \
-        			| head -1
-        		)
+        		_port=$(_find_port)
 
         		if [ -z "''${_port:-}" ]; then
         			printf "not attached\n"
@@ -118,13 +126,7 @@ let
         		;;
 
         	status)
-        		_port=$(
-        			"$NIX_USBIP" port 2>&1 \
-        			| grep -B2 "''${VENDOR_ID}:''${PRODUCT_ID}" \
-        			| grep "^Port [0-9]" \
-        			| grep -o "[0-9][0-9]*" \
-        			| head -1
-        		)
+        		_port=$(_find_port)
 
         		if [ -n "''${_port:-}" ]; then
         			printf "attached: port %s\n" "''${_port}"
