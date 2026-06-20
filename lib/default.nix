@@ -109,6 +109,7 @@ rec {
     "office"
     "p22"
     "sdr"
+    "virtualisation"
     "yubi-ssh-import"
     "yubi-u2f"
   ];

@@ -1,13 +1,30 @@
 # Local AI service configuration - enabled when "local-ai" tag is present.
 # CUDA acceleration and PRIME offload are applied when cudaSupport is enabled
 # via the wayland_dgpu specialisation.
-{ lib, pkgs, ... }:
+{
+  lib,
+  pkgs,
+  makeNixAttrs,
+  ...
+}:
 let
   cudaSupport = pkgs.config.cudaSupport or false;
   rocmSupport = pkgs.config.rocmSupport or false;
 in
 {
   hardware.nvidia-container-toolkit.enable = cudaSupport;
+
+  # Override virtualisation settings for Nvidia CUDA container support
+  virtualisation.docker = lib.mkIf cudaSupport {
+    enable = true;
+    rootless = {
+      enable = false;
+      setSocketVariable = false;
+    };
+  };
+  users.users.${makeNixAttrs.user}.extraGroups = lib.optionals cudaSupport [ "docker" ];
+
+  services.open-webui.enable = true;
   services.ollama = {
     enable = true;
     package =
@@ -17,6 +34,7 @@ in
         pkgs.unstable.ollama-rocm
       else
         pkgs.unstable.ollama-cpu;
+
     environmentVariables = lib.mkMerge [
       {
         OLLAMA_KEEP_ALIVE = "30m";
@@ -30,4 +48,8 @@ in
       })
     ];
   };
+
+  # Disable autostart
+  systemd.services.ollama.wantedBy = lib.mkForce [ ];
+  systemd.services.open-webui.wantedBy = lib.mkForce [ ];
 }

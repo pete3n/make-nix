@@ -18,7 +18,6 @@ let
     power-user = [
       "adbusers"
       "cdrom"
-      "docker"
       "networkmanager"
       "users"
       "wheel"
@@ -26,7 +25,6 @@ let
     ssh-user = [ "users" ];
     sudo-user = [
       "cdrom"
-      "docker"
       "users"
       "wheel"
     ];
@@ -45,10 +43,8 @@ let
     yubi-age-user = "User that uses a hardware Yubikey to manage age secrets.";
   };
 
-  tagRoleGroups = lib.unique (lib.flatten (builtins.map (tag: tagGroupMap.${tag}) availableTags));
-  tagRoleDescription = lib.concatStringsSep "; " (
-    builtins.map (tag: tagDescriptionMap.${tag}) availableTags
-  );
+  tagRoleGroups = lib.unique (lib.flatten (map (tag: tagGroupMap.${tag}) availableTags));
+  tagRoleDescription = lib.concatStringsSep "; " (map (tag: tagDescriptionMap.${tag}) availableTags);
 
   hasTag = tag: builtins.elem tag availableTags;
 in

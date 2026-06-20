@@ -16,6 +16,7 @@ in
 {
   imports =
     optionalImport "crypto" ../shared-imports/linux/crypto-services.nix
+    ++ optionalImport "virtualisation" ../shared-imports/linux/virtualisation.nix
     ++ lib.optionals (hasTag "local-ai" makeTags) [
       ../shared-imports/linux/ollama.nix
     ]
@@ -82,10 +83,6 @@ in
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
     supportedFilesystems = [ "ntfs" ];
-    binfmt.emulatedSystems = [
-      "aarch64-linux"
-      "armv7l-linux"
-    ];
   };
 
   fileSystems."/data" = {
@@ -239,9 +236,6 @@ in
   ### Fonts and Locale ###
   i18n.defaultLocale = "en_US.UTF-8";
   time.timeZone = "America/New_York";
-
-  # Enable Docker - NOTE: This requires iptables
-  virtualisation.docker.enable = true;
 
   nixpkgs.config = {
     allowUnfree = true;
