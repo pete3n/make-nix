@@ -710,22 +710,28 @@ write_attrs() {
 		fi
 		logf '}\n'
 
-		_print_new_attrs | nix run nixpkgs#nixfmt -- - >"${_attr_path}"
+		_print_new_attrs > "${_attr_path}"
+		nix run nixpkgs#nixfmt -- "${_attr_path}"
 	}
 
-	_update_attrs() {
-		_attr_path="${1}"
-		_modified=""
+_update_attrs() {
+    _attr_path="${1}"
+    _tmp="${MAKE_NIX_TMPDIR}/attrs-fmt.$$.nix"
 
-		logf "\n%b<<< Checking Nix configuration for changes.%b\n" "$C_INFO" "$C_RST"
-		if is_modified "${_attr_path}" "$(_print_new_attrs)"; then
-			_modified="true"
-			_write_new_attrs "${_attr_path}" || err 1 "Error writing attribute changes.\n"
-		else
-			logf "\n%bNo changes found.%b\n" "$C_INFO" "$C_RST"
-			return 0
-		fi
-	}
+    logf "\n%b<<< Checking Nix configuration for changes.%b\n" "$C_INFO" "$C_RST"
+
+    _print_new_attrs > "${_tmp}"
+    nix run nixpkgs#nixfmt -- "${_tmp}"
+
+    if is_modified "${_attr_path}" "$(cat "${_tmp}")"; then
+        _write_new_attrs "${_attr_path}" || err 1 "Error writing attribute changes.\n"
+        rm -f "${_tmp}"
+    else
+        logf "\n%bNo changes found.%b\n" "$C_INFO" "$C_RST"
+        rm -f "${_tmp}"
+        return 0
+    fi
+}
 
 	# Attempt to load an existing configuration first
 	# Modify it with any set env vars and re-write it to pass into the Nix flake.
