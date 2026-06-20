@@ -85,7 +85,13 @@ in
     };
     # Zathura PDF viewer with VIM motions
     zathura = {
-      enable = true;
+
+  # Temporary fixes for upstream nixpkgs build failures
+    # HACK: workaround for nixpkgs#514566 / PR#515614
+    # appstream meson build leaks "none required" into darwin linker flags
+    # when libsystemd dep resolves as not-found on darwin.
+    # Remove once PR#515614 reaches release-26.05
+      enable = pkgs.stdenv.hostPlatform.isLinux;
     };
     # Zoxide better cd replacement with memory
     zoxide = {

@@ -15,7 +15,7 @@ in
   programs.aerospace = {
     enable = true;
     launchd.enable = true;
-    userSettings = {
+    settings = {
       gaps = {
         inner.horizontal = 5;
         inner.vertical = 5;
