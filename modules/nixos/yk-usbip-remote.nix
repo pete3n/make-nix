@@ -205,6 +205,11 @@ in
       yk-remote
     ];
 
+    boot.kernelModules = [
+      "usbip_core"
+      "vhci_hcd"
+    ];
+
     systemd.tmpfiles.rules = [
       "d /run/yubikey-remote 0770 root wheel -"
     ];
