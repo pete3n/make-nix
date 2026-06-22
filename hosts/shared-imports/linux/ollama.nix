@@ -1,12 +1,12 @@
-# Local AI service configuration - enabled when "local-ai" tag is present.
+# local AI service configuration - enabled when "local-ai" tag is present.
 # CUDA acceleration and PRIME offload are applied when cudaSupport is enabled
-# via the wayland_dgpu specialisation.
+# via the wayland_dgpu / wayland_egpu specialisations.
 #
 # Dual-instance architecture (cudaSupport = true):
-#   Port 11434 - CUDA instance on NVIDIA dGPU
+#   Port 11434 - CUDA instance on NVIDIA dGPU/eGPU
 #   Port 11435 - Vulkan instance on AMD iGPU
 #
-# Both instances share a common model store on secondary storage to avoid
+# Both instances share a common model store (local-ai.modelPath) to avoid
 # duplicating multi-GB GGUF blobs. Runtime state (history, tmp) is separate.
 {
   lib,
@@ -22,14 +22,16 @@ let
   arch = pkgs.stdenv.hostPlatform.uname.processor;
   radeonIcd = "/run/opengl-driver/share/vulkan/icd.d/radeon_icd.${arch}.json";
 
-  defaultModelPath = "/var/lib/ollama/models";
+  # Shared model store, independent of either service's StateDirectory.
+  # Override per-host via local-ai.modelPath for secondary storage.
+  defaultModelPath = "/var/lib/ollama-shared/models";
   modelPath = config.local-ai.modelPath;
 
   ollamaPriSocket = "127.0.0.1:11434";
   ollamaVulkanSocket = "127.0.0.1:11435";
 
-  # True when models live outside the default state dir, i.e. on a separate
-  # mount that the services must wait for and whose dir we must create.
+  # True when models live outside the default path, i.e. on a separate
+  # mount that the services must wait for.
   modelsRelocated = modelPath != defaultModelPath;
 
   shell = if makeNixLib.isLinux makeNixAttrs.system then "bash" else "zsh";
@@ -62,7 +64,6 @@ in
 
     services.open-webui = {
       enable = true;
-      # Point Open WebUI at both backends.
       environment = lib.mkIf cudaSupport {
         OLLAMA_BASE_URLS = "http://${ollamaPriSocket},http://${ollamaVulkanSocket}";
       };
@@ -92,27 +93,24 @@ in
           OLLAMA_FLASH_ATTENTION = "1";
         }
         (lib.mkIf cudaSupport {
-          # Pin to NVIDIA dGPU only; hide iGPU from this instance
+          # Pin to NVIDIA GPU only; hide iGPU from this instance.
+          # CUDA_VISIBLE_DEVICES selects the GPU for CUDA compute;
           CUDA_VISIBLE_DEVICES = "0";
           GGML_VK_VISIBLE_DEVICES = "-1";
-
-          # PRIME offload
-          __NV_PRIME_RENDER_OFFLOAD = "1";
-          __NV_PRIME_RENDER_OFFLOAD_PROVIDER = "NVIDIA-G0";
-          __GLX_VENDOR_LIBRARY_NAME = "nvidia";
-          __VK_LAYER_NV_optimus = "PRIME";
         })
       ];
     };
 
-    # When relocated, ensure the model dir exists with ollama ownership.
-    # systemd-tmpfiles creates leading directories as needed.
-    systemd.tmpfiles.rules = lib.optionals modelsRelocated [
+    # Ensure the shared model dir exists with ollama ownership.
+    # Unconditional: the default path isn't inside any StateDirectory,
+    # and relocated paths also need creation.
+    systemd.tmpfiles.rules = [
       "d ${modelPath} 0750 ollama ollama - -"
     ];
 
     # Order the primary instance after the backing mount when relocated.
-    systemd.services.ollama.unitConfig.RequiresMountsFor = lib.mkIf modelsRelocated [ modelPath ];
+    systemd.services.ollama.unitConfig.RequiresMountsFor =
+      lib.mkIf modelsRelocated [ modelPath ];
 
     # --- Vulkan instance (manual systemd service) ---
     # Only created on dual-GPU machines (cudaSupport implies both GPUs present).
@@ -125,11 +123,11 @@ in
       ];
       wants = [ "network-online.target" ];
 
-      # Order after the backing mount when relocated.
       unitConfig.RequiresMountsFor = lib.mkIf modelsRelocated [ modelPath ];
 
       environment = {
-        OLLAMA_HOST = "${ollamaVulkanSocket}";
+        OLLAMA_HOST = ollamaVulkanSocket;
+        OLLAMA_HOME = "/var/lib/ollama-vulkan";
         OLLAMA_MODELS = modelPath;
         OLLAMA_KEEP_ALIVE = "30m";
         OLLAMA_FLASH_ATTENTION = "1";
@@ -139,10 +137,6 @@ in
         OLLAMA_IGPU_ENABLE = "1";
         OLLAMA_VULKAN = "1";
         VK_DRIVER_FILES = radeonIcd;
-
-        # Separate HOME from primary instance to avoid runtime state collisions.
-        # Ollama stores CLI history, tmp state under $HOME/.ollama/
-        HOME = "/var/lib/ollama-vulkan";
       };
 
       serviceConfig = {
@@ -153,11 +147,8 @@ in
         Restart = "on-failure";
         RestartSec = 3;
 
-        # StateDirectory creates /var/lib/ollama-vulkan owned by ollama:ollama
         StateDirectory = "ollama-vulkan";
         WorkingDirectory = "/var/lib/ollama-vulkan";
-
-        # Grant write access to the shared model store
         ReadWritePaths = [ modelPath ];
       };
     };
@@ -166,7 +157,7 @@ in
     systemd.services.ollama.wantedBy = lib.mkForce [ ];
     systemd.services.open-webui.wantedBy = lib.mkForce [ ];
 
-    programs.${shell}.shellAliases = {
+    programs.${shell}.shellAliases = lib.mkIf cudaSupport {
       ollama-vk = "OLLAMA_HOST=${ollamaVulkanSocket} ollama";
     };
   };
