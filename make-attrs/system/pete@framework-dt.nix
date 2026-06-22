@@ -24,6 +24,7 @@
     "p22"
     "power-user"
     "ssh-user"
+    "virtualisation"
     "yubi-age-user"
     "yubi-ssh-import"
     "yubi-u2f"
