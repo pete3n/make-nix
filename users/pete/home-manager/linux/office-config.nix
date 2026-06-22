@@ -20,6 +20,7 @@ in
     thunderbird
   ];
 
+  # TODO: Plugins - Word counter
   programs.onlyoffice = {
     enable = true;
     settings = {

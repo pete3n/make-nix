@@ -13,8 +13,8 @@
 
   wayland.windowManager.hyprland = {
     enable = true;
-		#TODO: Port config to lua
-		configType = "hyprlang";
+    #TODO: Port config to lua
+    configType = "hyprlang";
     xwayland.enable = false;
 
     settings = {

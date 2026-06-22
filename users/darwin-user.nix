@@ -23,9 +23,7 @@ let
     builtins.elem "sudoer" makeNixAttrs.tags || builtins.elem "poweruser" makeNixAttrs.tags
   ) [ makeNixAttrs.user ];
 
-  tagRoleDescription = lib.concatStringsSep "; " (
-    builtins.map (tag: tagDescriptionMap.${tag}) availableTags
-  );
+  tagRoleDescription = lib.concatStringsSep "; " (map (tag: tagDescriptionMap.${tag}) availableTags);
 
   hasTag = tag: builtins.elem tag availableTags;
 in

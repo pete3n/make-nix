@@ -30,7 +30,7 @@ in
 
   imports =
     # Conditional imports based on configuration tags
-    lib.optionals (hasTag "aichat" makeTags ) [
+    lib.optionals (hasTag "aichat" makeTags) [
       ../cross-platform/aichat.nix
     ]
     ++ optionalImport "awesome" ./awesome-config.nix
@@ -135,6 +135,7 @@ in
         navi # Cheat-sheets
         nb # CLI note-taking
         nixfmt # Nix linter
+        nixfmt-tree # Nix project tree linter
         procs # Better process viewer
         python311Packages.base58
         repgrep # ripgrep replace
