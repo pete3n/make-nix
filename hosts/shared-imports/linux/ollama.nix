@@ -22,7 +22,7 @@ let
   arch = pkgs.stdenv.hostPlatform.uname.processor;
   radeonIcd = "/run/opengl-driver/share/vulkan/icd.d/radeon_icd.${arch}.json";
 
-  defaultModelPath = "/var/lib/ollama";
+  defaultModelPath = "/var/lib/ollama/models";
   modelPath = config.local-ai.modelPath;
 
   ollamaPriSocket = "127.0.0.1:11434";
@@ -37,7 +37,7 @@ in
 {
   options.local-ai.modelPath = lib.mkOption {
     type = lib.types.str;
-    default = "/var/lib/ollama";
+    default = defaultModelPath;
     example = "/mnt/data/ollama/models";
     description = ''
       Directory for the shared Ollama model store, read by both the CUDA
