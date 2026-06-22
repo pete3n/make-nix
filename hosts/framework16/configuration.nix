@@ -17,9 +17,7 @@ in
   imports =
     optionalImport "crypto" ../shared-imports/linux/crypto-services.nix
     ++ optionalImport "virtualisation" ../shared-imports/linux/virtualisation.nix
-    ++ lib.optionals (hasTag "local-ai" makeTags) [
-      ../shared-imports/linux/ollama.nix
-    ]
+    ++ optionalImport "local-ai" ../shared-imports/linux/ollama.nix
     ++ lib.optionals (hasTag "p22" makeTags) [
       ../shared-imports/cross-platform/p22-build-client.nix # Remote client builds
       ../shared-imports/cross-platform/p22-pki.nix # Trusted root cert
@@ -56,6 +54,8 @@ in
     ++ [ inputs.pete3n-mods.nixosModules.default ]
     ++ [ inputs.pete3n-mods.nixosModules.hardware.framework16.fw16-kbd-alsd ]
     ++ [ inputs.pete3n-mods.nixosModules.hardware.framework16.fw16-disable-wake-triggers ];
+
+  local-ai.modelPath = "/data/ollama/models";
 
   documentation = {
     man.enable = true;
@@ -185,7 +185,7 @@ in
         DNSSEC = "allow-downgrade";
         DNSOverTLS = "opportunistic";
         DNS = [ "192.168.1.1" ];
-        Domains = [ "~p22" ];
+        Domains = [ "p22" ];
         FallbackDNS = [
           "1.1.1.1"
           "8.8.8.8"
