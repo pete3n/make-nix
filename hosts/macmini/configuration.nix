@@ -24,7 +24,6 @@ in
       ./system.nix
     ];
 
-
   networking.hostName = "${makeNixAttrs.host}";
   networking.computerName = "${makeNixAttrs.host}";
   # Add ability to used TouchID for sudo authentication

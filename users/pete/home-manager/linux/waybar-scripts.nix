@@ -741,6 +741,7 @@ let
           done
         '';
 
+    #TODO: Fix centered popout on external DP-2 with eDP-1 disabled for clamshell
     mpdVizArtPopout =
       pkgs.writeShellScriptBin "mpd-viz-art-popout" # sh
         ''

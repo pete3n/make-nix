@@ -1195,88 +1195,88 @@
     #   - Boolean effects now require an explicit `on`/`off` value
     #   - Effect names use snake_case: stayfocused → stay_focused, etc.
     extraConfig = ''
-      # Steam menus: prevent empty-title popups from stealing focus
-      windowrule {
-        name = steam-menus
-        match:class = ^(steam)$
-        match:title = ^()$
-        stay_focused = on
-        min_size = 1 1
-      }
+            # Steam menus: prevent empty-title popups from stealing focus
+            windowrule {
+              name = steam-menus
+              match:class = ^(steam)$
+              match:title = ^()$
+              stay_focused = on
+              min_size = 1 1
+            }
 
-      # Firefox Picture-in-Picture
-      windowrule {
-        name = firefox-pip
-        match:title = ^(Picture-in-Picture)$
-        float = on
-        pin = on
-        size = 30% 30%
-        move = 65% 5%
-      }
+            # Firefox Picture-in-Picture
+            windowrule {
+              name = firefox-pip
+              match:title = ^(Picture-in-Picture)$
+              float = on
+              pin = on
+              size = 30% 30%
+              move = 65% 5%
+            }
 
-      # Pomodoro config TUI
-      windowrule {
-        name = pomodoro-tui
-        match:title = ^(Pomodoro)$
-        float = on
-        center = on
-        size = 1200 800
-        stay_focused = on
-      }
+            # Pomodoro config TUI
+            windowrule {
+              name = pomodoro-tui
+              match:title = ^(Pomodoro)$
+              float = on
+              center = on
+              size = 1200 800
+              stay_focused = on
+            }
 
-      # Pomodoro transition image popup
-      windowrule {
-        name = pomodoro-img
-        match:class = ^(pomodoro-img)$
-        float = on
-        center = on
-				border_size = 0
-        no_shadow = on
-        no_anim = on
-        opacity = 0.92 0.92
-        no_initial_focus = on
-      }
+            # Pomodoro transition image popup
+            windowrule {
+              name = pomodoro-img
+              match:class = ^(pomodoro-img)$
+              float = on
+              center = on
+      				border_size = 0
+              no_shadow = on
+              no_anim = on
+              opacity = 0.92 0.92
+              no_initial_focus = on
+            }
 
-      # Calendar popup — centered under waybar
-      windowrule {
-        name = calendar-popup
-        match:class = ^(calendar-popup)$
-        float = on
-        no_initial_focus = on
-				border_size = 0
-        opacity = 0.92 0.92
-        size = 1280 800
-      }
+            # Calendar popup — centered under waybar
+            windowrule {
+              name = calendar-popup
+              match:class = ^(calendar-popup)$
+              float = on
+              no_initial_focus = on
+      				border_size = 0
+              opacity = 0.92 0.92
+              size = 1280 800
+            }
 
-      # Cava MPD visualizer
-      # x = 100% - (900 + 260 + 15) = 100% - 1175
-      windowrule {
-        name = mpd-vis
-        match:class = ^(mpd-vis)$
-        float = on
-        no_initial_focus = on
-        pin = on
-				border_size = 0
-        opacity = 0.92 0.92
-        no_anim = on
-        size = 900 240
-        move = 100%-1175 40
-      }
+            # Cava MPD visualizer
+            # x = 100% - (900 + 260 + 15) = 100% - 1175
+            windowrule {
+              name = mpd-vis
+              match:class = ^(mpd-vis)$
+              float = on
+              no_initial_focus = on
+              pin = on
+      				border_size = 0
+              opacity = 0.92 0.92
+              no_anim = on
+              size = 900 240
+              move = (monitor_w-1175) 40
+            }
 
-      # MPD album art
-      # x = 100% - (260 + 15) = 100% - 275
-      windowrule {
-        name = mpd-art
-        match:class = ^(mpd-art)$
-        float = on
-        no_initial_focus = on
-        pin = on
-				border_size = 0
-        opacity = 0.82 0.82
-        no_anim = on
-        size = 260 240
-        move = 100%-275 40
-      }
+            # MPD album art
+            # x = 100% - (260 + 15) = 100% - 275
+            windowrule {
+              name = mpd-art
+              match:class = ^(mpd-art)$
+              float = on
+              no_initial_focus = on
+              pin = on
+      				border_size = 0
+              opacity = 0.82 0.82
+              no_anim = on
+              size = 260 240
+              move = (monitor_w-275) 40
+            }
     '';
   };
 }

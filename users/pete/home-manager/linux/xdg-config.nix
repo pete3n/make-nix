@@ -15,6 +15,7 @@
   xdg.enable = true;
   xdg.portal = {
     enable = true;
+    # https://github.com/nix-community/home-manager/issues/7124
     extraPortals = [
       pkgs.xdg-desktop-portal-gtk
     ]
