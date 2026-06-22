@@ -14,6 +14,7 @@ in
 {
   imports =
     optionalImport "crypto" ../shared-imports/linux/crypto-services.nix
+    ++ optionalImport "virtualisation" ../shared-imports/linux/virtualisation.nix
     ++ optionalImport "local-ai" ../shared-imports/linux/ollama.nix
     ++ lib.optionals (hasTag "p22" makeTags) [
       ../shared-imports/linux/p22-nfs.nix # File share
