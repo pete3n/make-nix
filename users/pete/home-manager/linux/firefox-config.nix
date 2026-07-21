@@ -2,11 +2,14 @@
 {
   config,
   inputs,
+  lib,
+  makeNixLib,
   pkgs,
   ...
 }:
 let
   openscLibPath = "${pkgs.opensc}/lib/opensc-pkcs11.so";
+  hasTag = makeNixLib.hasTag;
 in
 {
   programs.firefox = {
@@ -40,7 +43,11 @@ in
         "identity.fxaccounts.enabled" = false;
         "privacy.trackingprotection.enabled" = true;
         "signon.rememberSignons" = false;
-      };
+      }
+      ++ lib.optionalAttrs (hasTag "gpg-user") {
+        "security.webauthn.ctap2" = false;
+        "security.webauth.webauthn_enable_softtoken" = false;
+      }; # Prevent creating exclusive lock on Yubikey
     };
   };
 

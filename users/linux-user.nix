@@ -34,7 +34,8 @@ let
   };
 
   tagDescriptionMap = {
-    git-ssh-user = "User with git configuration and git ssh key";
+    git-ssh-user = "User with git configuration and git ssh key.";
+    gpg-user = "User with gpg configuration and system level gpg services.";
     power-user = "Trusted user and sudoer with netman, docker, and adbuser membership.";
     trusted-user = "Add user to nix trusted users.";
     ssh-user = "User is authorized SSH access with the assigned ssh keys.";
@@ -55,6 +56,9 @@ in
     ]
     ++ lib.optionals (hasTag "git-ssh-user") [
       ./${makeNixAttrs.user}/secrets/git-ssh.nix
+    ]
+    ++ lib.optionals (hasTag "gpg-user") [
+      ./${makeNixAttrs.user}/secrets/gpg.nix
     ]
     ++ lib.optionals (hasTag "vpn-user") [
       ./${makeNixAttrs.user}/secrets/p22-vpn.nix
