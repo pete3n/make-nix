@@ -14,6 +14,7 @@
     "cuda"
     "gaming"
     "git-ssh-user"
+    "gpg-user"
     "hyprland"
     "laptop"
     "local-ai"
