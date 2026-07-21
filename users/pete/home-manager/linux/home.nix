@@ -35,6 +35,7 @@ in
     ]
     ++ optionalImport "awesome" ./awesome-config.nix
     ++ optionalImport "gaming" ./gaming-config.nix
+		++ optionalImport "gpg-user"  ../../secrets/gpg.nix
     ++ lib.optional (
       hasTag "git" makeTags || hasTag "git-ssh-user" makeTags
     ) ../cross-platform/git-config.nix

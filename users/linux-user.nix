@@ -5,6 +5,7 @@
   lib,
   makeNixAttrs,
   makeNixLib,
+  pkgs,
   ...
 }:
 let
@@ -57,9 +58,6 @@ in
     ++ lib.optionals (hasTag "git-ssh-user") [
       ./${makeNixAttrs.user}/secrets/git-ssh.nix
     ]
-    ++ lib.optionals (hasTag "gpg-user") [
-      ./${makeNixAttrs.user}/secrets/gpg.nix
-    ]
     ++ lib.optionals (hasTag "vpn-user") [
       ./${makeNixAttrs.user}/secrets/p22-vpn.nix
     ];
@@ -74,4 +72,12 @@ in
   nix.settings.trusted-users = lib.mkIf (hasTag "trusted-user" || hasTag "power-user") (
     lib.mkAfter [ makeNixAttrs.user ]
   );
+  
+  services = {
+    pcscd.enable = hasTag "yubi-age-user" || hasTag "gpg-user";
+  }
+  // lib.optionalAttrs (hasTag "yubi-age-user") {
+    udev.packages = [ pkgs.yubikey-personalization ];
+    yubikeyUsbipServer.enable = true;
+  };
 }

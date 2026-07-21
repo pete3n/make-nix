@@ -64,12 +64,15 @@ in
 
   boot = {
     # Workaround for suspend then sleep issues.
-    # Resolved amdgpu VPE queue reset failed / ib ring test failed (-110)
     # Resolved nvme drive sleep issues.
-    # "amdgpu.ip_block_mask=0x7FF"
     kernelParams = [
       "rtc_cmos.use_acpi_alarm=1"
       "nvme_core.default_ps_max_latency_us=1000"
+    ]
+    # Reserve 44Gb of unified memory of iGPU for local LLM
+    ++ lib.optionals (hasTag "local-ai" makeTags) [
+      "ttm.pages_limit=11534336"
+      "ttm.page_pool_size=11534336"
     ];
 
     # Removable CD-ROM support
@@ -226,12 +229,8 @@ in
 
   }
   // lib.optionalAttrs (hasTag "yubi-age-user" makeTags) {
-    pcscd.enable = true;
-    udev.packages = [ pkgs.yubikey-personalization ];
     yubikeyUsbipServer.enable = true;
   };
-
-  programs.gnupg.agent.enable = lib.mkIf (hasTag "yubi-age-user" makeTags) true;
 
   ### Fonts and Locale ###
   i18n.defaultLocale = "en_US.UTF-8";

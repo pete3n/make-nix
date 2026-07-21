@@ -174,13 +174,7 @@ in
     power-profiles-daemon.enable = true;
     thermald.enable = true;
 
-  }
-  // lib.optionalAttrs (hasTag "yubi-age-user" makeTags) {
-    pcscd.enable = true;
-    udev.packages = [ pkgs.yubikey-personalization ];
   };
-
-  programs.gnupg.agent.enable = lib.mkIf (hasTag "yubi-age-user" makeTags) true;
 
   ### Fonts and Locale ###
   i18n.defaultLocale = "en_US.UTF-8";
