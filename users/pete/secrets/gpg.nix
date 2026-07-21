@@ -8,7 +8,7 @@ in
     enable = true;
 
     publicKeys = [{
-      source = ./keys/pubkey.asc;
+      source = ./pubkey.asc;
       trust = "ultimate";
     }];
 
