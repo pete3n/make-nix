@@ -6,6 +6,7 @@
   ...
 }:
 let
+  makeUser = makeNixAttrs.user;
   gitKeys = lib.optionals (
     makeNixLib.hasTag "git-ssh-user" makeNixAttrs.tags && !makeNixAttrs.isHomeAlone
   ) [ "pete3n" ];
@@ -18,6 +19,20 @@ let
 in
 {
   programs = {
+    ssh = {
+      settings = {
+        "github github.com" = {
+          HostName = "github.com";
+          User = "git";
+          IdentityFile = [
+            "/home/${makeUser}/.ssh/id_ed25519_sk_rk_github"
+            "/home/${makeUser}/.ssh/pete3n"
+          ];
+          IdentitiesOnly = true;
+        };
+      };
+    };
+
     git = {
       enable = true;
       lfs.enable = true;

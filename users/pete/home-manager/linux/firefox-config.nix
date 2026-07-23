@@ -43,11 +43,9 @@ in
         "identity.fxaccounts.enabled" = false;
         "privacy.trackingprotection.enabled" = true;
         "signon.rememberSignons" = false;
-      }
-      ++ lib.optionalAttrs (hasTag "gpg-user") {
         "security.webauthn.ctap2" = false;
         "security.webauth.webauthn_enable_softtoken" = false;
-      }; # Prevent creating exclusive lock on Yubikey
+      };
     };
   };
 

@@ -311,15 +311,6 @@ in
       enable = true;
       enableDefaultConfig = false;
       settings = {
-        "github" = {
-          HostName = "github.com";
-          User = "git";
-          IdentityFile = [
-            "/home/${makeUser}/.ssh/id_ed25519_sk_rk_github"
-            "/home/${makeUser}/.ssh/pete3n"
-          ];
-          IdentitiesOnly = true;
-        };
         "linode" = {
           HostName = "tech.p3n.dev";
           User = "ubuntu";
@@ -477,6 +468,5 @@ in
         };
       };
     };
-    ssh-agent.enable = true;
   };
 }

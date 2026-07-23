@@ -60,7 +60,7 @@ rec {
   # These tags are for system level user configuration.
   validUserTags = [
     "git-ssh-user"
-		"gpg-user"
+    "gpg-user"
     "power-user"
     "ssh-user"
     "sudo-user"

@@ -16,6 +16,9 @@ let
     git-ssh-user = [
       "users"
     ];
+    gpg-user = [
+      "users"
+    ];
     power-user = [
       "adbusers"
       "cdrom"
@@ -78,6 +81,5 @@ in
   }
   // lib.optionalAttrs (hasTag "yubi-age-user") {
     udev.packages = [ pkgs.yubikey-personalization ];
-    yubikeyUsbipServer.enable = true;
   };
 }
