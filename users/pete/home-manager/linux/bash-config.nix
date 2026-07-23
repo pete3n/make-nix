@@ -233,6 +233,7 @@ in
       cd = "z";
       home-manager-rollback = "home-manager generations | fzf | awk -F '-> ' '{print \$2 \"/activate\"}'";
       lsc = "lsd --classic";
+      nixfmt-tree = "treefmt";
       ns = "nix-search-tv print | fzf --preview 'nix-search-tv preview {}' --scheme history";
       screenshot = "grim";
     };
