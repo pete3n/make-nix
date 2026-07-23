@@ -17,7 +17,6 @@ in
   imports =
     optionalImport "crypto" ../shared-imports/linux/crypto-services.nix
     ++ optionalImport "virtualisation" ../shared-imports/linux/virtualisation.nix
-    ++ optionalImport "local-ai" ../shared-imports/linux/ollama.nix
     ++ lib.optionals (hasTag "p22" makeTags) [
       ../shared-imports/cross-platform/p22-build-client.nix # Remote client builds
       ../shared-imports/cross-platform/p22-pki.nix # Trusted root cert
@@ -47,15 +46,14 @@ in
       ../shared-imports/linux/iptables-services.nix
 
       ../shared-imports/linux/yubikey-pam-fprint.nix
-      outputs.nixosModules.yubikeyUsbipServer # Use Yubikey on remote systems
+      outputs.nixosModules.yubikeyUsbipServer # Allows using Yubikey on remote systems
+      outputs.nixosModules.local-ai # Local AI inference stack ollama and OpenWebUI
     ]
 
     ++ [ inputs.nix-slop-dev.nixosModules.sandboxed ]
     ++ [ inputs.pete3n-mods.nixosModules.default ]
     ++ [ inputs.pete3n-mods.nixosModules.hardware.framework16.fw16-kbd-alsd ]
     ++ [ inputs.pete3n-mods.nixosModules.hardware.framework16.fw16-disable-wake-triggers ];
-
-  local-ai.modelPath = "/data/ollama/models";
 
   documentation = {
     man.enable = true;
@@ -121,6 +119,11 @@ in
   # system.includeBuildDependencies = true;
   # Uncomment to include all build depedendencies
   # WARNING: This drastically increases the size of the closure
+
+  modules.local-ai = {
+    enable = hasTag "local-ai" makeTags;
+    modelPath = "/data/ollama/models";
+  };
 
   ### NETWORK CONFIG ###
   networking = {

@@ -25,7 +25,7 @@ let
   # Shared model store, independent of either service's StateDirectory.
   # Override per-host via local-ai.modelPath for secondary storage.
   defaultModelPath = "/var/lib/ollama-shared/models";
-  modelPath = config.local-ai.modelPath;
+  modelPath = config.modules.local-ai.modelPath;
 
   ollamaPriSocket = "127.0.0.1:11434";
   ollamaVulkanSocket = "127.0.0.1:11435";
@@ -35,21 +35,40 @@ let
   modelsRelocated = modelPath != defaultModelPath;
 
   shell = if makeNixLib.isLinux makeNixAttrs.system then "bash" else "zsh";
+
+  # RFC 1918 + loopback. systemd renders this as a cgroup eBPF filter;
+  # longest-prefix match means the /8,/12,/16 allows beat the implicit
+  # 0.0.0.0/0 + ::/0 deny, so anything outside these ranges is dropped.
+  egressRestriction = {
+    IPAddressDeny = "any";
+    IPAddressAllow = [
+      "localhost"
+      # 127.0.0.0/8 + ::1/128 — required for the
+      # open-webui <-> ollama 127.0.0.1 hop and the
+      # systemd-resolved stub at 127.0.0.53
+      "10.0.0.0/8"
+      "172.16.0.0/12"
+      "192.168.0.0/16"
+    ];
+  };
 in
 {
-  options.local-ai.modelPath = lib.mkOption {
-    type = lib.types.str;
-    default = defaultModelPath;
-    example = "/mnt/data/ollama/models";
-    description = ''
-      Directory for the shared Ollama model store, read by both the CUDA
-      and Vulkan instances. Override per-host to relocate large GGUF blobs
-      onto secondary storage. A plain string (not a path literal) so the
-      directory is treated as a runtime path rather than copied to the store.
-    '';
+  options.modules.local-ai = {
+    enable = lib.mkEnableOption "local AI inference stack";
+    modelPath = lib.mkOption {
+      type = lib.types.str;
+      default = defaultModelPath;
+      example = "/mnt/data/ollama/models";
+      description = ''
+        Directory for the shared Ollama model store, read by both the CUDA
+        and Vulkan instances. Override per-host to relocate large GGUF blobs
+        onto secondary storage. A plain string (not a path literal) so the
+        directory is treated as a runtime path rather than copied to the store.
+      '';
+    };
   };
 
-  config = {
+  config = lib.mkIf config.modules.local-ai.enable {
     hardware.nvidia-container-toolkit.enable = cudaSupport;
 
     # Override virtualisation settings for Nvidia CUDA container support
@@ -109,8 +128,13 @@ in
     ];
 
     # Order the primary instance after the backing mount when relocated.
-    systemd.services.ollama.unitConfig.RequiresMountsFor =
-      lib.mkIf modelsRelocated [ modelPath ];
+    systemd.services.ollama.unitConfig.RequiresMountsFor = lib.mkIf modelsRelocated [ modelPath ];
+
+    # Confine the always-on instances to RFC 1918 + loopback.
+    # Nested-path style, so these merge with the existing .wantedBy /
+    # .unitConfig definitions rather than re-binding the services.
+    systemd.services.ollama.serviceConfig = egressRestriction;
+    systemd.services.open-webui.serviceConfig = egressRestriction;
 
     # --- Vulkan instance (manual systemd service) ---
     # Only created on dual-GPU machines (cudaSupport implies both GPUs present).
@@ -132,6 +156,13 @@ in
         OLLAMA_KEEP_ALIVE = "30m";
         OLLAMA_FLASH_ATTENTION = "1";
 
+        # Mesa/RADV writes its shader cache to $HOME/.cache;
+        # pipeline cache persists — without it every cold load recompiles all
+        # Vulkan shaders and trips OLLAMA_LOAD_TIMEOUT.
+        HOME = "/var/lib/ollama-vulkan";
+        XDG_CACHE_HOME = "/var/lib/ollama-vulkan/.cache";
+        OLLAMA_LOAD_TIMEOUT = "15m"; # safety net for the first (uncached) compile
+
         # Hide NVIDIA GPU; force Vulkan on AMD iGPU
         CUDA_VISIBLE_DEVICES = "-1";
         OLLAMA_IGPU_ENABLE = "1";
@@ -150,7 +181,8 @@ in
         StateDirectory = "ollama-vulkan";
         WorkingDirectory = "/var/lib/ollama-vulkan";
         ReadWritePaths = [ modelPath ];
-      };
+      }
+      // egressRestriction; # Confine to RFC1918 and localhost
     };
 
     # Disable autostart

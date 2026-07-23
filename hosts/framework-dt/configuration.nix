@@ -15,7 +15,6 @@ in
   imports =
     optionalImport "crypto" ../shared-imports/linux/crypto-services.nix
     ++ optionalImport "virtualisation" ../shared-imports/linux/virtualisation.nix
-    ++ optionalImport "local-ai" ../shared-imports/linux/ollama.nix
     ++ lib.optionals (hasTag "p22" makeTags) [
       ../shared-imports/linux/p22-nfs.nix # File share
       ../shared-imports/linux/p22-printers.nix # Local printer config
@@ -44,6 +43,7 @@ in
 
       ../shared-imports/linux/yubikey-pam-sshd.nix
       outputs.nixosModules.yubikeyUsbipRemote
+      outputs.nixosModules.local-ai
     ];
 
   boot = {
@@ -86,6 +86,11 @@ in
   # system.includeBuildDependencies = true;
   # Uncomment to include all build depedendencies
   # WARNING: This drastically increases the size of the closure
+
+  modules.local-ai = {
+    enable = hasTag "local-ai" makeTags;
+    modelPath = "/data/ollama/models";
+  };
 
   networking = {
     hostName = "${makeNixAttrs.host}";
