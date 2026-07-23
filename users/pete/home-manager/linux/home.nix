@@ -135,6 +135,7 @@ in
         mutt # Terminal email
         navi # Cheat-sheets
         nb # CLI note-taking
+				nh # Nix CLI helper
         nixfmt # Nix linter
         nixfmt-tree # Nix project tree linter
         procs # Better process viewer
