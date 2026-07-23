@@ -73,15 +73,12 @@ let
 
   # When applied, the unstable nixpkgs set (declared in the flake inputs) will
   # be accessible through 'pkgs.unstable'
-  unstable-packages = final: _prev: {
+  unstable-packages = _final: prev: {
     unstable = import inputs.nixpkgs-unstable {
-      localSystem = final.stdenv.hostPlatform;
-      config = {
-        allowUnfree = true;
-      };
+      system = if makeNixAttrs == null then prev.stdenv.hostPlatform.system else makeNixAttrs.system;
+      config.allowUnfree = true;
     };
   };
-
 in
 {
   # Name overlays (for flake outputs.overlays.<name>)
