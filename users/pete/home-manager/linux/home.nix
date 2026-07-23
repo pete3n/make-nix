@@ -35,7 +35,7 @@ in
     ]
     ++ optionalImport "awesome" ./awesome-config.nix
     ++ optionalImport "gaming" ./gaming-config.nix
-		++ optionalImport "gpg-user"  ../../secrets/gpg.nix
+    ++ optionalImport "gpg-user" ../../secrets/gpg.nix
     ++ lib.optional (
       hasTag "git" makeTags || hasTag "git-ssh-user" makeTags
     ) ../cross-platform/git-config.nix
@@ -135,7 +135,7 @@ in
         mutt # Terminal email
         navi # Cheat-sheets
         nb # CLI note-taking
-				nh # Nix CLI helper
+        nh # Nix CLI helper
         nixfmt # Nix linter
         nixfmt-tree # Nix project tree linter
         procs # Better process viewer

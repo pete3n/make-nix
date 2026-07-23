@@ -7,10 +7,12 @@ in
   programs.gpg = {
     enable = true;
 
-    publicKeys = [{
-      source = ./pubkey.asc;
-      trust = "ultimate";
-    }];
+    publicKeys = [
+      {
+        source = ./pubkey.asc;
+        trust = "ultimate";
+      }
+    ];
 
     settings = {
       default-key = fpr;

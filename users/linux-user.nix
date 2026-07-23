@@ -75,7 +75,7 @@ in
   nix.settings.trusted-users = lib.mkIf (hasTag "trusted-user" || hasTag "power-user") (
     lib.mkAfter [ makeNixAttrs.user ]
   );
-  
+
   services = {
     pcscd.enable = hasTag "yubi-age-user" || hasTag "gpg-user";
   }
