@@ -1,3 +1,5 @@
+# This project is no longer maintained and has been depcrecated in favor of nix-space
+
 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
   <h1 style="margin: 0;">Make-nix - <br> </h1>
     <h3> or <i>How my dotfiles escalated into a multi-platform configuration system for declaratively-configured world domination</i> (working title).</h3>
